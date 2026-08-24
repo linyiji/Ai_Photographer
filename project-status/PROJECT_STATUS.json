@@ -6,7 +6,7 @@
   "primary_environment": "windows",
   "overall_status": "IN_PROGRESS",
   "current_milestone": "M00",
-  "current_task": "XFX_FRONTEND_RUNTIME_L1_LOCK_01",
+  "current_task": "XFX_FRONTEND_RUNTIME_L1_LOCK_MERGE_CLOSURE",
   "current_task_status": "PASS",
   "milestones": [
     { "id": "M00", "name": "Project Baseline", "status": "PASS", "gate": "M00_BASELINE_LOCK", "gate_status": "PASS" },
@@ -108,7 +108,10 @@
     "h5_build": "PASS_WITH_WARNING",
     "react_19_2_6_negative_evidence": "PRESERVED_FAIL",
     "production_skeleton_created": false,
-    "challenge_registry_change": "UNCHANGED"
+    "challenge_registry_change": "UNCHANGED",
+    "merge_closure": "PASS",
+    "source_commit": "5436f188184c718e2fe527369d749f8ef071043c",
+    "merged_to": "develop"
   },
   "blocking_inputs": [],
   "environment_gaps": ["PYTHON_MISSING", "DOCKER_MISSING"],
@@ -117,7 +120,14 @@
     "condition": "OWNER_AUTHORIZES_NEXT_TASK_EXECUTION"
   },
   "next_recommended_task": "XFX_M01_GLOBAL_CONTRACTS_LOCK_01",
-  "live_parallel_track": { "status": "PLANNED_NOT_STARTED" },
+  "live_parallel_track": {
+    "status": "RUNNING_IN_SEPARATE_WORKTREE",
+    "worktree": "D:\\Projects\\_worktrees\\Ai_Photographer-live",
+    "branch": "spike/live-physical-agent-mvp-v0.1",
+    "admission_observed_head": "8e5ef051570a222424e428c1f8c5a95ebed7e46b",
+    "integration_status": "NOT_STARTED",
+    "merge_closure_change": "UNTOUCHED"
+  },
   "challenge_summary": {
     "total": 12,
     "identified": 1,
