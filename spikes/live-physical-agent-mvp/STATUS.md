@@ -1,19 +1,24 @@
 # Live Physical Agent Spike Status
 
 ```text
-Task = XFX_LIVE_PHYSICAL_AGENT_MVP_SPIKE_01
+Task = XFX_LIVE_PHYSICAL_AGENT_P0_MANUAL_DEVICE_ACCEPTANCE_01
 Profile = REALTIME_CAMERA_CV
 Mode = CAMERA_PIPELINE
 Scope = LIVE-P0 Camera Sandbox only
 Base Commit = ced35fa17931935b921a1937a32d269e46ebf8ff
+Implementation Commit = 8e5ef051570a222424e428c1f8c5a95ebed7e46b
 
 Implementation Gate = PASS
 Automated Desktop Validation = PASS
-Real Device Gate = MANUAL_REVIEW_REQUIRED
-LIVE-P0 Final Gate = NOT_YET_PASS
-Task Disposition = READY_FOR_MANUAL_DEVICE_TEST
+Real Device Gate = PASS
+LIVE-P0 Final Gate = PASS
+Task Disposition = PASS
 
-Preview FPS = NOT_TESTED_ON_REAL_DEVICE
+Accepted Device = OPPO K11 / ColorOS 15.0 / Chrome Mobile
+Preview FPS = ~29–30 / PASS
+Frame Scheduler = requestVideoFrameCallback / PASS
+Late / Drop Estimate = ~220 / 14 / OBSERVED_WITH_WARNING
+Visible Stalls or Persistent Black Screen = NONE
 Raw Video Upload = 0
 CH-003 = UNCHANGED / IDENTIFIED
 Global Project Status = UNCHANGED
@@ -33,6 +38,12 @@ Challenge Registry = UNCHANGED
 - Documented trusted HTTPS tunnel path for manual phone testing.
 - Fresh lockfile install, dependency tree, TypeScript, build and browser smoke validation.
 
-## Deliberately not completed
+## Real-device acceptance
 
-No real phone was operated in this task. Front/rear camera hardware behavior, switch behavior, orientation, mirror/action-direction sanity and the `>=25fps` candidate threshold remain manual evidence requirements. No P1 work is authorized or started.
+OPPO K11 on ColorOS 15.0 with Chrome Mobile passed HTTPS camera permission, front and rear preview, bidirectional repeated switching, front-preview mirroring, Sensor/Preview/User-Action coordinate sanity, portrait/landscape rotation, at least 60 seconds of approximately 29–30 fps preview, no visible freeze/black screen, and stop→start camera restart. Detailed evidence is in `evidence/camera/manual-device-test-oppo-k11.md`.
+
+The approximate late/drop observation (`220 / 14`) is retained with warning. It does not block P0 because preview remained near 30 fps and no visible stall was observed. Exact Chrome version was not recorded.
+
+## Stop boundary
+
+LIVE-P0 is accepted on the tested real device. CH-003 remains `IDENTIFIED`: CV inference, inference latency, CPU/memory, thermal/power and mini-program feasibility were not tested. LIVE-P1 is not started by this Task.
