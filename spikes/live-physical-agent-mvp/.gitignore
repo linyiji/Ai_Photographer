@@ -1,5 +1,9 @@
 node_modules/
 dist/
+.test-dist/
+public/mediapipe-wasm/
+public/models/*.task
+models/
 *.local
 *.pem
 *.key

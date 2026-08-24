@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#080b0d" />
     <meta name="color-scheme" content="dark" />
-    <title>XFX Camera Sandbox · LIVE-P0</title>
+    <title>XFX Perception State · LIVE-P1</title>
   </head>
   <body>
     <main class="app-shell">
       <header class="topbar">
         <div>
-          <p class="eyebrow">LIVE-P0 · CAMERA SANDBOX</p>
-          <h1>真实相机基础验证</h1>
+          <p class="eyebrow">LIVE-P1 · PERCEPTION / STATE</p>
+          <h1>实时人体几何状态</h1>
         </div>
         <button id="hud-toggle" class="button button--quiet" type="button" aria-pressed="true">
           隐藏 HUD
@@ -40,7 +40,7 @@
           </dl>
         </div>
 
-        <div class="coordinate-strip" aria-label="坐标调试状态">
+        <div id="coordinate-strip" class="coordinate-strip" aria-label="坐标调试状态">
           <div>
             <span>SENSOR COORDINATE</span>
             <strong id="sensor-coordinate">RAW · NON-MIRRORED</strong>
@@ -73,13 +73,57 @@
         </p>
       </section>
 
+      <section id="perception-hud" class="perception-panel" aria-label="P1 Perception Debug HUD">
+        <div class="perception-panel__header">
+          <div>
+            <p class="eyebrow">ON-DEVICE · ONE SUBJECT · 8HZ CANDIDATE</p>
+            <h2>Perception Debug HUD</h2>
+          </div>
+          <button id="pose-init-button" class="button" type="button">初始化 Pose</button>
+        </div>
+        <div class="perception-status">
+          <span id="pose-model-status" class="status-pill">MODEL · LAZY</span>
+          <span id="execution-mode" class="status-pill status-pill--muted">MODE · UNINITIALIZED</span>
+          <span class="status-pill status-pill--muted">GUIDANCE · NONE</span>
+        </div>
+        <p id="pose-message" class="message" role="status" aria-live="polite">
+          Pose 模型尚未初始化；相机和模型均只在用户操作后启动。
+        </p>
+        <dl class="perception-grid">
+          <div><dt>PREVIEW FPS</dt><dd id="p-preview-fps">0.0</dd></div>
+          <div><dt>VISION TARGET HZ</dt><dd id="p-target-hz">8.0</dd></div>
+          <div><dt>VISION ACTUAL HZ</dt><dd id="p-vision-hz">0.0</dd></div>
+          <div><dt>STATE OUTPUT HZ</dt><dd id="p-state-hz">0.0</dd></div>
+          <div><dt>INFERENCE CURRENT</dt><dd id="p-inference-current">0.0 ms</dd></div>
+          <div><dt>INFERENCE P50</dt><dd id="p-inference-p50">0.0 ms</dd></div>
+          <div><dt>INFERENCE P95</dt><dd id="p-inference-p95">0.0 ms</dd></div>
+          <div><dt>SCHEDULED / PROCESSED</dt><dd id="p-frame-count">0 / 0</dd></div>
+          <div><dt>SKIPPED BUSY</dt><dd id="p-skipped-busy">0</dd></div>
+          <div><dt>POSE CONF / PRESENCE</dt><dd id="p-confidence">0.000 / 0.000</dd></div>
+          <div><dt>SUBJECT PRESENT</dt><dd id="p-subject-present">FALSE</dd></div>
+          <div><dt>RAW / FILTERED CENTER</dt><dd id="p-raw-filtered">— / —</dd></div>
+          <div><dt>CENTER X / Y</dt><dd id="p-center">— / —</dd></div>
+          <div><dt>WIDTH / HEIGHT</dt><dd id="p-ratios">— / —</dd></div>
+          <div><dt>VELOCITY X / Y</dt><dd id="p-velocity">— / —</dd></div>
+          <div><dt>VELOCITY SCALE</dt><dd id="p-velocity-scale">—</dd></div>
+          <div><dt>STABLE</dt><dd id="p-stable">FALSE</dd></div>
+          <div><dt>MEASUREMENT AGE</dt><dd id="p-measurement-age">—</dd></div>
+          <div><dt>LOSS / REACQUIRE</dt><dd id="p-loss-reacquire">0 / 0</dd></div>
+          <div><dt>VALID LANDMARKS</dt><dd id="p-valid-landmarks">0</dd></div>
+          <div><dt>SUBJECT RATIO</dt><dd id="p-subject-ratio">0.000</dd></div>
+          <div><dt>JS MEMORY</dt><dd id="p-memory">UNAVAILABLE</dd></div>
+          <div><dt>CPU / THERMAL</dt><dd>BROWSER API UNAVAILABLE</dd></div>
+          <div><dt>UPLOAD / BACKEND / LUNA</dt><dd>0 / 0 / 0</dd></div>
+        </dl>
+      </section>
+
       <details class="capability-card" open>
         <summary>Browser / Device Capability</summary>
         <dl id="capability-list" class="capability-list"></dl>
       </details>
 
       <footer>
-        仅本机实时预览与性能观测 · 不运行 CV / ML · 不上传帧 · Raw Video Upload = 0
+        本机 Pose 推理与临时结构化状态 · 不保存 landmarks/frame · 不上传视频 · Backend/Luna Calls = 0
       </footer>
     </main>
     <script type="module" src="/src/main.ts"></script>

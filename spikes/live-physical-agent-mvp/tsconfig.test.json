@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": false,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noEmit": false,
+    "outDir": ".test-dist",
+    "rootDir": ".",
+    "types": ["node"]
+  },
+  "include": [
+    "perception/config.ts",
+    "perception/geometry.ts",
+    "perception/scheduler.ts",
+    "perception/state-tracker.ts",
+    "perception/telemetry.ts",
+    "perception/types.ts",
+    "fixtures/perception/**/*.ts",
+    "tests/**/*.ts"
+  ]
+}

@@ -9,13 +9,22 @@
     "npm": "11.6.2"
   },
   "scripts": {
+    "prepare:mediapipe-assets": "node scripts/prepare-mediapipe-assets.mjs",
+    "setup:model": "node scripts/fetch-pose-model.mjs",
+    "predev": "npm run prepare:mediapipe-assets",
     "dev": "vite",
+    "test": "tsc -p tsconfig.test.json && node --test .test-dist/tests/perception.test.js",
     "typecheck": "tsc --noEmit",
+    "prebuild": "npm run prepare:mediapipe-assets",
     "build": "npm run typecheck && vite build",
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@types/node": "24.13.3",
     "typescript": "5.9.3",
     "vite": "8.2.2"
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "1.0.1"
   }
 }

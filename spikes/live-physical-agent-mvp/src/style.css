@@ -51,6 +51,7 @@ button:focus-visible, summary:focus-visible {
 }
 
 h1 { margin: 0; font-size: clamp(1.25rem, 5vw, 1.9rem); letter-spacing: -0.035em; }
+h2 { margin: 0; font-size: 1rem; letter-spacing: -0.02em; }
 
 .camera-stage {
   position: relative;
@@ -163,6 +164,22 @@ h1 { margin: 0; font-size: clamp(1.25rem, 5vw, 1.9rem); letter-spacing: -0.035em
   background: rgba(18, 23, 26, 0.78);
 }
 
+.perception-panel {
+  margin-top: 0.85rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(114, 255, 194, 0.24);
+  border-radius: 1.2rem;
+  background: linear-gradient(145deg, rgba(18, 31, 29, 0.94), rgba(13, 18, 21, 0.94));
+}
+
+.perception-panel[hidden] { display: none; }
+.perception-panel__header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.perception-status { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 0.75rem; }
+.perception-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem; margin: 0.75rem 0 0; }
+.perception-grid div { min-width: 0; padding: 0.6rem; border-radius: 0.7rem; background: rgba(5, 10, 11, 0.72); }
+.perception-grid dt { color: #788d88; font-size: 0.54rem; font-weight: 800; letter-spacing: 0.07em; }
+.perception-grid dd { overflow-wrap: anywhere; margin: 0.23rem 0 0; color: #d8e4e0; font: 650 0.62rem/1.35 ui-monospace, SFMono-Regular, Consolas, monospace; }
+
 .control-panel { padding: 0.85rem; }
 .state-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.55rem; }
 .state-grid div { min-width: 0; padding: 0.65rem; border-radius: 0.75rem; background: #0b0f11; }
@@ -199,6 +216,7 @@ footer { padding: 1rem 0 0; color: #687276; font-size: 0.66rem; line-height: 1.5
   .button-row { grid-template-columns: 1fr 1fr; }
   .button--danger { grid-column: 1 / -1; }
   .capability-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .perception-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (prefers-reduced-motion: reduce) {
