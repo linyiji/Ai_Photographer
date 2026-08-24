@@ -7,7 +7,7 @@ Task: XFX_PROJECT_BOOTSTRAP_WINDOWS_01
 Milestone: M00 — Project Baseline
 Status: PASS
 Local Bootstrap: PASS
-Remote Bootstrap: FAIL
+Remote Bootstrap: PASS
 Execution Date: 2026-08-24
 ```
 
@@ -58,14 +58,15 @@ Initial SHA256 validation occurred before Baseline status/report modification.
 |---|---|
 | local user.name | VERIFIED — `linyiji` |
 | local user.email | VERIFIED — `yijikqy@gmail.com` |
-| origin | `https://github.com/linyiji/Ai_Photographer.git` |
+| origin | `ssh://git@ssh.github.com:443/linyiji/Ai_Photographer.git` |
+| Remote Transport | GitHub SSH over port 443 |
 | Remote Empty Check | PASS — GitHub official repository page |
-| main | PASS |
-| develop | PASS |
+| main | PASS — tracking `origin/main` |
+| develop | PASS — tracking `origin/develop` |
 | Baseline Commit | `5b8a655f9d297d902941e5cb9d7a40143c3580e4` |
-| Acceptance Commit | SELF — commit containing this report |
-| Working Tree | Expected CLEAN after Acceptance Commit; verified in final acceptance |
-| Push | FAIL — Git/curl CLI could not connect to GitHub 443 after local PASS |
+| Acceptance Commit | `7491546ac527e1a73734b1b3a07d35001fd9967f` |
+| Working Tree | CLEAN before Remote Bootstrap closure |
+| Push | PASS — `main` and `develop` present on origin and tracking |
 
 ## Security
 
@@ -86,10 +87,18 @@ Challenges Reopened: NONE
 Challenge Registry Changes: NONE
 ```
 
-## Known Issues
+## Remote Transport Resolution History
 
-- Git CLI empty-ref query was interrupted by local network connectivity; the official GitHub repository page independently confirmed the repository was empty.
-- GitHub Device Flow credential verification passed, but both Git and curl CLI HTTPS connections to GitHub timed out/reset; no remote refs were created.
+HTTPS Git transport failed in current network.
+
+Resolved by switching repository remote transport to GitHub SSH over port 443.
+
+Evidence:
+
+- `origin = ssh://git@ssh.github.com:443/linyiji/Ai_Photographer.git`
+- `main` tracks `origin/main`
+- `develop` tracks `origin/develop`
+- `git ls-remote --heads origin main develop` returned both remote refs at `7491546ac527e1a73734b1b3a07d35001fd9967f` before closure changes.
 
 ## Deferred
 
@@ -116,6 +125,7 @@ NONE / NONE
 - [x] Task Report created
 - [x] Acceptance Commit created by committing this report
 - [x] Working tree clean verified after commit
+- [x] Remote Bootstrap PASS through GitHub SSH over port 443
 
 ## POST_PHASE_CHECKPOINT
 
@@ -123,12 +133,12 @@ NONE / NONE
 M00 Project Baseline: PASS
 M00_BASELINE_LOCK: PASS
 LOCAL_BOOTSTRAP: PASS
+REMOTE_BOOTSTRAP: PASS
 ```
 
 ## PRE_NEXT_PHASE_CHECKPOINT
 
 ```text
-Next Milestone: M01
-Next Task: XFX_GLOBAL_CONTRACTS_AND_SKELETON_01
-M01 execution in this task: NOT_EXECUTED
+Next Recommended Task: XFX_ENVIRONMENT_L0_LOCK_01
+Next task execution in this closure: NOT_EXECUTED
 ```

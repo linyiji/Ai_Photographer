@@ -21,28 +21,31 @@
   "bootstrap": {
     "task_id": "XFX_PROJECT_BOOTSTRAP_WINDOWS_01",
     "local_bootstrap": "PASS",
-    "remote_bootstrap": "FAIL",
+    "remote_bootstrap": "PASS",
     "project_path": "D:\\Projects\\Ai_Photographer",
     "checksum_validation": "PASS",
     "secret_scan": "ACCEPTABLE",
     "git_identity": "VERIFIED_LOCAL",
     "main": "PASS",
+    "main_upstream": "origin/main",
     "develop": "PASS",
+    "develop_upstream": "origin/develop",
+    "remote_url": "ssh://git@ssh.github.com:443/linyiji/Ai_Photographer.git",
+    "remote_transport": "GITHUB_SSH_OVER_PORT_443",
     "baseline_commit": "5b8a655f9d297d902941e5cb9d7a40143c3580e4",
-    "acceptance_commit": "SELF",
-    "blocker_type": "TECHNICAL",
-    "blocking_scope": "REMOTE_BOOTSTRAP",
-    "does_not_block": ["LOCAL_BOOTSTRAP", "M00_BASELINE_LOCK"],
-    "required_input": ["GITHUB_HTTPS_NETWORK_ACCESS_FOR_GIT_CLI"]
+    "acceptance_commit": "7491546ac527e1a73734b1b3a07d35001fd9967f",
+    "blocker_type": "NONE",
+    "blocking_scope": "NONE",
+    "does_not_block": [],
+    "required_input": []
   },
-  "blocking_inputs": ["GITHUB_HTTPS_NETWORK_UNAVAILABLE_FOR_GIT_CLI"],
+  "blocking_inputs": [],
   "environment_gaps": ["NODE_MISSING", "PYTHON_MISSING", "DOCKER_MISSING"],
   "next_required_result": {
-    "task_id": "XFX_GLOBAL_CONTRACTS_AND_SKELETON_01",
-    "condition": "OWNER_AUTHORIZES_M01_EXECUTION"
+    "task_id": "XFX_ENVIRONMENT_L0_LOCK_01",
+    "condition": "OWNER_AUTHORIZES_NEXT_TASK_EXECUTION"
   },
-  "next_milestone": "M01",
-  "next_recommended_task": "XFX_GLOBAL_CONTRACTS_AND_SKELETON_01",
+  "next_recommended_task": "XFX_ENVIRONMENT_L0_LOCK_01",
   "challenge_summary": {
     "total": 12,
     "identified": 1,

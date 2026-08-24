@@ -30,26 +30,35 @@ No CURRENT Prototype, Product Golden Flow, Architecture Authority, Framework sou
 | Secret scan/staging hygiene | ACCEPTABLE/PASS |
 | main/develop | PASS/PASS |
 | Baseline Commit | PASS |
-| Acceptance Commit | SELF |
+| Acceptance Commit | `7491546ac527e1a73734b1b3a07d35001fd9967f` |
 | Final Git Clean | PASS — verified after commit |
+| Remote transport | PASS — GitHub SSH over port 443 |
+| main upstream | PASS — `origin/main` |
+| develop upstream | PASS — `origin/develop` |
 
 ```text
 LOCAL_BOOTSTRAP = PASS
-REMOTE_BOOTSTRAP = FAIL
+REMOTE_BOOTSTRAP = PASS
 ```
 
 ## Evidence
 
 - Project: `D:\Projects\Ai_Photographer`
 - Baseline Commit: `5b8a655f9d297d902941e5cb9d7a40143c3580e4`
-- Acceptance Commit: commit containing this report
+- Acceptance Commit: `7491546ac527e1a73734b1b3a07d35001fd9967f`
 - Initial package checksum: 76/76 PASS
 - S01 assets: A01–A07; Scene Sources: 5
-- origin: `https://github.com/linyiji/Ai_Photographer.git`
+- origin: `ssh://git@ssh.github.com:443/linyiji/Ai_Photographer.git`
+- remote refs before closure changes: `main` and `develop` at `7491546ac527e1a73734b1b3a07d35001fd9967f`
+
+## Remote Transport Resolution History
+
+HTTPS Git transport failed in current network.
+
+Resolved by switching repository remote transport to GitHub SSH over port 443.
 
 ## Known Issues
 
-- GitHub Device Flow authentication passed, but the current Git/curl CLI network path cannot connect to GitHub 443; `main` and `develop` were not pushed.
 - Environment gaps only: Node, Python, Docker.
 
 ## Deferred
@@ -69,13 +78,13 @@ Challenge Registry Changes: NONE
 
 ```text
 Baseline Commit: 5b8a655f9d297d902941e5cb9d7a40143c3580e4
-Acceptance Commit: SELF
+Acceptance Commit: 7491546ac527e1a73734b1b3a07d35001fd9967f
 ```
 
 ## Next Task
 
 ```text
-XFX_GLOBAL_CONTRACTS_AND_SKELETON_01
+XFX_ENVIRONMENT_L0_LOCK_01
 ```
 
-M01 was not started.
+The next task was not started; M01 was not entered.

@@ -1,8 +1,9 @@
 # GPT / Codex Handoff
 
 **Baseline:** V0.6 Complete  
-**Current Milestone:** M00  
-**Current Task:** XFX_PROJECT_BOOTSTRAP_WINDOWS_01
+**Current Milestone:** M00 — PASS
+
+**Current Task:** XFX_PROJECT_BOOTSTRAP_WINDOWS_01 — PASS
 
 ## Project Context
 
@@ -21,7 +22,23 @@
 
 ## Current Runtime
 
-尚未在目标 Windows 环境完成 TASK 00，因此真实 Runtime 仍待 Bootstrap。
+Windows TASK 00 已完成本地与远程 Bootstrap。
+
+```text
+Project Root: D:\Projects\Ai_Photographer
+LOCAL_BOOTSTRAP: PASS
+REMOTE_BOOTSTRAP: PASS
+M00_BASELINE_LOCK: PASS
+Remote: ssh://git@ssh.github.com:443/linyiji/Ai_Photographer.git
+main: tracking origin/main
+develop: tracking origin/develop
+```
+
+Remote transport history:
+
+HTTPS Git transport failed in current network.
+
+Resolved by switching repository remote transport to GitHub SSH over port 443.
 
 ## Completed
 
@@ -34,6 +51,10 @@
 - Challenge Governance
 - Project Control Center Prototype
 - Framework Integration Proposal
+- Windows local repository Bootstrap
+- GitHub Remote Bootstrap through SSH over port 443
+- Baseline Commit `5b8a655f9d297d902941e5cb9d7a40143c3580e4`
+- Acceptance Commit `7491546ac527e1a73734b1b3a07d35001fd9967f`
 
 ## Known Issues
 
@@ -47,10 +68,10 @@ project-status/CHALLENGES.json
 
 ## Next Task
 
-首先完成：
+Next Recommended Task:
 
 ```text
-XFX_PROJECT_BOOTSTRAP_WINDOWS_01
+XFX_ENVIRONMENT_L0_LOCK_01
 ```
 
-不要跳过 M00 Gate。
+不要在本次 Remote Bootstrap 收口中开始执行下一任务或进入 M01。
