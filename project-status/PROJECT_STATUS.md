@@ -3,7 +3,7 @@
 **Project Baseline:** V0.6 Complete  
 **Current Product Prototype:** S01 V1.6.1  
 **Current Milestone:** M00 — Project Baseline  
-**Current Task:** XFX_CODEX_EXECUTION_STANDARD_V1_MERGE_CLOSURE
+**Current Task:** XFX_FRONTEND_RUNTIME_L1_LOCK_01
 
 **Current Task Status:** PASS
 
@@ -90,6 +90,26 @@ Work Branch: spike/frontend-runtime-compatibility
 
 Spike Commit `fe92d5af50ff3b0decd9196c79f71445a73e2ca9` 已通过 strict fast-forward 合入并推送至 `develop`。`XFX_FRONTEND_RUNTIME_COMPATIBILITY_SPIKE_MERGE_CLOSURE = PASS`。
 
+## Frontend Runtime L1 Lock
+
+```text
+XFX_FRONTEND_RUNTIME_L1_LOCK: PASS
+Taro: 4.2.1 — LOCKED_L1
+React: 18.3.1 — LOCKED_L1
+ReactDOM: 18.3.1 — LOCKED_L1
+TypeScript: 5.9.3 — LOCKED_L1
+Webpack Build Companion: 5.91.0 — VERIFIED
+Fresh npm Reproduction: PASS
+Dependency Tree: PASS
+TypeScript Validation: PASS_WITH_DOCUMENTED_BOUNDARY
+WeChat Build: PASS
+H5 Build: PASS_WITH_WARNING
+React 19.2.6: FAIL — NEGATIVE_EVIDENCE_PRESERVED
+Work Branch: feature/frontend-runtime-l1-lock
+```
+
+本 Gate 只提升已验证 Candidate；未搜索新版本、未创建正式应用 Skeleton、未开始 M01 或 Live Physical Agent。
+
 ## Codex Execution Governance
 
 ```text
@@ -101,7 +121,7 @@ Governance Source Commit: c32846397898c1b792741e1614f65ae13598ecb6
 Merged Target: develop
 Governance Merge Closure: PASS
 AtlasAnalyse Source Status: REFERENCE_SOURCE
-Frontend Runtime L1: CANDIDATE, NOT LOCKED
+Frontend Runtime L1: LOCKED_L1
 ```
 
 治理标准保留 React 19.2.6 失败证据，并明确 `CANDIDATE_RESULT != TASK_RESULT`、`Candidate != Authority` 与 `SPIKE_PASS != VERSION_LOCK`。
@@ -119,7 +139,7 @@ Challenges Reopened: NONE
 ## Next Recommended Task
 
 ```text
-XFX_FRONTEND_RUNTIME_L1_LOCK_01
+XFX_M01_GLOBAL_CONTRACTS_LOCK_01
 ```
 
-治理分支已经受控合入 `develop`。这里只记录下一产品任务；本次未执行 Frontend Runtime L1 Lock，也未开始 Live Director 并行轨道。
+这里只记录下一产品任务；本次未开始 M01，也未开始 Live Physical Agent。

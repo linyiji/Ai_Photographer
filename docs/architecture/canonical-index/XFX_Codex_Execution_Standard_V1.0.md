@@ -131,7 +131,7 @@ Documentation lifecycle is `DRAFT → ACTIVE → FROZEN → SUPERSEDED → ARCHI
 
 ## Current runtime authority boundary
 
-Node 24.18.0 and npm 11.6.2 are locked L0 Authority. Taro 4.2.1, React 18.3.1, and TypeScript 5.9.3 are evidence-backed L1 candidates only. React 19.2.6 is retained rejected-candidate evidence. Promotion belongs solely to `XFX_FRONTEND_RUNTIME_L1_LOCK_01`.
+Node 24.18.0 and npm 11.6.2 are locked L0 Authority. `XFX_FRONTEND_RUNTIME_L1_LOCK_01` promoted Taro 4.2.1, React 18.3.1, ReactDOM 18.3.1, and TypeScript 5.9.3 to `LOCKED_L1` after deterministic reproduction and multi-runtime revalidation. React 19.2.6 remains retained rejected-candidate evidence. Webpack 5.91.0 is a verified build companion, not a separately promoted global runtime Authority.
 
 ## Stop boundary
 

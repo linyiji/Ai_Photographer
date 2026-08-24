@@ -3,7 +3,7 @@
 **Baseline:** V0.6 Complete  
 **Current Milestone:** M00 — PASS
 
-**Current Task:** XFX_CODEX_EXECUTION_STANDARD_V1_MERGE_CLOSURE — PASS
+**Current Task:** XFX_FRONTEND_RUNTIME_L1_LOCK_01 — PASS
 
 ## Project Context
 
@@ -74,6 +74,20 @@ New Shell Reproducibility: PASS
 - XFX Codex Execution Standard V1 canonicalized with 11 Profiles and 6 Templates
 - Governance commit `c32846397898c1b792741e1614f65ae13598ecb6` strict-fast-forward merged into `develop`
 - XFX Codex Execution Standard V1 promoted from `ACTIVE_CANDIDATE` to `ACTIVE`
+- Frontend Runtime L1 promotion Gate passed through fresh lock-file reproduction, dependency validation, TypeScript, WeChat, and H5 builds
+
+## Frontend Runtime L1 Authority
+
+```text
+XFX_FRONTEND_RUNTIME_L1_LOCK: PASS
+Taro: 4.2.1 — LOCKED_L1
+React: 18.3.1 — LOCKED_L1
+ReactDOM: 18.3.1 — LOCKED_L1
+TypeScript: 5.9.3 — LOCKED_L1
+Webpack: 5.91.0 — VERIFIED BUILD COMPANION
+React 19.2.6: FAIL — negative evidence preserved
+Authority: docs/environment/63-frontend-runtime-l1-lock.md
+```
 
 ## Governance Authority
 
@@ -84,7 +98,7 @@ Authority status: ACTIVE on develop
 Source branch: governance/codex-execution-standard-v1
 Source commit: c32846397898c1b792741e1614f65ae13598ecb6
 Source provenance: AtlasAnalyse package = REFERENCE_SOURCE
-Frontend L1 versions: L1_CANDIDATE, NOT LOCKED
+Frontend L1 versions: LOCKED_L1
 React 19.2.6: retained negative evidence (FAIL)
 ```
 
@@ -103,7 +117,7 @@ project-status/CHALLENGES.json
 Next Recommended Task:
 
 ```text
-XFX_FRONTEND_RUNTIME_L1_LOCK_01
+XFX_M01_GLOBAL_CONTRACTS_LOCK_01
 ```
 
-不要自动执行下一任务。Taro 4.2.1、React 18.3.1 与 TypeScript 5.9.3 仍仅为 `L1_CANDIDATE`。Live Parallel Track 仅为 `PLANNED_NOT_STARTED`。Python、Backend、Camera、CV、Live Director 与 M01 均未启动；CH-003 保持 `IDENTIFIED`。
+不要自动执行下一任务。未创建正式 Frontend Skeleton。Live Parallel Track 仍为 `PLANNED_NOT_STARTED`。Python、Backend、Camera、CV、Live Physical Agent 与 M01 均未启动；CH-003 保持 `IDENTIFIED`。

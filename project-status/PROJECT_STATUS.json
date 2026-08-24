@@ -6,7 +6,7 @@
   "primary_environment": "windows",
   "overall_status": "IN_PROGRESS",
   "current_milestone": "M00",
-  "current_task": "XFX_CODEX_EXECUTION_STANDARD_V1_MERGE_CLOSURE",
+  "current_task": "XFX_FRONTEND_RUNTIME_L1_LOCK_01",
   "current_task_status": "PASS",
   "milestones": [
     { "id": "M00", "name": "Project Baseline", "status": "PASS", "gate": "M00_BASELINE_LOCK", "gate_status": "PASS" },
@@ -88,13 +88,35 @@
     "source_commit": "c32846397898c1b792741e1614f65ae13598ecb6",
     "merged_to": "develop"
   },
+  "frontend_runtime_l1": {
+    "task_id": "XFX_FRONTEND_RUNTIME_L1_LOCK_01",
+    "status": "PASS",
+    "gate": "XFX_FRONTEND_RUNTIME_L1_LOCK",
+    "gate_status": "PASS",
+    "work_branch": "feature/frontend-runtime-l1-lock",
+    "node": { "version": "24.18.0", "authority_state": "LOCKED_L0" },
+    "npm": { "version": "11.6.2", "authority_state": "LOCKED_L0" },
+    "taro": { "version": "4.2.1", "authority_state": "LOCKED_L1" },
+    "react": { "version": "18.3.1", "authority_state": "LOCKED_L1" },
+    "react_dom": { "version": "18.3.1", "authority_state": "LOCKED_L1" },
+    "typescript": { "version": "5.9.3", "authority_state": "LOCKED_L1" },
+    "webpack_build_companion": { "version": "5.91.0", "authority_state": "VERIFIED" },
+    "fresh_npm_reproduction": "PASS",
+    "dependency_tree": "PASS",
+    "typescript_validation": "PASS_WITH_DOCUMENTED_BOUNDARY",
+    "wechat_build": "PASS",
+    "h5_build": "PASS_WITH_WARNING",
+    "react_19_2_6_negative_evidence": "PRESERVED_FAIL",
+    "production_skeleton_created": false,
+    "challenge_registry_change": "UNCHANGED"
+  },
   "blocking_inputs": [],
   "environment_gaps": ["PYTHON_MISSING", "DOCKER_MISSING"],
   "next_required_result": {
-    "task_id": "XFX_FRONTEND_RUNTIME_L1_LOCK_01",
+    "task_id": "XFX_M01_GLOBAL_CONTRACTS_LOCK_01",
     "condition": "OWNER_AUTHORIZES_NEXT_TASK_EXECUTION"
   },
-  "next_recommended_task": "XFX_FRONTEND_RUNTIME_L1_LOCK_01",
+  "next_recommended_task": "XFX_M01_GLOBAL_CONTRACTS_LOCK_01",
   "live_parallel_track": { "status": "PLANNED_NOT_STARTED" },
   "challenge_summary": {
     "total": 12,
