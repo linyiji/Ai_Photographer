@@ -1,0 +1,72 @@
+{
+  "baseline_version": "0.6",
+  "current_prototype": "prototypes/current/向风行_S01_风暴来临之前_CURRENT_V1.6.1.html",
+  "windows_first": true,
+  "mac_strategy": "clone_same_git_repository",
+  "product_design_documents": [
+    "docs/product-design/10-golden-flow-v1.0.md",
+    "docs/product-design/11-realtime-shot-control-v1.0.md",
+    "docs/product-design/12-reality-plus-policy-v1.0.md",
+    "docs/product-design/13-user-fine-tune-v1.0.md",
+    "docs/product-design/14-final-action-hub-v1.0.md",
+    "docs/product-design/15-story-a-f-master-v1.0.md",
+    "docs/product-design/16-global-design-foundation-v1.0.md",
+    "docs/product-design/archive/story-a-b-reference-v1.0.md"
+  ],
+  "research_documents": [
+    "docs/research/20-product-tech-architecture-research-v1.0.md",
+    "docs/project-init/30-windows-first-project-init-v1.0.md"
+  ],
+  "prototypes": [
+    "prototypes/current/向风行_S01_风暴来临之前_CURRENT_V1.6.1.html",
+    "prototypes/baseline/向风行_P01-P13_交互骨架_BASELINE_V1.1.html"
+  ],
+  "story_assets": [
+    "assets/story-s01/source/S01-A01-subject-anchor.png",
+    "assets/story-s01/source/S01-A02-scene-anchor-road.png",
+    "assets/story-s01/generated/S01-A03-target-preview.png",
+    "assets/story-s01/generated/S01-A04-pose-guide-a.png",
+    "assets/story-s01/generated/S01-A05-pose-guide-b.png",
+    "assets/story-s01/generated/S01-A06-candidate-capture.png",
+    "assets/story-s01/generated/S01-A07-reality-plus-final.png",
+    "assets/story-library/source-scenes/scene-01-road.png",
+    "assets/story-library/source-scenes/scene-02-fog-lake.png",
+    "assets/story-library/source-scenes/scene-03-beach.png",
+    "assets/story-library/source-scenes/scene-04-european-street.png",
+    "assets/story-library/source-scenes/scene-05-city-street.png",
+    "assets/story-library/subject-anchor.png"
+  ],
+  "missing_files": [],
+  "progress_governance": {
+    "status_markdown": "project-status/PROJECT_STATUS.md",
+    "status_json": "project-status/PROJECT_STATUS.json",
+    "governance": "docs/project-management/40-progress-governance.md",
+    "milestone_plan": "docs/project-management/41-milestone-plan.md",
+    "codex_task_template": "docs/project-management/42-codex-task-template.md"
+  },
+  "challenge_governance": {
+    "authority": "project-status/CHALLENGES.json",
+    "human_view": "project-status/CHALLENGES.md",
+    "governance": "docs/project-management/43-challenge-resolution-governance.md"
+  },
+  "visualization": {
+    "project_control_center": "prototypes/project-control-center/XFX_Project_Control_Center_V0.1.html"
+  },
+  "framework": {
+    "source": "docs/framework/AI_Native_Product_Creation_Framework_V1_SOURCE.md",
+    "architecture_optimization": "docs/architecture/50-xfx-product-architecture-optimization-v2.md",
+    "stage_mapping": "docs/project-management/44-framework-to-xfx-stage-mapping.md"
+  },
+  "execution_context": {
+    "agents": "AGENTS.md",
+    "current_version_scope": "project-status/CURRENT_VERSION_SCOPE.md",
+    "handoff": "project-status/GPT_HANDOFF.md"
+  },
+  "package_type": "COMPLETE_BASELINE",
+  "current_codex_bootstrap_task": "docs/execution/XFX_CODEX_TASK_00_WINDOWS_PROJECT_BOOTSTRAP_CURRENT.md",
+  "integrity": {
+    "inventory": "PACKAGE_INVENTORY.md",
+    "checksums": "PACKAGE_CHECKSUMS.sha256",
+    "verification_report": "BASELINE_VERIFICATION_REPORT.md"
+  }
+}

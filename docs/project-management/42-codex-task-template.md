@@ -1,0 +1,56 @@
+# 42｜Codex Task Template
+
+```text
+TASK_ID:
+MILESTONE:
+TITLE:
+STATUS: NOT_STARTED
+
+OWNER:
+EXECUTION_ENVIRONMENT:
+
+INPUTS:
+
+SCOPE:
+
+OUT_OF_SCOPE:
+
+ALLOWED_WRITES:
+
+HARD_SAFETY_BOUNDARIES:
+
+PRECONDITIONS:
+
+EXECUTION_STEPS:
+
+ACCEPTANCE_CRITERIA:
+
+TESTS:
+
+EVIDENCE_REQUIRED:
+
+EXPECTED_GIT_COMMITS:
+
+BLOCKING_CONDITIONS:
+
+REPORT_PATH:
+project-status/reports/<TASK_ID>.md
+
+PROJECT_STATUS_UPDATE_REQUIRED:
+YES
+
+NEXT_RECOMMENDED_TASK:
+```
+
+## Codex Progress Rule
+
+Codex 每次正式任务结束必须：
+
+1. 生成 Task Report；
+2. 更新 `PROJECT_STATUS.md`；
+3. 更新 `PROJECT_STATUS.json`；
+4. 明确 PASS / FAIL / SOURCE_REQUIRED；
+5. 列出 Known Issues；
+6. 列出 Deferred Items；
+7. 明确下一 Task；
+8. 确认 Git status。

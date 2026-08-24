@@ -1,0 +1,255 @@
+{
+  "schema_version": 1,
+  "authority": "project-status/CHALLENGES.json",
+  "status_model": [
+    "IDENTIFIED",
+    "ANALYZING",
+    "SOLUTION_PROPOSED",
+    "IMPLEMENTING",
+    "VALIDATING",
+    "RESOLVED",
+    "BLOCKED",
+    "DEFERRED",
+    "REOPENED"
+  ],
+  "challenges": [
+    {
+      "challenge_id": "CH-001",
+      "title": "Target 可执行性",
+      "category": "PRODUCT_AI",
+      "severity": "P1",
+      "status": "SOLUTION_PROPOSED",
+      "blocking_milestones": [
+        "M05"
+      ],
+      "problem": "AI 可能推荐视觉上漂亮但当前现实无法执行的 Target。",
+      "solution": "Target Candidate → Reality Feasibility Check → Safety Filter → ShotDirection Feasibility",
+      "validation_plan": "建立多场景 Target Fixture，并在真实场景验证可站位、机位与安全约束。",
+      "acceptance_criteria": [
+        "推荐 Target 可生成合法 ShotDirection",
+        "无 Safety 冲突",
+        "用户可以在真实现场执行"
+      ],
+      "related_tasks": [],
+      "evidence": []
+    },
+    {
+      "challenge_id": "CH-002",
+      "title": "Target Preview 现实漂移",
+      "category": "GENERATIVE_AI",
+      "severity": "P1",
+      "status": "SOLUTION_PROPOSED",
+      "blocking_milestones": [
+        "M05"
+      ],
+      "problem": "Target Preview 可能偷偷改变天气、人物、服装或地点。",
+      "solution": "Person Anchor + Scene Anchor + Reality Fact Lock + SelectedTarget",
+      "validation_plan": "对 Golden Story 执行 Reality Fact Eval。",
+      "acceptance_criteria": [
+        "Identity 保持",
+        "Location 保持",
+        "Weather / Major Scene Fact 不被默认改变"
+      ],
+      "related_tasks": [],
+      "evidence": []
+    },
+    {
+      "challenge_id": "CH-003",
+      "title": "小程序实时 CV 性能",
+      "category": "CLIENT_CV",
+      "severity": "P0",
+      "status": "IDENTIFIED",
+      "blocking_milestones": [
+        "M04",
+        "M05"
+      ],
+      "problem": "Camera Frame、WASM、内存、功耗与发热可能无法达到实时指导要求。",
+      "solution": "执行微信 Camera/CV Technical Spike；必要时平台原生 Camera Adapter 或 Native 路线。",
+      "validation_plan": "真实 iPhone + 中端 Android + 较低端 Android 测 FPS、CPU、Memory、Heat、Battery、Latency。",
+      "acceptance_criteria": [
+        "Camera Frame 稳定",
+        "基础 Person Detection 可持续运行",
+        "状态反馈满足体验阈值"
+      ],
+      "related_tasks": [
+        "XFX_WECHAT_CAMERA_CV_SPIKE_01"
+      ],
+      "evidence": []
+    },
+    {
+      "challenge_id": "CH-004",
+      "title": "实时指令振荡",
+      "category": "LIVE_GUIDANCE",
+      "severity": "P1",
+      "status": "SOLUTION_PROPOSED",
+      "blocking_milestones": [
+        "M05"
+      ],
+      "problem": "用户可能收到左右反复切换等振荡指令。",
+      "solution": "Tolerance + Dead Zone + Hysteresis + Persistence + Cooldown + Ready Lock",
+      "validation_plan": "State Replay 批量比较振荡率、平均指令数与 Time to Capture Ready。",
+      "acceptance_criteria": [
+        "明显减少反向指令",
+        "无高频抖动",
+        "达到稳定 Capture Ready"
+      ],
+      "related_tasks": [],
+      "evidence": []
+    },
+    {
+      "challenge_id": "CH-005",
+      "title": "双角色协调",
+      "category": "UX_RUNTIME",
+      "severity": "P1",
+      "status": "SOLUTION_PROPOSED",
+      "blocking_milestones": [
+        "M05"
+      ],
+      "problem": "摄影者和人物同时收到指令会造成混乱。",
+      "solution": "One Active Role + One Active Speaker；动态 Shot 才允许 BOTH。",
+      "validation_plan": "Story A/C 真人双人测试。",
+      "acceptance_criteria": [
+        "用户能明确知道谁该动",
+        "无双方同时误操作的高频问题"
+      ],
+      "related_tasks": [],
+      "evidence": []
+    },
+    {
+      "challenge_id": "CH-006",
+      "title": "Technical QA 与 Taste 冲突",
+      "category": "PHOTO_QA",
+      "severity": "P2",
+      "status": "SOLUTION_PROPOSED",
+      "blocking_milestones": [],
+      "problem": "技术质量通过不代表用户喜欢表情或动作。",
+      "solution": "Technical QA 与 Taste QA 分离。",
+      "validation_plan": "QA Dataset + 真人 Preference Test。",
+      "acceptance_criteria": [
+        "Technical Reject 不吞掉用户喜欢的照片",
+        "Taste Retake 可只解锁相关维度"
+      ],
+      "related_tasks": [],
+      "evidence": []
+    },
+    {
+      "challenge_id": "CH-007",
+      "title": "Partial Retake 状态保持",
+      "category": "WORKFLOW",
+      "severity": "P1",
+      "status": "SOLUTION_PROPOSED",
+      "blocking_milestones": [
+        "M05"
+      ],
+      "problem": "局部失败可能错误重置整个拍摄流程。",
+      "solution": "ShotLockState + RetakePlan + AttemptState",
+      "validation_plan": "Story E Replay + Workflow Contract Test。",
+      "acceptance_criteria": [
+        "只解锁失败维度",
+        "已正确的 Camera / Framing / Pose 可保留"
+      ],
+      "related_tasks": [],
+      "evidence": []
+    },
+    {
+      "challenge_id": "CH-008",
+      "title": "Reality+ 身份与现实漂移",
+      "category": "POST_PRODUCTION",
+      "severity": "P1",
+      "status": "SOLUTION_PROPOSED",
+      "blocking_milestones": [
+        "M06"
+      ],
+      "problem": "生成式修图可能改脸、服装、背景或天气。",
+      "solution": "Parametric First + Identity Lock + Reality Fact Lock；Semantic Edit 需显式进入 Creative。",
+      "validation_plan": "Golden Capture Before/After Identity & Reality Eval。",
+      "acceptance_criteria": [
+        "人物身份稳定",
+        "Major Reality Facts 稳定",
+        "默认 Natural 不发生语义重写"
+      ],
+      "related_tasks": [],
+      "evidence": []
+    },
+    {
+      "challenge_id": "CH-009",
+      "title": "实时链路延迟",
+      "category": "PERFORMANCE",
+      "severity": "P1",
+      "status": "SOLUTION_PROPOSED",
+      "blocking_milestones": [
+        "M04",
+        "M05"
+      ],
+      "problem": "每步依赖云端强模型会导致摄影现场不可用。",
+      "solution": "Local CV + Local State Engine + Event-driven Strong AI",
+      "validation_plan": "设备测试与端到端 Guidance Latency Benchmark。",
+      "acceptance_criteria": [
+        "本地状态反馈接近实时",
+        "强模型不位于每帧热路径"
+      ],
+      "related_tasks": [],
+      "evidence": []
+    },
+    {
+      "challenge_id": "CH-010",
+      "title": "模型调用成本",
+      "category": "COST",
+      "severity": "P2",
+      "status": "SOLUTION_PROPOSED",
+      "blocking_milestones": [],
+      "problem": "MVP 大批量调试可能产生大量重复模型调用。",
+      "solution": "MOCK / CACHED / LIVE + Preview Low Cost / Final High Quality",
+      "validation_plan": "记录 AI Cost / Session 与 Cache Hit Rate。",
+      "acceptance_criteria": [
+        "普通 UI/Replay 调试可零 Live 调用",
+        "重复输入优先缓存"
+      ],
+      "related_tasks": [],
+      "evidence": []
+    },
+    {
+      "challenge_id": "CH-011",
+      "title": "图片资产与身份版本失控",
+      "category": "ASSET_GOVERNANCE",
+      "severity": "P1",
+      "status": "SOLUTION_PROPOSED",
+      "blocking_milestones": [
+        "M01",
+        "M03"
+      ],
+      "problem": "图片文件名、版本、页面使用关系和 Lineage 容易失控。",
+      "solution": "AssetRef + AssetManifest + Version + Status + Checksum + Lineage",
+      "validation_plan": "S01-A01~A07 迁移为 Manifest 驱动。",
+      "acceptance_criteria": [
+        "业务页面不依赖任意文件名",
+        "每张 Golden Asset 可追踪来源与用途"
+      ],
+      "related_tasks": [
+        "XFX_GLOBAL_CONTRACTS_AND_SKELETON_01"
+      ],
+      "evidence": []
+    },
+    {
+      "challenge_id": "CH-012",
+      "title": "MVP 调试反馈速度",
+      "category": "DEVELOPER_EXPERIENCE",
+      "severity": "P1",
+      "status": "SOLUTION_PROPOSED",
+      "blocking_milestones": [
+        "M03"
+      ],
+      "problem": "每次算法/UI修改都依赖真人和真实外拍会严重降低迭代速度。",
+      "solution": "Web Lab + Scenario Fixture + Session Replay + State Replay + Debug Trace",
+      "validation_plan": "实现 S01 Replay 并测量单次修改到可观察结果的反馈时间。",
+      "acceptance_criteria": [
+        "L0/L1 可覆盖大多数日常调试",
+        "真实 Session 可沉淀为可重复 Fixture"
+      ],
+      "related_tasks": [
+        "XFX_WEB_LAB_REPLAY_01"
+      ],
+      "evidence": []
+    }
+  ]
+}

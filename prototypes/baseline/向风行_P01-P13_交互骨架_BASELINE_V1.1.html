@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>向风行 · P01-P13 完整交互骨架 V1</title>
+<style>
+:root{
+  --primary:#3F8F84; --primary-dark:#286B63; --primary-soft:#DCEDEA;
+  --bg:#F7F6F2; --dark:#101312; --surface-dark:#191D1B;
+  --text:#171A19; --text2:#6D7571; --border:#E3E6E2;
+  --ok:#52A879; --warn:#E4AD4E; --danger:#D65757; --white:#F5F7F5;
+  --shadow:0 18px 54px rgba(27,39,34,.11);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#e9ece9;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","HarmonyOS Sans SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif}
+body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px}
+.phone{
+  position:relative;width:min(430px,100vw);height:min(900px,calc(100vh - 20px));min-height:700px;
+  background:var(--bg);border-radius:34px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.15)
+}
+.screen{
+  position:absolute;inset:0;padding:18px 20px 24px;background:var(--bg);
+  transform:translateX(105%);opacity:0;pointer-events:none;
+  transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .22s ease;
+}
+.screen.active{transform:none;opacity:1;pointer-events:auto}
+.screen.dark{background:var(--dark);color:var(--white)}
+.safe{height:12px}
+.top{height:48px;display:flex;align-items:center;justify-content:space-between}
+.back,.icon{
+  width:44px;height:44px;border:0;background:transparent;border-radius:13px;cursor:pointer;
+  font-size:22px;color:inherit
+}
+.step{font-size:11px;color:var(--text2);letter-spacing:.08em;font-weight:600}
+.dark .step{color:rgba(245,247,245,.58)}
+.title{font-size:28px;line-height:1.25;margin:28px 0 8px;font-weight:600;letter-spacing:-.02em}
+.subtitle{font-size:14px;line-height:1.6;color:var(--text2);margin:0;max-width:340px}
+.dark .subtitle{color:rgba(245,247,245,.66)}
+.note{
+  margin-top:14px;padding:11px 12px;border-radius:14px;background:rgba(63,143,132,.08);
+  color:var(--primary-dark);font-size:12px;line-height:1.5
+}
+.dark .note{background:rgba(63,143,132,.16);color:#dff3ee}
+.stack{display:flex;flex-direction:column;gap:12px;margin-top:28px}
+.card{
+  border:1px solid var(--border);background:#fff;border-radius:20px;padding:18px;box-shadow:0 10px 28px rgba(25,37,32,.05)
+}
+.dark .card{background:var(--surface-dark);border-color:rgba(255,255,255,.08);box-shadow:none}
+.choice{
+  min-height:110px;display:flex;align-items:center;gap:14px;cursor:pointer;
+  transition:transform .1s ease,border-color .16s ease
+}
+.choice:active{transform:scale(.99);border-color:rgba(63,143,132,.38)}
+.choice .emoji{width:52px;height:52px;border-radius:16px;background:var(--primary-soft);display:grid;place-items:center;font-size:24px;flex:0 0 auto}
+.dark .choice .emoji{background:rgba(63,143,132,.2)}
+.choice h3{font-size:17px;margin:0 0 5px}.choice p{font-size:13px;color:var(--text2);margin:0;line-height:1.45}
+.dark .choice p{color:rgba(245,247,245,.62)}
+.cta-area{position:absolute;left:20px;right:20px;bottom:24px}
+.btn{
+  width:100%;height:52px;border:0;border-radius:14px;font-size:16px;font-weight:600;cursor:pointer;
+  transition:transform .1s ease,opacity .15s ease
+}
+.btn:active{transform:scale(.985)}
+.btn.primary{background:var(--primary-dark);color:#fff}
+.btn.secondary{background:#fff;border:1px solid var(--border);color:var(--text);margin-top:10px}
+.dark .btn.secondary{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12);color:#fff}
+.textbtn{border:0;background:transparent;color:var(--primary-dark);font-size:14px;height:42px;cursor:pointer}
+.dark .textbtn{color:#bfe2db}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.pill{padding:7px 10px;border-radius:999px;background:#fff;border:1px solid var(--border);font-size:11px;color:#4f5653}
+.dark .pill{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1);color:#e8efec}
+.mockimg{
+  height:280px;border-radius:24px;overflow:hidden;position:relative;box-shadow:var(--shadow);
+  background:linear-gradient(145deg,#8da49e,#405b55 55%,#c3cfcb 56%,#647c75)
+}
+.mockimg.euro{background:linear-gradient(145deg,#b49c83,#776857 34%,#403d39 58%,#817164)}
+.mockimg.street{background:linear-gradient(145deg,#798a7c,#4b5b50 38%,#a69a77 56%,#697166)}
+.mockimg.darkish{background:linear-gradient(145deg,#778887,#465554 40%,#25302e 66%,#566361)}
+.mockimg:after{content:"";position:absolute;width:66px;height:130px;left:45%;bottom:14%;border-radius:32px 32px 14px 14px;background:linear-gradient(#1c201e,#0d0f0e);transform:translateX(-50%)}
+.tag{position:absolute;top:14px;left:14px;padding:6px 9px;border-radius:999px;background:rgba(247,246,242,.88);font-size:11px;color:#3b4541}
+.center{text-align:center}.meta{font-size:13px;color:var(--text2);margin-top:5px}
+.dark .meta{color:rgba(245,247,245,.6)}
+.dots{display:flex;justify-content:center;gap:7px;margin-top:12px}.dot{width:6px;height:6px;border-radius:50%;background:#c8ccc9}.dot.active{width:18px;border-radius:999px;background:var(--primary)}
+.camera{
+  position:absolute;inset:0;background:
+    linear-gradient(to top,rgba(10,13,12,.72),rgba(10,13,12,.08) 50%),
+    linear-gradient(145deg,#697d77,#263c37 60%,#738982);
+}
+.camera:after{content:"";position:absolute;width:86px;height:170px;left:43%;bottom:24%;transform:translateX(-50%);border-radius:42px 42px 20px 20px;background:rgba(10,12,11,.66);box-shadow:0 0 0 1px rgba(255,255,255,.16)}
+.overlay-ui{position:absolute;inset:0;padding:18px 20px 24px;z-index:2;color:#fff}
+.statusbar{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:rgba(255,255,255,.74)}
+.guidance{
+  position:absolute;left:20px;right:20px;bottom:110px;text-align:center;
+  font-size:28px;line-height:1.3;font-weight:600;text-shadow:0 2px 12px rgba(0,0,0,.35)
+}
+.readies{position:absolute;left:20px;right:20px;bottom:70px;display:flex;justify-content:center;gap:18px;font-size:13px}
+.ready{padding:7px 10px;border-radius:999px;background:rgba(16,19,18,.55);backdrop-filter:blur(10px)}
+.ready.ok{color:#c9f1d7}.ready.wait{color:#f1d493}
+.shutter{width:76px;height:76px;border-radius:50%;background:#fff;border:7px solid rgba(255,255,255,.28);box-shadow:0 0 0 2px #fff inset;position:absolute;left:50%;bottom:18px;transform:translateX(-50%);cursor:pointer}
+.scopebar{display:flex;background:#202422;border-radius:14px;padding:4px;margin-top:16px}
+.scope{flex:1;height:40px;border:0;background:transparent;color:rgba(255,255,255,.62);border-radius:10px;cursor:pointer}
+.scope.active{background:rgba(63,143,132,.24);color:#fff}
+.slider-row{margin-top:18px}.slider-row label{display:block;font-size:13px;margin-bottom:8px;color:rgba(245,247,245,.78)}
+input[type=range]{width:100%;accent-color:var(--primary)}
+.localbox{position:absolute;width:150px;height:110px;border:2px solid var(--primary);border-radius:18px;left:34%;top:30%;box-shadow:0 0 0 999px rgba(0,0,0,.10);display:none}
+.localbox.show{display:block}
+.toast{
+  position:absolute;left:50%;bottom:92px;transform:translateX(-50%) translateY(10px);opacity:0;
+  background:rgba(16,19,18,.88);color:#fff;padding:9px 13px;border-radius:999px;font-size:12px;z-index:90;
+  transition:.18s ease;pointer-events:none
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.sheet-mask{position:absolute;inset:0;background:rgba(11,14,13,.36);opacity:0;pointer-events:none;z-index:80;transition:opacity .2s ease}
+.sheet-mask.show{opacity:1;pointer-events:auto}
+.sheet{
+  position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:24px 24px 0 0;padding:10px 20px 24px;
+  transform:translateY(105%);z-index:81;transition:transform .25s cubic-bezier(.2,.8,.2,1)
+}
+.sheet.show{transform:none}
+.grab{width:42px;height:4px;border-radius:999px;background:#d6dad7;margin:0 auto 18px}
+.sheet h3{font-size:20px;margin:0 0 8px}.sheet p{font-size:13px;color:var(--text2);line-height:1.55;margin:0 0 14px}
+.sheet-actions{display:flex;flex-direction:column;gap:9px}
+.sheet-action{height:50px;border:1px solid var(--border);background:#fff;border-radius:15px;text-align:left;padding:0 14px;font-size:14px;cursor:pointer}
+.sheet-action strong{display:block}.sheet-action span{font-size:11px;color:var(--text2)}
+.dev{
+  position:fixed;right:12px;bottom:10px;z-index:120;display:flex;gap:6px;flex-wrap:wrap;max-width:320px;justify-content:flex-end
+}
+.dev button{border:0;border-radius:999px;padding:7px 10px;background:rgba(16,19,18,.80);color:#fff;font-size:10px;cursor:pointer}
+@media(max-width:520px){
+  body{padding:0;background:var(--bg)}.phone{width:100vw;height:100vh;min-height:650px;border-radius:0;box-shadow:none}.dev{display:none}
+}
+</style>
+</head>
+<body>
+<div class="phone" id="phone">
+  <!-- P01 -->
+  <section class="screen active" id="p01">
+    <div class="safe"></div><div class="top"><div class="step">P01 · START</div><button class="icon" onclick="openWorks()">作品</button></div>
+    <div class="title">今天想怎么拍？</div>
+    <p class="subtitle">看看现在这里，或者照喜欢的效果拍。</p>
+    <div class="note">这一屏只决定入口意图，不提前暴露设备、双手机、Camera权限等复杂度。</div>
+    <div class="stack">
+      <div class="card choice" onclick="setEntry('reality')"><div class="emoji">✦</div><div><h3>AI 看看这里怎么拍</h3><p>不知道拍什么？让我看看你和这里。</p></div></div>
+      <div class="card choice" onclick="setEntry('target')"><div class="emoji">▣</div><div><h3>照这个效果拍</h3><p>已经有喜欢的画面？我帮你在这里实现。</p></div></div>
+    </div>
+    <div class="cta-area"><button class="textbtn" onclick="resumeSession()">继续上次拍摄（条件）</button></div>
+  </section>
+
+  <!-- P02 -->
+  <section class="screen" id="p02">
+    <div class="safe"></div><div class="top"><button class="back" onclick="go('p01')">‹</button><div class="step">P02 · TARGET FIRST</div><button class="icon" onclick="toast('收藏属于 P1')">♡</button></div>
+    <div class="title">你想拍成哪一种？</div>
+    <p class="subtitle">选一个喜欢的画面，我会按照今天的你和现场去实现。</p>
+    <div class="mockimg euro"><span class="tag">动态 · 街拍</span></div>
+    <div class="center" style="margin-top:16px"><div style="font-size:19px;font-weight:600">欧式街头时装</div><div class="meta">边走边拍 · 人物更突出</div><div class="dots"><span class="dot active"></span><span class="dot"></span><span class="dot"></span></div></div>
+    <div class="cta-area"><button class="btn primary" onclick="lockTarget()">就照这个拍</button><button class="textbtn" onclick="openSheet('reference')">＋ 用自己的参考图</button></div>
+  </section>
+
+  <!-- P03 -->
+  <section class="screen" id="p03">
+    <div class="safe"></div><div class="top"><button class="back" onclick="backFromP03()">‹</button><div class="step">P03 · SHOOTING RELATION</div><span></span></div>
+    <div class="title">今天谁帮你拍？</div>
+    <p class="subtitle">只决定拍摄关系。设备方式下一步再选。</p>
+    <div class="stack">
+      <div class="card choice" onclick="setRelation('friend')"><div class="emoji">👥</div><div><h3>朋友帮我拍</h3><p>推荐 · 两个人都不会拍也没关系。</p></div></div>
+      <div class="card choice" onclick="setRelation('solo')"><div class="emoji">◉</div><div><h3>我自己拍</h3><p>用手机支架或安全固定位置完成。</p></div></div>
+    </div>
+  </section>
+
+  <!-- P04 -->
+  <section class="screen" id="p04">
+    <div class="safe"></div><div class="top"><button class="back" onclick="go('p03')">‹</button><div class="step">P04 · DEVICE MODE</div><span></span></div>
+    <div class="title" id="p04title">怎么一起拍？</div>
+    <p class="subtitle" id="p04sub">默认先走单手机，降低第一次使用摩擦。</p>
+    <div class="stack" id="p04stack"></div>
+    <div class="note" id="p04note">选择后进入 Reality Scan。双手机 Join 成功后自动推进，不需要“下一步”。</div>
+  </section>
+
+  <!-- P05 -->
+  <section class="screen dark" id="p05">
+    <div class="camera"></div><div class="overlay-ui">
+      <div class="statusbar"><button class="back" onclick="openSheet('exit')" style="color:#fff">‹</button><span id="scanStatus">👤 人物扫描</span><span>AI</span></div>
+      <div class="guidance" id="scanGuide">把完整穿搭放进画面</div>
+      <div class="readies"><span class="ready wait" id="personReady">👤 调整中</span><span class="ready" id="sceneReady">🏞 等待</span></div>
+      <div class="shutter" onclick="scanCapture()"></div>
+    </div>
+  </section>
+
+  <!-- P06 -->
+  <section class="screen" id="p06">
+    <div class="safe"></div><div class="top"><button class="back" onclick="go('p05')">‹</button><div class="step">P06 · TARGET DECISION</div><span></span></div>
+    <div class="title" id="p06title">这里很适合这样拍</div>
+    <p class="subtitle" id="p06sub">AI先给默认答案，用户只需要决定自己喜欢哪一个。</p>
+    <div class="mockimg" id="p06img"><span class="tag" id="p06tag">AI 首推</span></div>
+    <div class="center" style="margin-top:14px"><div style="font-size:19px;font-weight:600" id="p06name">冷雾湖畔</div><div class="meta" id="p06meta">人物偏左 · 环境更完整</div></div>
+    <div class="cta-area"><button class="btn primary" id="p06primary" onclick="selectTarget()">就拍这个</button><button class="textbtn" onclick="openSheet('why')">为什么推荐？</button></div>
+  </section>
+
+  <!-- P07 -->
+  <section class="screen dark" id="p07">
+    <div class="safe"></div><div class="top"><button class="back" onclick="go('p06')">‹</button><div class="step">P07 · SHOT BLUEPRINT</div><button class="icon" onclick="openSheet('why')" style="color:#fff">?</button></div>
+    <div class="title">这张这样拍</div><p class="subtitle">这里只做预演，不在这里调专业参数。</p>
+    <div class="card" style="margin-top:26px;height:360px;position:relative;overflow:hidden;background:linear-gradient(180deg,#384c47,#1c2825)">
+      <div style="position:absolute;left:32px;top:34px;font-size:12px;color:#dfe9e5">Target · 冷雾湖畔</div>
+      <div style="position:absolute;left:54px;top:120px;font-size:50px">👤</div>
+      <div style="position:absolute;right:54px;bottom:100px;font-size:44px">📱</div>
+      <div style="position:absolute;left:92px;top:190px;width:170px;border-top:2px dashed #3F8F84;transform:rotate(28deg)"></div>
+      <div style="position:absolute;left:32px;bottom:30px;font-size:18px;font-weight:600">她站湖边偏左，你站她右后方。</div>
+    </div>
+    <div class="cta-area"><button class="btn primary" onclick="go('p08')">开始现场指导</button><button class="textbtn" onclick="toast('条件状态：换个更简单的拍法')">换个更简单的拍法（条件）</button></div>
+  </section>
+
+  <!-- P08 -->
+  <section class="screen dark" id="p08">
+    <div class="camera"></div><div class="overlay-ui">
+      <div class="statusbar"><button class="back" onclick="openSheet('exit')" style="color:#fff">‹</button><span>冷雾湖畔</span><div><button class="icon" style="color:#fff" onclick="toast('语音开/关')">🔊</button><button class="icon" style="color:#fff" onclick="openSheet('live')">•••</button></div></div>
+      <div class="guidance" id="liveGuide">→ 往右一点</div>
+      <div class="readies"><span class="ready ok" id="subState">👤 人物 ✓</span><span class="ready wait" id="camState">📱 机位 调整中</span></div>
+      <div style="position:absolute;left:20px;right:20px;bottom:16px;display:flex;justify-content:center;gap:8px;align-items:center">
+        <button class="textbtn" style="color:#dff3ee" onclick="repeatVoice()">再说一次</button>
+        <button class="textbtn" style="color:#fff;background:rgba(63,143,132,.20);border:1px dashed rgba(191,226,219,.55);border-radius:999px;padding:0 12px" onclick="advanceLive()">原型：模拟已执行</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- P09 -->
+  <section class="screen dark" id="p09">
+    <div class="camera"></div><div class="overlay-ui">
+      <div class="statusbar"><button class="back" onclick="go('p08')" style="color:#fff">‹</button><span>P09 · CAPTURE</span><span id="capMode">STATIC</span></div>
+      <div class="guidance" id="captureGuide">可以拍了</div>
+      <div class="readies"><span class="ready ok">👤 ✓</span><span class="ready ok">📱 ✓</span></div>
+      <div class="shutter" onclick="capturePhoto()"></div>
+      <button class="textbtn" id="cancelCount" style="position:absolute;left:50%;bottom:100px;transform:translateX(-50%);color:#fff;display:none" onclick="toast('已取消倒计时')">取消倒计时</button>
+    </div>
+  </section>
+
+  <!-- P10 -->
+  <section class="screen" id="p10">
+    <div class="safe"></div><div class="top"><button class="back" onclick="go('p09')">‹</button><div class="step">P10 · CAPTURE REVIEW</div><span></span></div>
+    <div class="mockimg darkish" style="margin-top:20px"></div>
+    <div class="title" id="reviewTitle" style="font-size:24px;margin-top:20px">这张拍到了 ✓</div>
+    <p class="subtitle" id="reviewDesc">构图和动作都很好，脸稍微暗一点可以自然修。</p>
+    <div class="cta-area" id="reviewActions"></div>
+  </section>
+
+  <!-- P11 -->
+  <section class="screen" id="p11">
+    <div class="safe"></div><div class="top"><button class="back" onclick="go('p10')">‹</button><div class="step">P11 · REALITY+</div><span></span></div>
+    <div class="mockimg darkish" style="margin-top:34px"></div>
+    <div class="title" id="rTitle" style="font-size:24px">✦ 正在自然精修这张…</div>
+    <p class="subtitle" id="rDesc">保持人物、动作和真实场景，只做专业增强。</p>
+    <div class="cta-area" id="realityActions" style="display:none"><button class="btn primary" onclick="go('p12')">微调一下</button><button class="btn secondary" onclick="go('p13')">就这样</button></div>
+  </section>
+
+  <!-- P12 -->
+  <section class="screen dark" id="p12">
+    <div class="safe"></div><div class="top"><button class="back" onclick="go('p11')">‹</button><div class="step">P12 · FINE TUNE</div><div><button class="icon" style="color:#fff" onclick="toast('撤销')">↶</button><button class="icon" style="color:#fff" onclick="toast('已重置到 Reality+')">↺</button></div></div>
+    <div class="card" id="finePhoto" style="margin-top:16px;height:390px;position:relative;overflow:hidden;padding:0;background:linear-gradient(145deg,#71857f,#273a35 60%,#6f817b);transition:filter .08s linear,box-shadow .16s ease">
+      <div style="position:absolute;inset:0;background:radial-gradient(circle at 48% 36%,rgba(255,220,190,.22),transparent 24%),linear-gradient(to top,rgba(0,0,0,.18),transparent 50%)"></div>
+      <div style="position:absolute;width:74px;height:150px;left:46%;bottom:13%;transform:translateX(-50%);border-radius:36px 36px 16px 16px;background:linear-gradient(#161918,#090b0a)" id="finePerson"></div>
+      <div class="localbox" id="localBox"></div>
+      <div id="scopeHint" style="position:absolute;top:14px;left:14px;padding:6px 9px;border-radius:999px;background:rgba(16,19,18,.62);font-size:11px;color:#fff;backdrop-filter:blur(8px)">整体调整</div>
+    </div>
+    <div class="scopebar"><button class="scope active" onclick="setScope(this,'all')">整体</button><button class="scope" onclick="setScope(this,'person')">人物</button><button class="scope" onclick="setScope(this,'bg')">背景</button><button class="scope" onclick="setScope(this,'local')">局部</button></div>
+    <div class="slider-row"><label id="sliderLabel">明暗</label><input id="ftBrightness" type="range" min="-20" max="20" value="0"></div>
+    <div class="slider-row"><label>冷暖</label><input id="ftWarmth" type="range" min="-20" max="20" value="0"></div>
+    <div class="row" style="margin-top:10px"><button class="textbtn" onmousedown="toast('按住查看 Reality+')" ontouchstart="toast('按住查看 Reality+')">按住看 Reality+</button><button class="textbtn" id="addLocal" style="display:none" onclick="toast('新增局部区域（最多3个）')">＋ 新增局部</button></div>
+    <div class="cta-area"><button class="btn primary" onclick="go('p13')">完成</button></div>
+  </section>
+
+  <!-- P13 -->
+  <section class="screen" id="p13">
+    <div class="safe"></div><div class="top"><div class="step">P13 · FINAL HUB</div><button class="icon" onclick="openSheet('finalmore')">•••</button></div>
+    <div class="mockimg" style="margin-top:18px"></div>
+    <div class="center" style="margin-top:14px"><div style="font-size:21px;font-weight:600">冷雾湖畔</div><div class="meta">广州 · 2026.08.21</div></div>
+    <div class="note">✓ 已自动保存到「我的作品」</div>
+    <div class="cta-area"><button class="btn primary" onclick="toast('已保存到相册 ✓')">保存高清图</button><div class="row"><button class="btn secondary" onclick="openSheet('share')">分享</button><button class="btn secondary" onclick="openSheet('physical')">做成实物</button></div><button class="textbtn" onclick="openSheet('creative')">✦ 更多玩法</button></div>
+  </section>
+
+  <!-- Generic sheet -->
+  <div class="sheet-mask" id="mask" onclick="closeSheet()"></div>
+  <div class="sheet" id="sheet"><div class="grab"></div><h3 id="sheetTitle"></h3><p id="sheetDesc"></p><div class="sheet-actions" id="sheetActions"></div></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<div class="dev">
+  <button onclick="go('p01')">P01</button><button onclick="go('p03')">P03</button><button onclick="go('p05')">P05</button><button onclick="go('p08')">P08</button><button onclick="go('p10')">P10</button><button onclick="go('p13')">P13</button>
+  <button onclick="setReview('accept')">QA:通过</button><button onclick="setReview('repair')">QA:可修</button><button onclick="setReview('retake')">QA:回眸重拍</button>
+</div>
+
+<script>
+let current='p01', entry='reality', relation='friend', scan='person', liveStep=0, review='accept';
+const screens=[...document.querySelectorAll('.screen')];
+function go(id){
+  screens.forEach(s=>s.classList.toggle('active',s.id===id));
+  current=id;
+  if(id==='p11') startRealityPlus();
+  if(id==='p10') renderReview();
+}
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)
+}
+function setEntry(v){entry=v;if(v==='target')go('p02');else go('p03')}
+function lockTarget(){entry='target';toast('DesiredTarget 已锁定');setTimeout(()=>go('p03'),380)}
+function backFromP03(){go(entry==='target'?'p02':'p01')}
+function resumeSession(){toast('恢复上次有效状态');setTimeout(()=>go('p07'),500)}
+function openWorks(){toast('作品库 X01：后续单独设计')}
+
+function setRelation(v){
+  relation=v;go('p04');renderP04();
+}
+function renderP04(){
+  const title=document.getElementById('p04title'),sub=document.getElementById('p04sub'),stack=document.getElementById('p04stack'),note=document.getElementById('p04note');
+  if(relation==='friend'){
+    title.textContent='怎么一起拍？';sub.textContent='默认优先单手机；双手机作为增强模式。';
+    stack.innerHTML=`
+      <div class="card choice" onclick="friendSingle()"><div class="emoji">📱</div><div><h3>只用这台手机</h3><p>最简单 · 不需要朋友扫码。</p></div></div>
+      <div class="card choice" onclick="friendDual()"><div class="emoji">▣</div><div><h3>让朋友也加入</h3><p>双方分别收到自己的指导。</p></div></div>`;
+    note.textContent='单手机会先出现“把手机交给帮你拍的人”；双手机 Join 成功后自动进入 Reality Scan。';
+  }else{
+    title.textContent='手机准备怎么固定？';sub.textContent='Solo模式需要手机稳定固定。';
+    stack.innerHTML=`
+      <div class="card choice" onclick="soloFixed()"><div class="emoji">⌁</div><div><h3>有小支架</h3><p>推荐 · 后面会先指导机位。</p></div></div>
+      <div class="card choice" onclick="soloFixed()"><div class="emoji">▰</div><div><h3>找个安全位置固定</h3><p>桌面、石台或其他稳定位置。</p></div></div>
+      <button class="textbtn" onclick="setRelation('friend')">没有合适位置，换成朋友帮拍</button>`;
+    note.textContent='两种方式底层都进入 SOLO_FIXED_CAMERA。';
+  }
+}
+function friendSingle(){openSheet('handoff')}
+function friendDual(){openSheet('join')}
+function soloFixed(){toast('DeviceMode = SOLO_FIXED_CAMERA');setTimeout(()=>go('p05'),350)}
+
+function scanCapture(){
+  if(scan==='person'){
+    document.getElementById('personReady').className='ready ok';document.getElementById('personReady').textContent='👤 人物 ✓';
+    document.getElementById('sceneReady').className='ready wait';document.getElementById('sceneReady').textContent='🏞 现场 调整中';
+    document.getElementById('scanStatus').textContent='🏞 场景扫描';
+    document.getElementById('scanGuide').textContent='再让我看看准备拍照的这里';
+    scan='scene';toast('人物已看懂');
+  }else{
+    document.getElementById('sceneReady').className='ready ok';document.getElementById('sceneReady').textContent='🏞 现场 ✓';
+    document.getElementById('scanGuide').textContent='✦ 正在看看这里怎么拍…';
+    toast('RealityContext Ready');
+    setTimeout(()=>{configureP06();go('p06')},850);
+  }
+}
+function configureP06(){
+  const isTarget=entry==='target';
+  document.getElementById('p06title').textContent=isTarget?'这个效果在这里可以这样实现':'这里很适合这样拍';
+  document.getElementById('p06sub').textContent=isTarget?'DesiredTarget 会先经过 Compatibility / Adaptation，再变成 ExecutableTarget。':'AI给三个现实可实现的 Target，用户选一个。';
+  document.getElementById('p06name').textContent=isTarget?'欧式街头时装 · 当前版本':'冷雾湖畔';
+  document.getElementById('p06meta').textContent=isTarget?'保留动作与街头感 · 调整光线和机位':'人物偏左 · 环境更完整';
+  document.getElementById('p06primary').textContent=isTarget?'按这个方案拍':'就拍这个';
+  document.getElementById('p06img').className='mockimg '+(isTarget?'euro':'');
+}
+function selectTarget(){toast('SelectedTarget Ready');setTimeout(()=>go('p07'),350)}
+
+function repeatVoice(){toast(liveStep===0?'语音：你先保持':'语音：往湖边方向一步')}
+function advanceLive(){
+  liveStep++;
+  if(liveStep===1){
+    document.getElementById('camState').className='ready ok';document.getElementById('camState').textContent='📱 机位 ✓';
+    document.getElementById('subState').className='ready wait';document.getElementById('subState').textContent='👤 人物 调整中';
+    document.getElementById('liveGuide').textContent='往湖边方向一步';
+    toast('Camera Ready · Auto Advance');
+  }else if(liveStep===2){
+    document.getElementById('subState').className='ready ok';document.getElementById('subState').textContent='👤 人物 ✓';
+    document.getElementById('liveGuide').textContent='身体侧一点';
+    toast('Subject Ready');
+  }else if(liveStep===3){
+    document.getElementById('liveGuide').textContent='很好，保持';
+    toast('Capture Ready');setTimeout(()=>go('p09'),650)
+  }
+}
+
+function capturePhoto(){document.getElementById('captureGuide').textContent='3';setTimeout(()=>document.getElementById('captureGuide').textContent='2',450);setTimeout(()=>document.getElementById('captureGuide').textContent='1',900);setTimeout(()=>{document.getElementById('captureGuide').textContent='拍到了';toast('CaptureAsset Ready');go('p10')},1350)}
+
+function setReview(v){review=v;if(current==='p10')renderReview()}
+function renderReview(){
+  const t=document.getElementById('reviewTitle'),d=document.getElementById('reviewDesc'),a=document.getElementById('reviewActions');
+  if(review==='accept'){
+    t.textContent='这张拍到了 ✓';d.textContent='构图和动作都很好。';
+    a.innerHTML=`<button class="btn primary" onclick="go('p11')">喜欢这张</button><button class="btn secondary" onclick="openSheet('taste')">再来一张</button>`;
+  }else if(review==='repair'){
+    t.textContent='这张可以用';d.textContent='脸稍微暗一点，可以自然修好，不用重拍。';
+    a.innerHTML=`<button class="btn primary" onclick="go('p11')">就用这张</button><button class="btn secondary" onclick="openSheet('taste')">再拍一张</button>`;
+  }else{
+    t.textContent='还差一点';d.textContent='位置和机位都很好，只重新拍一次回眸。';
+    a.innerHTML=`<button class="btn primary" onclick="retakeMicro()">再来一次回眸</button><button class="btn secondary" onclick="go('p11')">还是保留这张</button>`;
+  }
+}
+function retakeMicro(){toast('保留 Camera / Subject / Framing，只解锁 Gaze');liveStep=2;go('p08');document.getElementById('liveGuide').textContent='这次回头慢一点'}
+
+function startRealityPlus(){
+  document.getElementById('realityActions').style.display='none';
+  document.getElementById('rTitle').textContent='✦ 正在自然精修这张…';
+  setTimeout(()=>{document.getElementById('rTitle').textContent='已经自然精修好了';document.getElementById('rDesc').textContent='人物、动作和真实场景保持不变。';document.getElementById('realityActions').style.display='block';toast('Reality+ Ready')},1200)
+}
+let fineScope='all';
+function setScope(btn,scope){
+  fineScope=scope;
+  [...document.querySelectorAll('.scope')].forEach(x=>x.classList.remove('active'));btn.classList.add('active');
+  document.getElementById('localBox').classList.toggle('show',scope==='local');
+  document.getElementById('addLocal').style.display=scope==='local'?'block':'none';
+  document.getElementById('sliderLabel').textContent=scope==='person'?'人物明暗':scope==='bg'?'背景明暗':scope==='local'?'局部明暗':'明暗';
+  document.getElementById('scopeHint').textContent=scope==='person'?'人物调整':scope==='bg'?'背景调整':scope==='local'?'局部调整':'整体调整';
+  applyFineTune();
+}
+function applyFineTune(){
+  const b=Number(document.getElementById('ftBrightness')?.value||0);
+  const w=Number(document.getElementById('ftWarmth')?.value||0);
+  const photo=document.getElementById('finePhoto');
+  const person=document.getElementById('finePerson');
+  if(!photo||!person)return;
+  photo.style.filter='none'; person.style.filter='none';
+  photo.style.boxShadow='none';
+  const bright=1+b/100;
+  const warm=Math.max(0,w)/90;
+  const cool=Math.max(0,-w)/90;
+  const f=`brightness(${bright}) sepia(${warm}) saturate(${1+warm*.5}) hue-rotate(${-cool*12}deg)`;
+  if(fineScope==='person'){
+    person.style.filter=f;
+    photo.style.boxShadow='inset 0 0 0 2px rgba(63,143,132,.18)';
+  }else if(fineScope==='bg'){
+    photo.style.filter=f;
+    person.style.filter=`brightness(${1/Math.max(.7,bright)})`;
+  }else if(fineScope==='local'){
+    document.getElementById('localBox').style.background=`rgba(255,255,255,${Math.max(0,b)/140})`;
+  }else{
+    photo.style.filter=f;
+  }
+}
+document.addEventListener('input',e=>{if(e.target&&['ftBrightness','ftWarmth'].includes(e.target.id))applyFineTune()});
+
+const mask=document.getElementById('mask'),sheet=document.getElementById('sheet'),st=document.getElementById('sheetTitle'),sd=document.getElementById('sheetDesc'),sa=document.getElementById('sheetActions');
+function closeSheet(){mask.classList.remove('show');sheet.classList.remove('show')}
+function action(label,sub,fn="closeSheet()"){return `<button class="sheet-action" onclick='${fn}'><strong>${label}</strong>${sub?`<span>${sub}</span>`:''}</button>`}
+function openSheet(type){
+  let title='',desc='',actions='';
+  if(type==='reference'){title='用参考图';desc='参考图只用来理解你想拍成什么，不会直接替换今天的你和现场。';actions=action('从相册选择','截图、收藏图、以前的照片','closeSheet();toast("ReferenceImage → DesiredTarget");setTimeout(()=>go("p03"),450)')+action('最近使用','P1 占位')}
+  if(type==='why'){title='为什么这样推荐？';desc='详细解释放在 Secondary Layer，不占主屏。';actions=action('人物','当前穿搭与Target匹配')+action('场景','背景与光线可以支撑这个方向')+action('拍摄难度','当前属于可执行范围')}
+  if(type==='exit'){title='结束这次拍摄？';desc='如果已经建立了 Reality / Target，会保留为可恢复 Session。';actions=action('继续拍','', 'closeSheet()')+action('结束并保存进度','', 'closeSheet();go("p01");toast("已保存为可恢复 Session")')}
+  if(type==='live'){title='现场更多操作';desc='只显示当前状态真正需要的条件动作。';actions=action('换动作','保留站位和机位')+action('重复提示','重新播放当前指令')+action('就从这里拍','P1：重新适配当前Camera View')+action('暂停拍摄','')}
+  if(type==='taste'){title='想改哪里？';desc='Technical Pass 已完成，这里只收集用户 Taste。';actions=action('表情','只回到 Gaze / Micro','closeSheet();review="retake";renderReview()')+action('动作','只换 Pose')+action('人物大小','回 Framing')+action('只是想再来一张','')}
+  if(type==='share'){title='分享';desc='V1先完成普通分享，后续升级为作品卡和拍同款。';actions=action('发送给朋友','')+action('保存分享图','')}
+  if(type==='physical'){title='做成实物';desc='Final页只保留统一入口，SKU在这里逐步扩展。';actions=action('照片打印','进入 X02 Product Preview')+action('冰箱贴','进入 X02 Product Preview')}
+  if(type==='creative'){title='更多玩法';desc='这里开始进入 Creative / Generative 分支，与 Fine Tune 分开。';actions=action('动态短片','P1')+action('旅行海报','P1')+action('AI作品','P1')+action('再拍同款','回 Target First')}
+  if(type==='finalmore'){title='作品操作';desc='不把这些操作堆在 Final 主屏。';actions=action('再调整一下','返回 Fine Tune','closeSheet();go("p12")')+action('查看原始照片','')+action('删除作品','')}
+  if(type==='handoff'){title='把手机交给帮你拍的人';desc='接下来由摄影者持机，AI会通过屏幕指导摄影者、通过语音指导人物。';actions=action('已经给TA','', 'closeSheet();go("p05")')+action('改用双手机','', 'closeSheet();openSheet("join")')}
+  if(type==='join'){title='让朋友加入';desc='这里显示二维码 / 小程序码。朋友加入成功后自动进入 Reality Scan。';actions=action('模拟朋友已加入','Auto Advance','closeSheet();toast("朋友已加入 ✓");setTimeout(()=>go("p05"),600)')+action('改用一台手机','', 'closeSheet();openSheet("handoff")')}
+  st.textContent=title;sd.textContent=desc;sa.innerHTML=actions;mask.classList.add('show');sheet.classList.add('show')
+}
+</script>
+</body>
+</html>

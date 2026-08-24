@@ -1,0 +1,60 @@
+{
+  "project": "xiangfengxing-ai-photographer",
+  "baseline_version": "0.6",
+  "current_prototype": "S01 V1.6.1",
+  "primary_environment": "windows",
+  "overall_status": "BLOCKED",
+  "current_milestone": "M00",
+  "current_task": "XFX_PROJECT_BOOTSTRAP_WINDOWS_01",
+  "milestones": [
+    { "id": "M00", "name": "Project Baseline", "status": "BLOCKED", "gate": "M00_BASELINE_LOCK", "gate_status": "NOT_READY" },
+    { "id": "M01", "name": "Global Contracts", "status": "NOT_STARTED", "gate": "M01_CONTRACT_LOCK" },
+    { "id": "M02", "name": "Application Skeleton", "status": "NOT_STARTED", "gate": "M02_SKELETON_RUNNABLE" },
+    { "id": "M03", "name": "Fast Feedback Lab", "status": "NOT_STARTED", "gate": "M03_REPLAY_READY" },
+    { "id": "M04", "name": "WeChat Camera/CV Spike", "status": "NOT_STARTED", "gate": "M04_CAMERA_FEASIBILITY" },
+    { "id": "M05", "name": "MVP Golden Flow", "status": "NOT_STARTED", "gate": "M05_MVP_GOLDEN_FLOW" },
+    { "id": "M06", "name": "Real Capability Replacement", "status": "NOT_STARTED", "gate": "CAPABILITY_GATES" },
+    { "id": "M07", "name": "Cross-platform", "status": "NOT_STARTED", "gate": "M07_CROSS_PLATFORM_BASELINE" }
+  ],
+  "bootstrap": {
+    "task_id": "XFX_PROJECT_BOOTSTRAP_WINDOWS_01",
+    "local_bootstrap": "BLOCKED",
+    "remote_bootstrap": "SOURCE_REQUIRED",
+    "project_path": "D:\\Projects\\xiangfengxing",
+    "checksum_validation": "PASS",
+    "secret_scan": "ACCEPTABLE",
+    "blocker_type": "SOURCE_REQUIRED",
+    "blocking_scope": "LOCAL_GIT_COMMITS_AND_M00_BASELINE_LOCK",
+    "does_not_block": ["BASELINE_EXTRACTION", "PACKAGE_INTEGRITY_VALIDATION", "DOCUMENT_AND_ASSET_ACCEPTANCE", "LOCAL_GIT_INITIALIZATION", "EXECUTION_REPORTING"],
+    "required_input": ["GIT_USER_NAME", "GIT_USER_EMAIL"]
+  },
+  "blocking_inputs": ["GIT_IDENTITY_REQUIRED", "GIT_REMOTE_URL_UNCONFIRMED"],
+  "environment_gaps": ["NODE_MISSING", "PYTHON_MISSING", "DOCKER_MISSING"],
+  "next_required_result": {
+    "task_id": "XFX_PROJECT_BOOTSTRAP_WINDOWS_01",
+    "condition": "CONFIGURE_REAL_GIT_IDENTITY_THEN_COMPLETE_BASELINE_AND_ACCEPTANCE_COMMITS"
+  },
+  "next_recommended_task_after_gate": "XFX_GLOBAL_CONTRACTS_AND_SKELETON_01",
+  "challenge_summary": {
+    "total": 12,
+    "identified": 1,
+    "solution_proposed": 11,
+    "implementing": 0,
+    "validating": 0,
+    "resolved": 0,
+    "p0_open": 1,
+    "authority": "project-status/CHALLENGES.json",
+    "bootstrap_task_change": "NONE"
+  },
+  "visualization": { "project_control_center": "prototypes/project-control-center/XFX_Project_Control_Center_V0.1.html" },
+  "framework_integration": {
+    "source": "docs/framework/AI_Native_Product_Creation_Framework_V1_SOURCE.md",
+    "architecture_optimization": "docs/architecture/50-xfx-product-architecture-optimization-v2.md",
+    "stage_mapping": "docs/project-management/44-framework-to-xfx-stage-mapping.md",
+    "agents_context": "AGENTS.md",
+    "version_scope": "project-status/CURRENT_VERSION_SCOPE.md",
+    "handoff": "project-status/GPT_HANDOFF.md"
+  },
+  "package_type": "COMPLETE_BASELINE",
+  "updated_at": "2026-08-24"
+}
