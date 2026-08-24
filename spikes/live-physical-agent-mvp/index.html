@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#080b0d" />
+    <meta name="color-scheme" content="dark" />
+    <title>XFX Camera Sandbox · LIVE-P0</title>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">LIVE-P0 · CAMERA SANDBOX</p>
+          <h1>真实相机基础验证</h1>
+        </div>
+        <button id="hud-toggle" class="button button--quiet" type="button" aria-pressed="true">
+          隐藏 HUD
+        </button>
+      </header>
+
+      <section class="camera-stage" aria-label="相机预览">
+        <video id="preview" autoplay muted playsinline aria-label="实时相机预览"></video>
+        <div id="empty-state" class="empty-state">
+          <span class="empty-state__mark" aria-hidden="true"></span>
+          <strong id="empty-title">相机尚未启动</strong>
+          <span id="empty-copy">点击下方按钮后才会请求摄像头权限</span>
+        </div>
+
+        <div id="hud" class="hud" aria-label="Debug HUD">
+          <div class="hud__status-row">
+            <span id="session-indicator" class="status-pill">IDLE</span>
+            <span id="scheduler-badge" class="status-pill status-pill--muted">SCHEDULER · —</span>
+          </div>
+          <dl class="hud__metrics">
+            <div><dt>PREVIEW</dt><dd id="dimension-value">—</dd></div>
+            <div><dt>FPS EST.</dt><dd id="fps-value">0.0</dd></div>
+            <div><dt>LATE / DROP EST.</dt><dd id="late-value">0 / 0</dd></div>
+            <div><dt>ELAPSED</dt><dd id="elapsed-value">00:00</dd></div>
+          </dl>
+        </div>
+
+        <div class="coordinate-strip" aria-label="坐标调试状态">
+          <div>
+            <span>SENSOR COORDINATE</span>
+            <strong id="sensor-coordinate">RAW · NON-MIRRORED</strong>
+          </div>
+          <div>
+            <span>PREVIEW COORDINATE</span>
+            <strong id="preview-coordinate">NON-MIRRORED</strong>
+          </div>
+          <div>
+            <span>USER-ACTION COORDINATE</span>
+            <strong>SEMANTIC · NO GUIDANCE</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="control-panel" aria-label="相机控制">
+        <div class="state-grid">
+          <div><span>权限</span><strong id="permission-value">NOT_REQUESTED</strong></div>
+          <div><span>有效镜头</span><strong id="facing-value">NONE</strong></div>
+          <div><span>镜像</span><strong id="mirror-value">OFF</strong></div>
+          <div><span>镜头数量</span><strong id="camera-count-value">UNKNOWN</strong></div>
+        </div>
+        <div class="button-row">
+          <button id="start-button" class="button button--primary" type="button">启动相机</button>
+          <button id="switch-button" class="button" type="button" disabled>切换前 / 后摄</button>
+          <button id="stop-button" class="button button--danger" type="button" disabled>停止</button>
+        </div>
+        <p id="message" class="message" role="status" aria-live="polite">
+          未发生摄像头访问。
+        </p>
+      </section>
+
+      <details class="capability-card" open>
+        <summary>Browser / Device Capability</summary>
+        <dl id="capability-list" class="capability-list"></dl>
+      </details>
+
+      <footer>
+        仅本机实时预览与性能观测 · 不运行 CV / ML · 不上传帧 · Raw Video Upload = 0
+      </footer>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
