@@ -6,7 +6,7 @@
   "primary_environment": "windows",
   "overall_status": "IN_PROGRESS",
   "current_milestone": "M00",
-  "current_task": "XFX_ENVIRONMENT_L0_LOCK_01",
+  "current_task": "XFX_FRONTEND_RUNTIME_COMPATIBILITY_SPIKE_01",
   "current_task_status": "PASS",
   "milestones": [
     { "id": "M00", "name": "Project Baseline", "status": "PASS", "gate": "M00_BASELINE_LOCK", "gate_status": "PASS" },
@@ -56,13 +56,25 @@
     "new_shell_reproducibility": "PASS",
     "work_branch": "feature/environment-l0"
   },
+  "frontend_runtime_compatibility_spike": {
+    "task_id": "XFX_FRONTEND_RUNTIME_COMPATIBILITY_SPIKE_01",
+    "status": "PASS",
+    "work_branch": "spike/frontend-runtime-compatibility",
+    "node_24_compatibility": "PASS_WITH_WARNING",
+    "taro": { "tested": ["4.2.1"], "recommended": "4.2.1", "authority_status": "L1_CANDIDATE" },
+    "react": { "tested": ["19.2.6", "18.3.1"], "react_19_2_6": "FAIL", "recommended": "18.3.1", "authority_status": "L1_CANDIDATE" },
+    "typescript": { "tested": ["5.9.3"], "result": "PASS_WITH_WARNING", "recommended": "5.9.3", "authority_status": "L1_CANDIDATE" },
+    "wechat_build": "PASS",
+    "h5_build": "PASS",
+    "challenge_registry_change": "UNCHANGED"
+  },
   "blocking_inputs": [],
   "environment_gaps": ["PYTHON_MISSING", "DOCKER_MISSING"],
   "next_required_result": {
-    "task_id": "XFX_FRONTEND_RUNTIME_COMPATIBILITY_SPIKE_01",
+    "task_id": "XFX_FRONTEND_RUNTIME_L1_LOCK_01",
     "condition": "OWNER_AUTHORIZES_NEXT_TASK_EXECUTION"
   },
-  "next_recommended_task": "XFX_FRONTEND_RUNTIME_COMPATIBILITY_SPIKE_01",
+  "next_recommended_task": "XFX_FRONTEND_RUNTIME_L1_LOCK_01",
   "challenge_summary": {
     "total": 12,
     "identified": 1,

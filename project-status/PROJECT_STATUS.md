@@ -3,7 +3,7 @@
 **Project Baseline:** V0.6 Complete  
 **Current Product Prototype:** S01 V1.6.1  
 **Current Milestone:** M00 — Project Baseline  
-**Current Task:** XFX_ENVIRONMENT_L0_LOCK_01
+**Current Task:** XFX_FRONTEND_RUNTIME_COMPATIBILITY_SPIKE_01
 
 **Current Task Status:** PASS
 
@@ -72,9 +72,25 @@ Work Branch: feature/environment-l0
 
 Environment L0 只复用 AtlasAnalyse 已验证且与产品 Runtime 无强绑定的工具链。未创建空 `package.json`，未采用 pnpm，未锁定 Taro/React/TypeScript/Python/Backend/Camera/CV。
 
+## Frontend Runtime Compatibility Spike
+
+```text
+XFX_FRONTEND_RUNTIME_COMPATIBILITY_SPIKE: PASS
+Taro: 4.2.1 — L1_CANDIDATE
+React: 18.3.1 — L1_CANDIDATE
+TypeScript: 5.9.3 — L1_CANDIDATE
+React 19.2.6: FAIL — Taro React peer constraint requires React ^18
+WeChat Build: PASS
+H5 Build: PASS
+Node 24 Compatibility: PASS_WITH_WARNING
+Work Branch: spike/frontend-runtime-compatibility
+```
+
+这些版本尚未成为 Final Lock；正式 Authority 由下一 Gate 决定。未开始生产 Frontend、Camera/CV、Backend 或 M01。
+
 ## Challenge Status
 
-`project-status/CHALLENGES.json` 未修改。没有产品/AI Challenge 因仓库初始化而被标记为 RESOLVED。
+`project-status/CHALLENGES.json` 未修改。CH-003 保持 `IDENTIFIED`；本 Spike 只验证编译基础，没有验证 Camera Frame、CV FPS 或设备性能。
 
 ```text
 Challenges Addressed: Windows Bootstrap / repository integrity
@@ -85,7 +101,7 @@ Challenges Reopened: NONE
 ## Next Recommended Task
 
 ```text
-XFX_FRONTEND_RUNTIME_COMPATIBILITY_SPIKE_01
+XFX_FRONTEND_RUNTIME_L1_LOCK_01
 ```
 
 这里只记录下一任务；本次未执行该任务，也未进入 M01。

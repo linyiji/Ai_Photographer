@@ -3,7 +3,7 @@
 **Baseline:** V0.6 Complete  
 **Current Milestone:** M00 — PASS
 
-**Current Task:** XFX_ENVIRONMENT_L0_LOCK_01 — PASS
+**Current Task:** XFX_FRONTEND_RUNTIME_COMPATIBILITY_SPIKE_01 — PASS
 
 ## Project Context
 
@@ -68,6 +68,8 @@ New Shell Reproducibility: PASS
 - Baseline Commit `5b8a655f9d297d902941e5cb9d7a40143c3580e4`
 - Acceptance Commit `7491546ac527e1a73734b1b3a07d35001fd9967f`
 - Environment L0 toolchain lock and cross-platform matrix
+- Frontend Runtime Compatibility Spike: Taro 4.2.1 + React 18.3.1 + TypeScript 5.9.3 validated as an L1 Candidate
+- WeChat and H5 compiler pipelines with shared runtime probe
 
 ## Known Issues
 
@@ -84,7 +86,7 @@ project-status/CHALLENGES.json
 Next Recommended Task:
 
 ```text
-XFX_FRONTEND_RUNTIME_COMPATIBILITY_SPIKE_01
+XFX_FRONTEND_RUNTIME_L1_LOCK_01
 ```
 
-不要自动执行下一任务。Taro、React、TypeScript、Python、Backend、Camera、CV 与 M01 均未由 Environment L0 锁定或启动。
+不要自动执行下一任务。Taro 4.2.1、React 18.3.1 与 TypeScript 5.9.3 仅为 `L1_CANDIDATE`，尚非 Final Lock。React 19.2.6 与 Taro 4.2.1 不兼容。Python、Backend、Camera、CV 与 M01 均未启动；CH-003 保持 `IDENTIFIED`。

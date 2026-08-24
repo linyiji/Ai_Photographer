@@ -1,0 +1,11 @@
+dist/
+deploy_versions/
+.temp/
+.rn_temp/
+node_modules/
+.taro-scaffold-git-metadata/
+*.log
+cache/
+.DS_Store
+.swc
+*.local
