@@ -1,13 +1,15 @@
 {
   "project": "xiangfengxing-ai-photographer",
   "baseline_version": "0.6",
+  "package_type": "COMPLETE_BASELINE",
   "current_prototype": "S01 V1.6.1",
   "primary_environment": "windows",
-  "overall_status": "BLOCKED",
+  "overall_status": "IN_PROGRESS",
   "current_milestone": "M00",
   "current_task": "XFX_PROJECT_BOOTSTRAP_WINDOWS_01",
+  "current_task_status": "PASS",
   "milestones": [
-    { "id": "M00", "name": "Project Baseline", "status": "BLOCKED", "gate": "M00_BASELINE_LOCK", "gate_status": "NOT_READY" },
+    { "id": "M00", "name": "Project Baseline", "status": "PASS", "gate": "M00_BASELINE_LOCK", "gate_status": "PASS" },
     { "id": "M01", "name": "Global Contracts", "status": "NOT_STARTED", "gate": "M01_CONTRACT_LOCK" },
     { "id": "M02", "name": "Application Skeleton", "status": "NOT_STARTED", "gate": "M02_SKELETON_RUNNABLE" },
     { "id": "M03", "name": "Fast Feedback Lab", "status": "NOT_STARTED", "gate": "M03_REPLAY_READY" },
@@ -18,23 +20,29 @@
   ],
   "bootstrap": {
     "task_id": "XFX_PROJECT_BOOTSTRAP_WINDOWS_01",
-    "local_bootstrap": "BLOCKED",
-    "remote_bootstrap": "SOURCE_REQUIRED",
-    "project_path": "D:\\Projects\\xiangfengxing",
+    "local_bootstrap": "PASS",
+    "remote_bootstrap": "FAIL",
+    "project_path": "D:\\Projects\\Ai_Photographer",
     "checksum_validation": "PASS",
     "secret_scan": "ACCEPTABLE",
-    "blocker_type": "SOURCE_REQUIRED",
-    "blocking_scope": "LOCAL_GIT_COMMITS_AND_M00_BASELINE_LOCK",
-    "does_not_block": ["BASELINE_EXTRACTION", "PACKAGE_INTEGRITY_VALIDATION", "DOCUMENT_AND_ASSET_ACCEPTANCE", "LOCAL_GIT_INITIALIZATION", "EXECUTION_REPORTING"],
-    "required_input": ["GIT_USER_NAME", "GIT_USER_EMAIL"]
+    "git_identity": "VERIFIED_LOCAL",
+    "main": "PASS",
+    "develop": "PASS",
+    "baseline_commit": "5b8a655f9d297d902941e5cb9d7a40143c3580e4",
+    "acceptance_commit": "SELF",
+    "blocker_type": "TECHNICAL",
+    "blocking_scope": "REMOTE_BOOTSTRAP",
+    "does_not_block": ["LOCAL_BOOTSTRAP", "M00_BASELINE_LOCK"],
+    "required_input": ["GITHUB_HTTPS_NETWORK_ACCESS_FOR_GIT_CLI"]
   },
-  "blocking_inputs": ["GIT_IDENTITY_REQUIRED", "GIT_REMOTE_URL_UNCONFIRMED"],
+  "blocking_inputs": ["GITHUB_HTTPS_NETWORK_UNAVAILABLE_FOR_GIT_CLI"],
   "environment_gaps": ["NODE_MISSING", "PYTHON_MISSING", "DOCKER_MISSING"],
   "next_required_result": {
-    "task_id": "XFX_PROJECT_BOOTSTRAP_WINDOWS_01",
-    "condition": "CONFIGURE_REAL_GIT_IDENTITY_THEN_COMPLETE_BASELINE_AND_ACCEPTANCE_COMMITS"
+    "task_id": "XFX_GLOBAL_CONTRACTS_AND_SKELETON_01",
+    "condition": "OWNER_AUTHORIZES_M01_EXECUTION"
   },
-  "next_recommended_task_after_gate": "XFX_GLOBAL_CONTRACTS_AND_SKELETON_01",
+  "next_milestone": "M01",
+  "next_recommended_task": "XFX_GLOBAL_CONTRACTS_AND_SKELETON_01",
   "challenge_summary": {
     "total": 12,
     "identified": 1,
@@ -55,6 +63,5 @@
     "version_scope": "project-status/CURRENT_VERSION_SCOPE.md",
     "handoff": "project-status/GPT_HANDOFF.md"
   },
-  "package_type": "COMPLETE_BASELINE",
   "updated_at": "2026-08-24"
 }
