@@ -2,10 +2,10 @@
 
 **Project Baseline:** V0.6 Complete  
 **Current Product Prototype:** S01 V1.6.1  
-**Current Milestone:** M01 — Global Contracts
-**Current Task:** XFX_M01_GLOBAL_CONTRACTS_LOCK_MERGE_CLOSURE
+**Current Milestone:** M02 — Full-stack Foundation
+**Current Task:** XFX_MAIN_FULLSTACK_FOUNDATION_AND_M02_01
 
-**Current Task Status:** PASS
+**Current Task Status:** IN_PROGRESS
 
 **Overall Project Status:** IN_PROGRESS
 **Primary Environment:** Windows First
@@ -16,7 +16,7 @@
 |---|---|---|
 | M00 Project Baseline | PASS | M00_BASELINE_LOCK = PASS |
 | M01 Global Contracts | PASS | M01_CONTRACT_LOCK = PASS |
-| M02 Application Skeleton | NOT_STARTED | M02_SKELETON_RUNNABLE |
+| M02 Application Skeleton | IN_PROGRESS | M02_SKELETON_RUNNABLE |
 | M03 Fast Feedback Lab | NOT_STARTED | M03_REPLAY_READY |
 | M04 WeChat Camera/CV Spike | NOT_STARTED | M04_CAMERA_FEASIBILITY |
 | M05 MVP Golden Flow | NOT_STARTED | M05_MVP_GOLDEN_FLOW |
