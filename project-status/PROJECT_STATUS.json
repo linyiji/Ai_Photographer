@@ -6,7 +6,7 @@
   "primary_environment": "windows",
   "overall_status": "IN_PROGRESS",
   "current_milestone": "M01",
-  "current_task": "XFX_M01_GLOBAL_CONTRACTS_LOCK_01",
+  "current_task": "XFX_M01_GLOBAL_CONTRACTS_LOCK_MERGE_CLOSURE",
   "current_task_status": "PASS",
   "milestones": [
     { "id": "M00", "name": "Project Baseline", "status": "PASS", "gate": "M00_BASELINE_LOCK", "gate_status": "PASS" },
@@ -120,6 +120,9 @@
     "gate_status": "PASS",
     "work_branch": "feature/m01-global-contracts-lock",
     "start_head": "4eeb5f0ebf532dae81df0cd84f834d4ac92f6459",
+    "source_commit": "f80edf68d3de046c76fdcf30ce60c91393904369",
+    "merge_closure": "PASS",
+    "merged_to": "develop",
     "canonical_representation": "JSON_SCHEMA_2020_12",
     "mandatory_contracts": 21,
     "mandatory_contract_coverage": "21/21",
@@ -142,10 +145,11 @@
   "blocking_inputs": [],
   "environment_gaps": ["PYTHON_MISSING", "DOCKER_MISSING"],
   "next_required_result": {
-    "task_id": "XFX_M01_GLOBAL_CONTRACTS_LOCK_MERGE_CLOSURE",
-    "condition": "OWNER_AUTHORIZES_MERGE_CLOSURE"
+    "task_id": "XFX_BACKEND_RUNTIME_L1_LOCK_01",
+    "condition": "OWNER_AUTHORIZES_NEXT_TASK_EXECUTION"
   },
-  "next_recommended_task": "XFX_M01_GLOBAL_CONTRACTS_LOCK_MERGE_CLOSURE",
+  "next_recommended_task": "XFX_BACKEND_RUNTIME_L1_LOCK_01",
+  "following_main_task": "XFX_M02_FULLSTACK_VERTICAL_SLICE_01",
   "live_parallel_track": {
     "status": "RUNNING_IN_SEPARATE_WORKTREE",
     "worktree": "D:\\Projects\\_worktrees\\Ai_Photographer-live",

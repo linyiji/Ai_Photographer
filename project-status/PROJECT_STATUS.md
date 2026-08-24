@@ -3,7 +3,7 @@
 **Project Baseline:** V0.6 Complete  
 **Current Product Prototype:** S01 V1.6.1  
 **Current Milestone:** M01 — Global Contracts
-**Current Task:** XFX_M01_GLOBAL_CONTRACTS_LOCK_01
+**Current Task:** XFX_M01_GLOBAL_CONTRACTS_LOCK_MERGE_CLOSURE
 
 **Current Task Status:** PASS
 
@@ -145,6 +145,9 @@ Platform Contract Catalog: PASS
 Duplicate Active Contract Authority: 0
 Production Skeleton Created: 0
 Work Branch: feature/m01-global-contracts-lock
+Source Commit: f80edf68d3de046c76fdcf30ce60c91393904369
+Merge Closure: PASS
+Merged To: develop
 ```
 
 M01 已冻结 `AI_OUTPUT_DEFAULT_STATE = CANDIDATE`、`SelectedTarget = WHAT`、`ShotDirection = HOW` 和 `PhotographySession != LiveShotRuntime`。持久化 Session 保存接受后的业务状态与资产 Lineage；高频 FramePerception、CurrentShotState 和 LiveShotRuntime 由客户端临时 Authority 管理，Backend 不进入逐帧热路径。
@@ -180,7 +183,13 @@ Challenges Reopened: NONE
 ## Next Recommended Task
 
 ```text
-XFX_M01_GLOBAL_CONTRACTS_LOCK_MERGE_CLOSURE
+XFX_BACKEND_RUNTIME_L1_LOCK_01
 ```
 
-这里只记录 M01 Merge Closure；本次不合入 `develop`、不修改 `main`、不开始 M02。Live Parallel Track 保持独立运行。
+Following Main Task:
+
+```text
+XFX_M02_FULLSTACK_VERTICAL_SLICE_01
+```
+
+这里只记录下一主流程顺序；本次不开始 Backend Runtime Lock 或 M02，不修改 `main`。Live Parallel Track 保持独立运行。

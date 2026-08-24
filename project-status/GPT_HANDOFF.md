@@ -3,7 +3,7 @@
 **Baseline:** V0.6 Complete  
 **Current Milestone:** M01 — PASS
 
-**Current Task:** XFX_M01_GLOBAL_CONTRACTS_LOCK_01 — PASS
+**Current Task:** XFX_M01_GLOBAL_CONTRACTS_LOCK_MERGE_CLOSURE — PASS
 
 ## Project Context
 
@@ -86,6 +86,9 @@ New Shell Reproducibility: PASS
 M01_CONTRACT_LOCK: PASS
 Branch: feature/m01-global-contracts-lock
 Start Head: 4eeb5f0ebf532dae81df0cd84f834d4ac92f6459
+Source Commit: f80edf68d3de046c76fdcf30ce60c91393904369
+Merge Closure: PASS
+Merged To: develop
 Canonical Contracts: packages/contracts/catalog.json
 Schemas: packages/contracts/schemas/*.schema.json
 Workflow: packages/workflow/workflow-v1.json
@@ -154,7 +157,13 @@ project-status/CHALLENGES.json
 Next Recommended Task:
 
 ```text
-XFX_M01_GLOBAL_CONTRACTS_LOCK_MERGE_CLOSURE
+XFX_BACKEND_RUNTIME_L1_LOCK_01
 ```
 
-不要自动执行下一任务。M01 feature 尚未合入 `develop`；Merge Disposition 为 READY_FOR_MERGE。未创建正式 App Skeleton。Live Parallel Track 在独立 worktree 中运行，但未被本 Task 触碰或集成。Python、Backend、正式 Camera/CV、Live 集成与 M02 均未启动；CH-003 保持 `IDENTIFIED`，Challenge Registry 未修改。
+Following Main Task:
+
+```text
+XFX_M02_FULLSTACK_VERTICAL_SLICE_01
+```
+
+不要自动执行下一任务。M01 source 已 strict-fast-forward 合入并推送至 `develop`，其语义保持不变。未创建正式 App Skeleton。Live Parallel Track 在独立 worktree 中运行，但未被本 Task 触碰或集成。Python、Backend、正式 Camera/CV、Live 集成与 M02 均未启动；CH-003 保持 `IDENTIFIED`，Challenge Registry 未修改。
