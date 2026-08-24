@@ -64,6 +64,16 @@ P0 did not emit `MOVE_LEFT` or `MOVE_RIGHT`; this test validates only the coordi
 
 The late/drop counters are approximate values read from the HUD after the real-device run. The late count is retained as a non-blocking observation because the measured preview stayed at approximately 29–30 fps and the user observed no visible freeze or black screen. It is not reclassified or discarded.
 
+After the phone run, the Vite development terminal contained two generic client error events:
+
+```text
+[vite] (client) [Unhandled error] Error: Script error.
+source = @vite/client:539:50
+count = 2
+```
+
+No originating application stack or script URL was available, and the user reported no page crash, persistent black screen, visible stall or failed control flow. This is retained as `OBSERVED_WITH_WARNING / ROOT_CAUSE_UNCLASSIFIED`. It is not treated as a proven P0 implementation defect and no speculative source change was made.
+
 ## Privacy and scope
 
 ```text
@@ -90,6 +100,7 @@ Camera Restart = PASS
 
 LIVE-P0 = PASS
 CH-003 = UNCHANGED / IDENTIFIED
+Generic Vite Client Error Events = 2 / OBSERVED_WITH_WARNING
 ```
 
 This P0 evidence proves the Mobile Web camera foundation on one real OPPO K11 device. It does not test CV inference, inference latency, CPU/memory, thermal/power behavior, or mini-program Camera/WASM feasibility and therefore cannot resolve CH-003.

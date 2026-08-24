@@ -76,11 +76,13 @@ Saved/committed real camera frame or video = 0
 
 The real phone was operated by the user. The assistant did not infer phone behavior from desktop automation. The user confirmed all functional checklist items and supplied the 60-second HUD observations.
 
+On shutdown after the device run, the Vite development terminal showed two generic `[vite] (client) [Unhandled error] Error: Script error.` events at `@vite/client:539:50`. No originating application stack or script URL was provided, and the user reported no corresponding page crash, black screen, visible stall or control failure. The events are retained as `OBSERVED_WITH_WARNING / ROOT_CAUSE_UNCLASSIFIED`; they are not silently discarded and are not treated as proof of a P0 implementation defect.
+
 ## Acceptance decision
 
 All mandatory LIVE-P0 hard gates passed on the tested OPPO K11. The observed preview met the candidate threshold and no visible freeze or persistent black screen occurred.
 
-`Late / Drop ≈220 / 14` is retained as `OBSERVED_WITH_WARNING`. It does not block this gate because FPS remained approximately 29–30 and the user observed no visible stall. The exact Chrome version is also retained as an evidence limitation rather than invented.
+`Late / Drop ≈220 / 14` and the two generic Vite client error events are retained as `OBSERVED_WITH_WARNING`. They do not block this gate because FPS remained approximately 29–30 and the user observed no page crash, visible stall, black screen or failed control flow. The exact Chrome version is also retained as an evidence limitation rather than invented.
 
 ```text
 LIVE-P0 = PASS

@@ -18,6 +18,7 @@ Accepted Device = OPPO K11 / ColorOS 15.0 / Chrome Mobile
 Preview FPS = ~29–30 / PASS
 Frame Scheduler = requestVideoFrameCallback / PASS
 Late / Drop Estimate = ~220 / 14 / OBSERVED_WITH_WARNING
+Generic Vite Client Error Events = 2 / OBSERVED_WITH_WARNING / ROOT_CAUSE_UNCLASSIFIED
 Visible Stalls or Persistent Black Screen = NONE
 Raw Video Upload = 0
 CH-003 = UNCHANGED / IDENTIFIED
@@ -42,7 +43,7 @@ Challenge Registry = UNCHANGED
 
 OPPO K11 on ColorOS 15.0 with Chrome Mobile passed HTTPS camera permission, front and rear preview, bidirectional repeated switching, front-preview mirroring, Sensor/Preview/User-Action coordinate sanity, portrait/landscape rotation, at least 60 seconds of approximately 29–30 fps preview, no visible freeze/black screen, and stop→start camera restart. Detailed evidence is in `evidence/camera/manual-device-test-oppo-k11.md`.
 
-The approximate late/drop observation (`220 / 14`) is retained with warning. It does not block P0 because preview remained near 30 fps and no visible stall was observed. Exact Chrome version was not recorded.
+The approximate late/drop observation (`220 / 14`) and two generic Vite client `Script error` terminal events are retained with warning. The generic events had no source stack and no user-visible failure, so they are not classified as a proven implementation defect. They do not block P0 because preview remained near 30 fps and no page crash, visible stall or black screen was observed. Exact Chrome version was not recorded.
 
 ## Stop boundary
 
