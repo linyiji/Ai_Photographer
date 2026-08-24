@@ -1,0 +1,5 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://xfx.local/contracts/v1/AdjustmentRecipe.schema.json","title":"AdjustmentRecipe","description":"Persistent deterministic last-mile tuning recipe; semantic or generative edits are prohibited.","type":"object","additionalProperties":false,
+  "required":["schema_version","recipe_id","session_id","source_asset_id","created_at","semantic_edit_allowed","adjustments"],
+  "properties":{"schema_version":{"const":"1.0.0"},"recipe_id":{"type":"string","minLength":1},"session_id":{"type":"string","minLength":1},"source_asset_id":{"type":"string","minLength":1},"created_at":{"type":"string","format":"date-time"},"semantic_edit_allowed":{"const":false},"adjustments":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["scope","parameter","value"],"properties":{"scope":{"enum":["ALL","PERSON","BACKGROUND","LOCAL_REGION"]},"parameter":{"enum":["BRIGHTNESS","WARMTH","MOOD","SATURATION","SKIN_TONE","SKIN_RETOUCH","BLUR","SOFTNESS"]},"value":{"type":"number","minimum":-1,"maximum":1},"region":{"type":["object","null"]}}}}}
+}

@@ -1,0 +1,5 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://xfx.local/contracts/v1/PhotographySession.schema.json","title":"PhotographySession","description":"Persistent aggregate of accepted business state and asset lineage; it references domain objects and is not a live runtime or God Object.","type":"object","additionalProperties":false,
+  "required":["schema_version","session_id","created_at","updated_at","status","workflow_state_ref","domain_refs","asset_ids"],
+  "properties":{"schema_version":{"const":"1.0.0"},"session_id":{"type":"string","minLength":1},"created_at":{"type":"string","format":"date-time"},"updated_at":{"type":"string","format":"date-time"},"status":{"enum":["DRAFT","ACTIVE","PAUSED","COMPLETED","CANCELLED"]},"entry_mode":{"enum":["REALITY_FIRST","TARGET_FIRST"]},"device_mode":{"enum":["DUAL_PERSON_DUAL_DEVICE","DUAL_PERSON_SINGLE_DEVICE","SOLO_FIXED_CAMERA"]},"workflow_state_ref":{"type":"string","minLength":1},"domain_refs":{"type":"object","additionalProperties":{"type":"string","minLength":1}},"asset_ids":{"type":"array","items":{"type":"string","minLength":1},"uniqueItems":true}}
+}

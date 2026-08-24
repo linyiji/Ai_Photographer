@@ -2,8 +2,8 @@
 
 **Project Baseline:** V0.6 Complete  
 **Current Product Prototype:** S01 V1.6.1  
-**Current Milestone:** M00 — Project Baseline  
-**Current Task:** XFX_FRONTEND_RUNTIME_L1_LOCK_MERGE_CLOSURE
+**Current Milestone:** M01 — Global Contracts
+**Current Task:** XFX_M01_GLOBAL_CONTRACTS_LOCK_01
 
 **Current Task Status:** PASS
 
@@ -15,7 +15,7 @@
 | Milestone | Status | Gate |
 |---|---|---|
 | M00 Project Baseline | PASS | M00_BASELINE_LOCK = PASS |
-| M01 Global Contracts | NOT_STARTED | M01_CONTRACT_LOCK |
+| M01 Global Contracts | PASS | M01_CONTRACT_LOCK = PASS |
 | M02 Application Skeleton | NOT_STARTED | M02_SKELETON_RUNNABLE |
 | M03 Fast Feedback Lab | NOT_STARTED | M03_REPLAY_READY |
 | M04 WeChat Camera/CV Spike | NOT_STARTED | M04_CAMERA_FEASIBILITY |
@@ -123,7 +123,33 @@ Admission Observed Head: 8e5ef051570a222424e428c1f8c5a95ebed7e46b
 Integration: NOT_STARTED
 ```
 
-该并行 Track 不属于本 Merge Closure；本 Task 未 checkout、reset、rebase、merge、delete、prune 或修改其 worktree/branch。
+该并行 Track 不属于 M01 Contract Lock；本 Task 未 checkout、reset、rebase、merge、delete、prune、导入或修改其 worktree/branch。
+
+## M01 Global Contracts Lock
+
+```text
+XFX_M01_GLOBAL_CONTRACTS_LOCK_01: PASS
+M01_CONTRACT_LOCK: PASS
+Canonical Representation: JSON Schema 2020-12
+Contract Catalog: PASS
+Mandatory Contract Coverage: 21/21
+Unique Schema Identity: PASS
+Unresolved Local References: 0
+Workflow V1: PASS
+Workflow Transition Validation: PASS
+Candidate Governance: PASS
+State Authority Matrix: PASS
+Domain Event Catalog: PASS
+Error Contract: PASS
+Platform Contract Catalog: PASS
+Duplicate Active Contract Authority: 0
+Production Skeleton Created: 0
+Work Branch: feature/m01-global-contracts-lock
+```
+
+M01 已冻结 `AI_OUTPUT_DEFAULT_STATE = CANDIDATE`、`SelectedTarget = WHAT`、`ShotDirection = HOW` 和 `PhotographySession != LiveShotRuntime`。持久化 Session 保存接受后的业务状态与资产 Lineage；高频 FramePerception、CurrentShotState 和 LiveShotRuntime 由客户端临时 Authority 管理，Backend 不进入逐帧热路径。
+
+Schema、Workflow 与 Platform Catalog 均为语言中立的机器 Authority。未来 TypeScript、Pydantic、OpenAPI、数据库映射或 Runtime Validator 只能作为投影，不能成为冲突的第二 Authority。没有创建正式 App Skeleton、Backend、Camera/CV 或 Provider 实现。
 
 ## Codex Execution Governance
 
@@ -143,7 +169,7 @@ Frontend Runtime L1: LOCKED_L1
 
 ## Challenge Status
 
-`project-status/CHALLENGES.json` 未修改。CH-003 保持 `IDENTIFIED`；本 Spike 只验证编译基础，没有验证 Camera Frame、CV FPS 或设备性能。
+`project-status/CHALLENGES.json` 未修改。CH-003 保持 `IDENTIFIED`；M01 仅冻结语言和边界，没有验证 Camera Frame、CV FPS 或设备性能。CH-011 仍为 `SOLUTION_PROPOSED`，因为真实资产迁移和 M03 Manifest 驱动验收尚未发生。
 
 ```text
 Challenges Addressed: Windows Bootstrap / repository integrity
@@ -154,7 +180,7 @@ Challenges Reopened: NONE
 ## Next Recommended Task
 
 ```text
-XFX_M01_GLOBAL_CONTRACTS_LOCK_01
+XFX_M01_GLOBAL_CONTRACTS_LOCK_MERGE_CLOSURE
 ```
 
-这里只记录下一产品任务；本次未开始 M01。Live Parallel Track 保持独立运行，不因 `develop` 推进而更新或重写。
+这里只记录 M01 Merge Closure；本次不合入 `develop`、不修改 `main`、不开始 M02。Live Parallel Track 保持独立运行。

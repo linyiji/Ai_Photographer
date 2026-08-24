@@ -1,0 +1,5 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://xfx.local/contracts/v1/ErrorContract.schema.json","title":"ErrorContract","description":"Cross-runtime, user-safe error representation without secret-bearing debug requirements.","type":"object","additionalProperties":false,
+  "required":["schema_version","error_code","category","severity","retryable","user_message_key","developer_context"],
+  "properties":{"schema_version":{"const":"1.0.0"},"error_code":{"type":"string","pattern":"^[A-Z][A-Z0-9_]+$"},"category":{"enum":["VALIDATION","AUTHORITY","WORKFLOW","PLATFORM","DEVICE","PROVIDER","NETWORK","STORAGE","INTERNAL"]},"severity":{"enum":["INFO","WARNING","ERROR","FATAL"]},"retryable":{"type":"boolean"},"user_message_key":{"type":"string","minLength":1},"developer_context":{"type":"object"},"session_id":{"type":["string","null"]},"correlation_id":{"type":["string","null"]},"cause":{"type":["object","null"],"properties":{"code":{"type":"string"},"category":{"type":"string"}},"additionalProperties":false}}
+}

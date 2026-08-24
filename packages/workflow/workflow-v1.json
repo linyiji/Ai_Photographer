@@ -1,0 +1,30 @@
+{
+  "workflow_id": "XFX_PHOTOGRAPHY_WORKFLOW_V1",
+  "version": "1.0.0",
+  "authority_status": "LOCKED_M01",
+  "initial_state": "ENTRY",
+  "terminal_states": ["FINAL"],
+  "states": ["ENTRY","SHOOTING_RELATION_DEVICE_MODE","REALITY","TARGET","SHOT","LIVE","CAPTURE","QA","REALITY_PLUS","FINE_TUNE","FINAL"],
+  "qa_decisions": ["ACCEPT","ACCEPT_WITH_REPAIR","RETAKE_MICRO","RETAKE_POSE","RETAKE_FRAMING","RETAKE_POSITION","REPLAN"],
+  "transitions": [
+    {"from":"ENTRY","action":"SELECT_SHOOTING_RELATION","to":"SHOOTING_RELATION_DEVICE_MODE"},
+    {"from":"SHOOTING_RELATION_DEVICE_MODE","action":"CONFIRM_DEVICE_MODE","to":"REALITY"},
+    {"from":"REALITY","action":"ACCEPT_REALITY","to":"TARGET"},
+    {"from":"TARGET","action":"SELECT_TARGET","to":"SHOT"},
+    {"from":"SHOT","action":"ACCEPT_SHOT_DIRECTION","to":"LIVE"},
+    {"from":"LIVE","action":"ENTER_CAPTURE_WINDOW","to":"CAPTURE"},
+    {"from":"CAPTURE","action":"CREATE_CAPTURE","to":"QA"},
+    {"from":"QA","action":"ACCEPT","to":"REALITY_PLUS"},
+    {"from":"QA","action":"ACCEPT_WITH_REPAIR","to":"REALITY_PLUS"},
+    {"from":"QA","action":"RETAKE_MICRO","to":"LIVE","preserve":["REALITY","TARGET","SHOT","CAMERA_POSITION","SUBJECT_POSITION","FRAMING","MAJOR_POSE"]},
+    {"from":"QA","action":"RETAKE_POSE","to":"LIVE","preserve":["REALITY","TARGET","SHOT","CAMERA_POSITION","SUBJECT_POSITION","FRAMING"]},
+    {"from":"QA","action":"RETAKE_FRAMING","to":"LIVE","preserve":["REALITY","TARGET","SHOT","SUBJECT_POSITION"]},
+    {"from":"QA","action":"RETAKE_POSITION","to":"LIVE","preserve":["REALITY","TARGET","SHOT","CAMERA_POSITION"]},
+    {"from":"QA","action":"REPLAN","to":"SHOT","preserve":["REALITY","TARGET"]},
+    {"from":"REALITY_PLUS","action":"ACCEPT_REALITY_PLUS","to":"FINE_TUNE"},
+    {"from":"REALITY_PLUS","action":"SKIP_FINE_TUNE","to":"FINAL"},
+    {"from":"FINE_TUNE","action":"SAVE_ADJUSTMENT_RECIPE","to":"FINAL"}
+  ],
+  "semantic_separation": {"workflow_stage":"current position in the product flow","transition_action":"explicit cause of movement","domain_state":"versioned accepted data referenced by session"},
+  "runtime_boundary": {"persistent":"meaningful accepted transitions and decisions","ephemeral":"per-frame observations and derived live readiness","backend_per_frame_hot_path":false}
+}

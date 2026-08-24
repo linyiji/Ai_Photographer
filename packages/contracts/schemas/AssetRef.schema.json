@@ -1,0 +1,5 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://xfx.local/contracts/v1/AssetRef.schema.json","title":"AssetRef","description":"Stable asset identity and storage reference; an absolute local path is not permitted as canonical identity.","type":"object","additionalProperties":false,
+  "required":["schema_version","asset_id","asset_kind","version","status","storage_ref","created_at"],
+  "properties":{"schema_version":{"const":"1.0.0"},"asset_id":{"type":"string","minLength":1},"asset_kind":{"type":"string","pattern":"^[A-Z][A-Z0-9_]+$"},"version":{"type":"integer","minimum":1},"status":{"enum":["SOURCE","CANDIDATE","ACCEPTED","DERIVED","FINAL"]},"storage_ref":{"type":"string","minLength":1,"not":{"pattern":"^(?:[A-Za-z]:[\\\\/]|/)"}},"created_at":{"type":"string","format":"date-time"},"producer":{"type":["string","null"]},"source_asset_ids":{"type":"array","items":{"type":"string"},"uniqueItems":true},"checksum":{"type":["object","null"],"additionalProperties":false,"required":["algorithm","value"],"properties":{"algorithm":{"enum":["SHA256"]},"value":{"type":"string","pattern":"^[a-fA-F0-9]{64}$"}}}}
+}

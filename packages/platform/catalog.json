@@ -1,0 +1,18 @@
+{
+  "catalog_version":"1.0.0",
+  "authority_status":"LOCKED_M01",
+  "scope":"capability responsibilities and language-neutral I/O semantics; no implementation",
+  "capabilities":[
+    {"name":"CameraAdapter","responsibility":"open and close a camera session and request a capture","inputs":["CameraOpenRequest","CaptureRequest"],"outputs":["CameraSessionRef","AssetRef"]},
+    {"name":"FrameAdapter","responsibility":"provide a bounded frame stream to local perception","inputs":["CameraSessionRef","FrameSubscriptionOptions"],"outputs":["FrameEnvelope","UnsubscribeResult"]},
+    {"name":"AlbumAdapter","responsibility":"save an accepted asset to a user-visible album","inputs":["AssetRef","AlbumSaveOptions"],"outputs":["AlbumSaveResult"]},
+    {"name":"ShareAdapter","responsibility":"share an accepted product asset through the current platform","inputs":["AssetRef","ShareMetadata"],"outputs":["ShareResult"]},
+    {"name":"HapticAdapter","responsibility":"emit semantic tactile feedback","inputs":["HapticCue"],"outputs":["CapabilityResult"]},
+    {"name":"VoiceOutputAdapter","responsibility":"speak one authorized guidance message","inputs":["VoiceCue"],"outputs":["CapabilityResult"]},
+    {"name":"AuthAdapter","responsibility":"obtain a platform-neutral authenticated subject assertion","inputs":["AuthRequest"],"outputs":["AuthSubjectRef"]},
+    {"name":"PaymentAdapter","responsibility":"request a user-confirmed payment flow","inputs":["PaymentRequestRef"],"outputs":["PaymentResultRef"]},
+    {"name":"DeviceMotionAdapter","responsibility":"provide bounded device motion samples","inputs":["MotionSubscriptionOptions"],"outputs":["DeviceMotionSample","UnsubscribeResult"]},
+    {"name":"StorageAdapter","responsibility":"store and retrieve assets by stable storage reference","inputs":["AssetRef","StorageOperation"],"outputs":["StorageResult"]},
+    {"name":"NetworkAdapter","responsibility":"report connectivity and perform authorized transport operations","inputs":["NetworkOperation"],"outputs":["NetworkResult"]}
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://xfx.local/contracts/v1/RealityContext.schema.json","title":"RealityContext","description":"Validated and accepted reality model used by target and shot planning.","type":"object","additionalProperties":false,
+  "required":["schema_version","reality_context_id","session_id","accepted_at","person","scene","spatial","safety","source_candidate_id"],
+  "properties":{"schema_version":{"const":"1.0.0"},"reality_context_id":{"type":"string","minLength":1},"session_id":{"type":"string","minLength":1},"accepted_at":{"type":"string","format":"date-time"},"person":{"type":"object"},"scene":{"type":"object"},"spatial":{"type":"object"},"safety":{"type":"object","required":["forbidden_zones","risk_notes"],"properties":{"forbidden_zones":{"type":"array","items":{"type":"string"}},"risk_notes":{"type":"array","items":{"type":"string"}}},"additionalProperties":true},"desired_target_constraints":{"type":"array","items":{"type":"string"}},"source_candidate_id":{"type":"string","minLength":1}}
+}

@@ -1,0 +1,5 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://xfx.local/contracts/v1/SelectedTarget.schema.json","title":"SelectedTarget","description":"Accepted WHAT: the specific, feasible and safe image the session intends to create.","type":"object","additionalProperties":false,
+  "required":["schema_version","target_id","session_id","reality_context_id","selected_at","source_candidate_id","visual_intent","composition","realism_constraints","safety_constraints"],
+  "properties":{"schema_version":{"const":"1.0.0"},"target_id":{"type":"string","minLength":1},"session_id":{"type":"string","minLength":1},"reality_context_id":{"type":"string","minLength":1},"selected_at":{"type":"string","format":"date-time"},"source_candidate_id":{"type":"string","minLength":1},"visual_intent":{"type":"string","minLength":1},"composition":{"type":"object"},"subject_intent":{"type":"object"},"background_anchors":{"type":"array","items":{"type":"string"}},"realism_constraints":{"type":"array","items":{"type":"string"}},"safety_constraints":{"type":"array","items":{"type":"string"}},"user_overrides":{"type":"array","items":{"type":"string"}}}
+}

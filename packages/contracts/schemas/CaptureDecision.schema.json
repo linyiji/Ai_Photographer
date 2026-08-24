@@ -1,0 +1,5 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://xfx.local/contracts/v1/CaptureDecision.schema.json","title":"CaptureDecision","description":"Persistent technical QA decision; user taste remains a separate field.","type":"object","additionalProperties":false,
+  "required":["schema_version","decision_id","session_id","capture_id","decided_at","technical_result","technical_reasons","taste_status","source_candidate_id"],
+  "properties":{"schema_version":{"const":"1.0.0"},"decision_id":{"type":"string","minLength":1},"session_id":{"type":"string","minLength":1},"capture_id":{"type":"string","minLength":1},"decided_at":{"type":"string","format":"date-time"},"technical_result":{"enum":["ACCEPT","ACCEPT_WITH_REPAIR","RETAKE_MICRO","RETAKE_POSE","RETAKE_FRAMING","RETAKE_POSITION","REPLAN"]},"technical_reasons":{"type":"array","items":{"type":"string"}},"taste_status":{"enum":["NOT_EVALUATED","USER_ACCEPTED","USER_REJECTED"]},"taste_reason":{"type":["string","null"]},"source_candidate_id":{"type":"string","minLength":1}}
+}

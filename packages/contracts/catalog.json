@@ -1,0 +1,29 @@
+{
+  "catalog_version": "1.0.0",
+  "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
+  "authority_status": "LOCKED_M01",
+  "ai_output_default_state": "CANDIDATE",
+  "contracts": [
+    {"name":"PhotographySession","domain":"CONTROL","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/PhotographySession.schema.json","path":"schemas/PhotographySession.schema.json"},
+    {"name":"WorkflowState","domain":"CONTROL","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/WorkflowState.schema.json","path":"schemas/WorkflowState.schema.json"},
+    {"name":"DomainEvent","domain":"CONTROL","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/DomainEvent.schema.json","path":"schemas/DomainEvent.schema.json"},
+    {"name":"ErrorContract","domain":"CONTROL","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/ErrorContract.schema.json","path":"schemas/ErrorContract.schema.json"},
+    {"name":"CandidateEnvelope","domain":"CONTROL","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/CandidateEnvelope.schema.json","path":"schemas/CandidateEnvelope.schema.json"},
+    {"name":"RealityContext","domain":"REALITY","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/RealityContext.schema.json","path":"schemas/RealityContext.schema.json"},
+    {"name":"SelectedTarget","domain":"TARGET","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/SelectedTarget.schema.json","path":"schemas/SelectedTarget.schema.json"},
+    {"name":"ShotDirection","domain":"SHOT","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/ShotDirection.schema.json","path":"schemas/ShotDirection.schema.json"},
+    {"name":"FramePerception","domain":"LIVE","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/FramePerception.schema.json","path":"schemas/FramePerception.schema.json"},
+    {"name":"CurrentShotState","domain":"LIVE","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/CurrentShotState.schema.json","path":"schemas/CurrentShotState.schema.json"},
+    {"name":"LiveShotRuntime","domain":"LIVE","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/LiveShotRuntime.schema.json","path":"schemas/LiveShotRuntime.schema.json"},
+    {"name":"CaptureAsset","domain":"CAPTURE","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/CaptureAsset.schema.json","path":"schemas/CaptureAsset.schema.json"},
+    {"name":"CaptureDecision","domain":"QA","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/CaptureDecision.schema.json","path":"schemas/CaptureDecision.schema.json"},
+    {"name":"RetakePlan","domain":"QA","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/RetakePlan.schema.json","path":"schemas/RetakePlan.schema.json"},
+    {"name":"RealityPlusAsset","domain":"POST","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/RealityPlusAsset.schema.json","path":"schemas/RealityPlusAsset.schema.json"},
+    {"name":"AdjustmentRecipe","domain":"POST","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/AdjustmentRecipe.schema.json","path":"schemas/AdjustmentRecipe.schema.json"},
+    {"name":"MyFinalPhoto","domain":"FINAL","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/MyFinalPhoto.schema.json","path":"schemas/MyFinalPhoto.schema.json"},
+    {"name":"AssetRef","domain":"ASSET","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/AssetRef.schema.json","path":"schemas/AssetRef.schema.json"},
+    {"name":"AssetManifest","domain":"ASSET","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/AssetManifest.schema.json","path":"schemas/AssetManifest.schema.json"},
+    {"name":"ScenarioManifest","domain":"EVALUATION","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/ScenarioManifest.schema.json","path":"schemas/ScenarioManifest.schema.json"},
+    {"name":"EvaluationResult","domain":"EVALUATION","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/EvaluationResult.schema.json","path":"schemas/EvaluationResult.schema.json"}
+  ]
+}

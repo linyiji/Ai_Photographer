@@ -1,0 +1,5 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://xfx.local/contracts/v1/MyFinalPhoto.schema.json","title":"MyFinalPhoto","description":"Persistent final product asset selected by the user, with explicit lineage and no embedded image bytes.","type":"object","additionalProperties":false,
+  "required":["schema_version","final_photo_id","session_id","selected_asset_id","selected_at","lineage_asset_ids"],
+  "properties":{"schema_version":{"const":"1.0.0"},"final_photo_id":{"type":"string","minLength":1},"session_id":{"type":"string","minLength":1},"selected_asset_id":{"type":"string","minLength":1},"selected_at":{"type":"string","format":"date-time"},"adjustment_recipe_id":{"type":["string","null"]},"lineage_asset_ids":{"type":"array","minItems":1,"items":{"type":"string","minLength":1},"uniqueItems":true}}
+}

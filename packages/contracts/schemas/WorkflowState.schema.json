@@ -1,0 +1,5 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://xfx.local/contracts/v1/WorkflowState.schema.json","title":"WorkflowState","description":"Persistent logical workflow position shared by all runtimes.","type":"object","additionalProperties":false,
+  "required":["schema_version","workflow_state_id","session_id","stage","revision","entered_at"],
+  "properties":{"schema_version":{"const":"1.0.0"},"workflow_state_id":{"type":"string","minLength":1},"session_id":{"type":"string","minLength":1},"stage":{"enum":["ENTRY","SHOOTING_RELATION_DEVICE_MODE","REALITY","TARGET","SHOT","LIVE","CAPTURE","QA","REALITY_PLUS","FINE_TUNE","FINAL"]},"revision":{"type":"integer","minimum":0},"entered_at":{"type":"string","format":"date-time"},"last_transition_event_id":{"type":["string","null"]}}
+}

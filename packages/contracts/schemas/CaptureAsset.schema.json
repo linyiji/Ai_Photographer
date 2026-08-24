@@ -1,0 +1,5 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://xfx.local/contracts/v1/CaptureAsset.schema.json","title":"CaptureAsset","description":"Persistent captured image lineage record using stable asset identity.","type":"object","additionalProperties":false,
+  "required":["schema_version","capture_id","session_id","shot_direction_id","asset_id","created_at","attempt_number"],
+  "properties":{"schema_version":{"const":"1.0.0"},"capture_id":{"type":"string","minLength":1},"session_id":{"type":"string","minLength":1},"shot_direction_id":{"type":"string","minLength":1},"asset_id":{"type":"string","minLength":1},"created_at":{"type":"string","format":"date-time"},"attempt_number":{"type":"integer","minimum":1},"capture_mode":{"enum":["STATIC_MANUAL","MOTION_BURST","SOLO_AUTO","RETRY"]},"runtime_snapshot_event_id":{"type":["string","null"]}}
+}

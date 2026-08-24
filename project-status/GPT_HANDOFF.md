@@ -1,9 +1,9 @@
 # GPT / Codex Handoff
 
 **Baseline:** V0.6 Complete  
-**Current Milestone:** M00 — PASS
+**Current Milestone:** M01 — PASS
 
-**Current Task:** XFX_FRONTEND_RUNTIME_L1_LOCK_MERGE_CLOSURE — PASS
+**Current Task:** XFX_M01_GLOBAL_CONTRACTS_LOCK_01 — PASS
 
 ## Project Context
 
@@ -76,6 +76,27 @@ New Shell Reproducibility: PASS
 - XFX Codex Execution Standard V1 promoted from `ACTIVE_CANDIDATE` to `ACTIVE`
 - Frontend Runtime L1 promotion Gate passed through fresh lock-file reproduction, dependency validation, TypeScript, WeChat, and H5 builds
 - Frontend Runtime L1 commit `5436f188184c718e2fe527369d749f8ef071043c` strict-fast-forward merged and pushed to `develop`
+- M01 Global Contracts V1 frozen as 21 language-neutral JSON Schema 2020-12 contracts
+- Workflow V1 frozen with 11 stages, legal transitions, all QA decisions, and partial-retake preservation semantics
+- Candidate governance, persistent/ephemeral State Authority, Domain Event catalog, Error Contract, asset lineage, evaluation, and 11 platform capability contracts frozen
+
+## M01 Contract Authority
+
+```text
+M01_CONTRACT_LOCK: PASS
+Branch: feature/m01-global-contracts-lock
+Start Head: 4eeb5f0ebf532dae81df0cd84f834d4ac92f6459
+Canonical Contracts: packages/contracts/catalog.json
+Schemas: packages/contracts/schemas/*.schema.json
+Workflow: packages/workflow/workflow-v1.json
+Platform Catalog: packages/platform/catalog.json
+Mandatory Coverage: 21/21
+Unresolved Local References: 0
+Duplicate Active Contract Authority: 0
+Production Skeleton Created: 0
+```
+
+Frozen semantics: `AI_OUTPUT_DEFAULT_STATE = CANDIDATE`; Candidate is not accepted truth; `SelectedTarget = WHAT`; `ShotDirection = HOW`; `PhotographySession != LiveShotRuntime`. The backend persists meaningful accepted state and events, never the per-frame hot path. Future language/runtime types are projections of JSON Schema, not new Authority.
 
 ## Frontend Runtime L1 Authority
 
@@ -133,7 +154,7 @@ project-status/CHALLENGES.json
 Next Recommended Task:
 
 ```text
-XFX_M01_GLOBAL_CONTRACTS_LOCK_01
+XFX_M01_GLOBAL_CONTRACTS_LOCK_MERGE_CLOSURE
 ```
 
-不要自动执行下一任务。未创建正式 Frontend Skeleton。Live Parallel Track 在独立 worktree 中运行，但未被本 Task 触碰或集成。Python、Backend、正式 Camera/CV、Live P1 与 M01 均未启动；CH-003 保持 `IDENTIFIED`。
+不要自动执行下一任务。M01 feature 尚未合入 `develop`；Merge Disposition 为 READY_FOR_MERGE。未创建正式 App Skeleton。Live Parallel Track 在独立 worktree 中运行，但未被本 Task 触碰或集成。Python、Backend、正式 Camera/CV、Live 集成与 M02 均未启动；CH-003 保持 `IDENTIFIED`，Challenge Registry 未修改。

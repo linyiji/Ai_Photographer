@@ -1,0 +1,5 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://xfx.local/contracts/v1/ScenarioManifest.schema.json","title":"ScenarioManifest","description":"Versioned, secret-free binding of a scenario to fixtures, assets and expected workflow/runtime context.","type":"object","additionalProperties":false,
+  "required":["schema_version","scenario_id","version","fixture_refs","asset_ids","expected_workflow_stage","runtime_context"],
+  "properties":{"schema_version":{"const":"1.0.0"},"scenario_id":{"type":"string","minLength":1},"version":{"type":"integer","minimum":1},"fixture_refs":{"type":"array","items":{"type":"string"},"uniqueItems":true},"asset_ids":{"type":"array","items":{"type":"string"},"uniqueItems":true},"expected_workflow_stage":{"enum":["ENTRY","SHOOTING_RELATION_DEVICE_MODE","REALITY","TARGET","SHOT","LIVE","CAPTURE","QA","REALITY_PLUS","FINE_TUNE","FINAL"]},"runtime_context":{"type":"object"},"expected_events":{"type":"array","items":{"type":"string"}}}
+}
