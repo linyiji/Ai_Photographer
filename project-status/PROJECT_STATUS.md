@@ -3,7 +3,8 @@
 **Project Baseline:** V0.6 Complete  
 **Current Product Prototype:** S01 V1.6.1  
 **Current Milestone:** M00 — Project Baseline  
-**Current Task:** XFX_PROJECT_BOOTSTRAP_WINDOWS_01  
+**Current Task:** XFX_ENVIRONMENT_L0_LOCK_01
+
 **Current Task Status:** PASS
 
 **Overall Project Status:** IN_PROGRESS
@@ -46,12 +47,30 @@ GitHub `origin` 已切换为 `ssh://git@ssh.github.com:443/linyiji/Ai_Photograph
 ## Environment Gaps
 
 ```text
-Node: MISSING
 Python: MISSING
 Docker: MISSING
 ```
 
-这些只记录为 `ENVIRONMENT_GAP`；未自动安装，不影响 TASK 00 PASS。
+Python 与 Docker 只记录为 `ENVIRONMENT_GAP`；未自动安装，不影响 Environment L0 PASS。
+
+## Environment L0 Lock
+
+```text
+XFX_ENV_L0_LOCK: PASS
+Node Manager: fnm
+fnm Windows Evidence: 1.39.0
+Node: 24.18.0
+npm: 11.6.2
+Default JS Package Manager: npm
+Node Authority: .node-version
+Future JS Package Authority: package.json packageManager = npm@11.6.2
+Future Lock File: package-lock.json
+Current Shell Verification: PASS
+New Shell Reproducibility: PASS
+Work Branch: feature/environment-l0
+```
+
+Environment L0 只复用 AtlasAnalyse 已验证且与产品 Runtime 无强绑定的工具链。未创建空 `package.json`，未采用 pnpm，未锁定 Taro/React/TypeScript/Python/Backend/Camera/CV。
 
 ## Challenge Status
 
@@ -66,7 +85,7 @@ Challenges Reopened: NONE
 ## Next Recommended Task
 
 ```text
-XFX_ENVIRONMENT_L0_LOCK_01
+XFX_FRONTEND_RUNTIME_COMPATIBILITY_SPIKE_01
 ```
 
-这里只记录下一任务；本次未执行该任务，也未进入 M01，未修改 CURRENT Product Prototype、Golden Flow 或 Architecture Authority。
+这里只记录下一任务；本次未执行该任务，也未进入 M01。

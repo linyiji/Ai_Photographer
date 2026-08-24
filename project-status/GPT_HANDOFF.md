@@ -3,7 +3,7 @@
 **Baseline:** V0.6 Complete  
 **Current Milestone:** M00 — PASS
 
-**Current Task:** XFX_PROJECT_BOOTSTRAP_WINDOWS_01 — PASS
+**Current Task:** XFX_ENVIRONMENT_L0_LOCK_01 — PASS
 
 ## Project Context
 
@@ -40,6 +40,18 @@ HTTPS Git transport failed in current network.
 
 Resolved by switching repository remote transport to GitHub SSH over port 443.
 
+Environment L0 is locked:
+
+```text
+XFX_ENV_L0_LOCK: PASS
+Node Manager: fnm
+Node: 24.18.0
+npm: 11.6.2
+Default JS Package Manager: npm
+Authority: .node-version
+New Shell Reproducibility: PASS
+```
+
 ## Completed
 
 - Product Design Baseline
@@ -55,6 +67,7 @@ Resolved by switching repository remote transport to GitHub SSH over port 443.
 - GitHub Remote Bootstrap through SSH over port 443
 - Baseline Commit `5b8a655f9d297d902941e5cb9d7a40143c3580e4`
 - Acceptance Commit `7491546ac527e1a73734b1b3a07d35001fd9967f`
+- Environment L0 toolchain lock and cross-platform matrix
 
 ## Known Issues
 
@@ -71,7 +84,7 @@ project-status/CHALLENGES.json
 Next Recommended Task:
 
 ```text
-XFX_ENVIRONMENT_L0_LOCK_01
+XFX_FRONTEND_RUNTIME_COMPATIBILITY_SPIKE_01
 ```
 
-不要在本次 Remote Bootstrap 收口中开始执行下一任务或进入 M01。
+不要自动执行下一任务。Taro、React、TypeScript、Python、Backend、Camera、CV 与 M01 均未由 Environment L0 锁定或启动。

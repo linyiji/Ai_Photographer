@@ -6,7 +6,7 @@
   "primary_environment": "windows",
   "overall_status": "IN_PROGRESS",
   "current_milestone": "M00",
-  "current_task": "XFX_PROJECT_BOOTSTRAP_WINDOWS_01",
+  "current_task": "XFX_ENVIRONMENT_L0_LOCK_01",
   "current_task_status": "PASS",
   "milestones": [
     { "id": "M00", "name": "Project Baseline", "status": "PASS", "gate": "M00_BASELINE_LOCK", "gate_status": "PASS" },
@@ -39,13 +39,30 @@
     "does_not_block": [],
     "required_input": []
   },
-  "blocking_inputs": [],
-  "environment_gaps": ["NODE_MISSING", "PYTHON_MISSING", "DOCKER_MISSING"],
-  "next_required_result": {
+  "environment_l0": {
     "task_id": "XFX_ENVIRONMENT_L0_LOCK_01",
+    "status": "PASS",
+    "gate": "XFX_ENV_L0_LOCK",
+    "gate_status": "PASS",
+    "node_manager": "fnm",
+    "fnm_windows_version": "1.39.0",
+    "node": "24.18.0",
+    "npm": "11.6.2",
+    "default_js_package_manager": "npm",
+    "node_authority": ".node-version",
+    "future_package_manager_authority": "package.json#packageManager",
+    "future_lock_file": "package-lock.json",
+    "current_shell_verification": "PASS",
+    "new_shell_reproducibility": "PASS",
+    "work_branch": "feature/environment-l0"
+  },
+  "blocking_inputs": [],
+  "environment_gaps": ["PYTHON_MISSING", "DOCKER_MISSING"],
+  "next_required_result": {
+    "task_id": "XFX_FRONTEND_RUNTIME_COMPATIBILITY_SPIKE_01",
     "condition": "OWNER_AUTHORIZES_NEXT_TASK_EXECUTION"
   },
-  "next_recommended_task": "XFX_ENVIRONMENT_L0_LOCK_01",
+  "next_recommended_task": "XFX_FRONTEND_RUNTIME_COMPATIBILITY_SPIKE_01",
   "challenge_summary": {
     "total": 12,
     "identified": 1,
