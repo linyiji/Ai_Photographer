@@ -3,7 +3,7 @@
 **Baseline:** V0.6 Complete  
 **Current Milestone:** M00 — PASS
 
-**Current Task:** XFX_FRONTEND_RUNTIME_COMPATIBILITY_SPIKE_01 — PASS
+**Current Task:** XFX_CANONICALIZE_CODEX_EXECUTION_STANDARD_V1_01 — PASS
 
 ## Project Context
 
@@ -70,6 +70,19 @@ New Shell Reproducibility: PASS
 - Environment L0 toolchain lock and cross-platform matrix
 - Frontend Runtime Compatibility Spike: Taro 4.2.1 + React 18.3.1 + TypeScript 5.9.3 validated as an L1 Candidate
 - WeChat and H5 compiler pipelines with shared runtime probe
+- Frontend Compatibility Spike strict-fast-forward merged and pushed to `develop` at `fe92d5af50ff3b0decd9196c79f71445a73e2ca9`
+- XFX Codex Execution Standard V1 canonicalized as `ACTIVE_CANDIDATE` with 11 Profiles and 6 Templates
+
+## Governance Authority
+
+```text
+PROMPT_STANDARD: XFX_CODEX_EXECUTION_STANDARD_V1
+Model: COMMON EXECUTION CORE + TASK PROFILE + TASK CONTRACT
+Branch: governance/codex-execution-standard-v1
+Source provenance: AtlasAnalyse package = REFERENCE_SOURCE
+Frontend L1 versions: L1_CANDIDATE, NOT LOCKED
+React 19.2.6: retained negative evidence (FAIL)
+```
 
 ## Known Issues
 
@@ -86,7 +99,7 @@ project-status/CHALLENGES.json
 Next Recommended Task:
 
 ```text
-XFX_FRONTEND_RUNTIME_L1_LOCK_01
+XFX_CODEX_EXECUTION_STANDARD_V1_MERGE_CLOSURE
 ```
 
-不要自动执行下一任务。Taro 4.2.1、React 18.3.1 与 TypeScript 5.9.3 仅为 `L1_CANDIDATE`，尚非 Final Lock。React 19.2.6 与 Taro 4.2.1 不兼容。Python、Backend、Camera、CV 与 M01 均未启动；CH-003 保持 `IDENTIFIED`。
+不要自动执行下一任务。先完成 Governance Merge Closure；其后的产品任务才是 `XFX_FRONTEND_RUNTIME_L1_LOCK_01`。Taro 4.2.1、React 18.3.1 与 TypeScript 5.9.3 仍仅为 `L1_CANDIDATE`。Python、Backend、Camera、CV 与 M01 均未启动；CH-003 保持 `IDENTIFIED`。

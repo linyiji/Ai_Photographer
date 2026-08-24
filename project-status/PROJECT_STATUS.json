@@ -6,7 +6,7 @@
   "primary_environment": "windows",
   "overall_status": "IN_PROGRESS",
   "current_milestone": "M00",
-  "current_task": "XFX_FRONTEND_RUNTIME_COMPATIBILITY_SPIKE_01",
+  "current_task": "XFX_CANONICALIZE_CODEX_EXECUTION_STANDARD_V1_01",
   "current_task_status": "PASS",
   "milestones": [
     { "id": "M00", "name": "Project Baseline", "status": "PASS", "gate": "M00_BASELINE_LOCK", "gate_status": "PASS" },
@@ -66,15 +66,33 @@
     "typescript": { "tested": ["5.9.3"], "result": "PASS_WITH_WARNING", "recommended": "5.9.3", "authority_status": "L1_CANDIDATE" },
     "wechat_build": "PASS",
     "h5_build": "PASS",
-    "challenge_registry_change": "UNCHANGED"
+    "challenge_registry_change": "UNCHANGED",
+    "merge_closure": "PASS",
+    "merged_to_develop": "fe92d5af50ff3b0decd9196c79f71445a73e2ca9"
+  },
+  "codex_execution_governance": {
+    "task_id": "XFX_CANONICALIZE_CODEX_EXECUTION_STANDARD_V1_01",
+    "status": "PASS",
+    "standard_version": "V1.0",
+    "authority_state": "ACTIVE_CANDIDATE",
+    "work_branch": "governance/codex-execution-standard-v1",
+    "start_head": "fe92d5af50ff3b0decd9196c79f71445a73e2ca9",
+    "profiles": 11,
+    "templates": 6,
+    "source_status": "REFERENCE_SOURCE",
+    "candidate_governance": "PASS",
+    "duplicate_active_authority_count": 0,
+    "broken_active_link_count": 0,
+    "atlasanalyse_business_semantic_leak_count": 0
   },
   "blocking_inputs": [],
   "environment_gaps": ["PYTHON_MISSING", "DOCKER_MISSING"],
   "next_required_result": {
-    "task_id": "XFX_FRONTEND_RUNTIME_L1_LOCK_01",
+    "task_id": "XFX_CODEX_EXECUTION_STANDARD_V1_MERGE_CLOSURE",
     "condition": "OWNER_AUTHORIZES_NEXT_TASK_EXECUTION"
   },
-  "next_recommended_task": "XFX_FRONTEND_RUNTIME_L1_LOCK_01",
+  "next_recommended_task": "XFX_CODEX_EXECUTION_STANDARD_V1_MERGE_CLOSURE",
+  "next_product_task_after_governance_merge": "XFX_FRONTEND_RUNTIME_L1_LOCK_01",
   "challenge_summary": {
     "total": 12,
     "identified": 1,
