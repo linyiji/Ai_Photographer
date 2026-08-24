@@ -5,8 +5,8 @@
 ```text
 PROMPT_STANDARD=XFX_CODEX_EXECUTION_STANDARD_V1
 VERSION=V1.0
-STATUS=ACTIVE_CANDIDATE
-AUTHORITY_LEVEL=EXECUTION_GOVERNANCE_CANDIDATE
+STATUS=ACTIVE
+AUTHORITY_LEVEL=EXECUTION_GOVERNANCE_AUTHORITY
 PROJECT=AI_PHOTOGRAPHER
 ```
 
@@ -127,7 +127,7 @@ Fixture success is not real-device success. Build success is not Camera/CV feasi
 
 ## Lifecycle and versioning
 
-Documentation lifecycle is `DRAFT → ACTIVE → FROZEN → SUPERSEDED → ARCHIVE`. This V1 begins as `ACTIVE_CANDIDATE`. Compatible additions use V1.x; execution-contract-breaking changes use V2.0. Historical frozen semantics are never silently rewritten.
+Documentation lifecycle is `DRAFT → ACTIVE → FROZEN → SUPERSEDED → ARCHIVE`. V1 entered canonicalization as `ACTIVE_CANDIDATE` and became `ACTIVE` through `XFX_CODEX_EXECUTION_STANDARD_V1_MERGE_CLOSURE`. Compatible additions use V1.x; execution-contract-breaking changes use V2.0. Historical frozen semantics are never silently rewritten.
 
 ## Current runtime authority boundary
 

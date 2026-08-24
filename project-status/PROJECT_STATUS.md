@@ -3,7 +3,7 @@
 **Project Baseline:** V0.6 Complete  
 **Current Product Prototype:** S01 V1.6.1  
 **Current Milestone:** M00 — Project Baseline  
-**Current Task:** XFX_CANONICALIZE_CODEX_EXECUTION_STANDARD_V1_01
+**Current Task:** XFX_CODEX_EXECUTION_STANDARD_V1_MERGE_CLOSURE
 
 **Current Task Status:** PASS
 
@@ -93,11 +93,13 @@ Spike Commit `fe92d5af50ff3b0decd9196c79f71445a73e2ca9` 已通过 strict fast-fo
 ## Codex Execution Governance
 
 ```text
-XFX Codex Execution Standard V1: ACTIVE_CANDIDATE
+XFX Codex Execution Standard V1: ACTIVE
 Canonical Model: COMMON EXECUTION CORE + TASK PROFILE + TASK CONTRACT
 Profiles: 11
 Templates: 6
-Governance Branch: governance/codex-execution-standard-v1
+Governance Source Commit: c32846397898c1b792741e1614f65ae13598ecb6
+Merged Target: develop
+Governance Merge Closure: PASS
 AtlasAnalyse Source Status: REFERENCE_SOURCE
 Frontend Runtime L1: CANDIDATE, NOT LOCKED
 ```
@@ -117,7 +119,7 @@ Challenges Reopened: NONE
 ## Next Recommended Task
 
 ```text
-XFX_CODEX_EXECUTION_STANDARD_V1_MERGE_CLOSURE
+XFX_FRONTEND_RUNTIME_L1_LOCK_01
 ```
 
-这里只记录立即下一 Governance Task；本次未合并 Governance 分支。Governance Merge Closure 完成后的下一产品任务为 `XFX_FRONTEND_RUNTIME_L1_LOCK_01`，本次未执行。
+治理分支已经受控合入 `develop`。这里只记录下一产品任务；本次未执行 Frontend Runtime L1 Lock，也未开始 Live Director 并行轨道。
