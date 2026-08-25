@@ -103,6 +103,7 @@ Warnings and evidence limits:
 
 - `PASS_WITH_WARNING`: Reload-to-resume and Final-open latency were not separately timed; the user reported PASS and no visible stall, but no precision is invented.
 - The user confirmed the Share requirement as PASS but did not separately identify whether Chrome opened Web Share or exercised the governed fallback. The acceptance requirement passes either branch because download remained available.
+- `OBSERVED_WITH_WARNING`: the accepted Session access log recorded two controlled HTTP 409 responses during rapid repeated UI actions. The access log does not retain action names, so request-level root cause remains unclassified. SQLite proves no duplicate event, revision, current CaptureAsset, or per-candidate confirmation key, and the user reported no visible error or stuck state.
 - H5 retains the existing 302 KiB entrypoint-size advisory.
 - Acceptance is limited to OPPO K11 / ColorOS 15.0 / Chrome Mobile 138.0.7204.168. It does not generalize to all Android, iOS, WeChat, Douyin, CV, thermal, power, or production readiness.
 - No real photo, frame, video, tunnel hostname, credential, or secret is committed.

@@ -102,7 +102,7 @@ Develop Merge Result = db8c51f07a81e2b9f06635627c650dc3f21f7dca
 Auto FF Merge = PASS
 ```
 
-Warnings are limited to the existing H5 302 KiB size advisory and two timing values that the user did not separately measure. Share passed its governed acceptance but the user did not identify whether the supported Web Share or safe fallback branch executed. The Platform Matrix is promoted only for the tested OPPO K11 H5 scope; WeChat remains `UNVERIFIED_REAL_DEVICE`.
+Warnings retain the existing H5 302 KiB size advisory, two timing values that the user did not separately measure, and two controlled HTTP 409 responses observed during rapid repeated UI actions. The access log did not retain action names, so their request-level root cause remains unclassified; SQLite proves no duplicate event, revision, current CaptureAsset, or per-candidate confirmation key, and the user reported no visible error. Share passed its governed acceptance but the user did not identify whether the supported Web Share or safe fallback branch executed. The Platform Matrix is promoted only for the tested OPPO K11 H5 scope; WeChat remains `UNVERIFIED_REAL_DEVICE`.
 
 ## Security and scope
 

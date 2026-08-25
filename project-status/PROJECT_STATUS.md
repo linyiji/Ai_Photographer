@@ -51,6 +51,8 @@ Auto FF Merge: PASS
 
 Camera is primary and device import remains the controlled fallback. The user-operated OPPO K11 / ColorOS 15.0 / Chrome Mobile 138.0.7204.168 trusted-HTTPS gate passed permission timing, rear/front switching, lifecycle, still capture, local retake, confirmation, import, rotation, explicit backend resume, Final, My Works, download, and share/fallback. A selected still remains local until `使用这张`; retake before confirmation does not call the server or advance Workflow. Per-candidate confirmation produced exactly one upload and one workflow commit. The H5 Camera matrix is promoted only for this tested scope; WeChat remains unverified. Production mode remains blocked while deterministic fake intelligence is selected.
 
+Retained acceptance warnings: the existing H5 302 KiB size advisory; reload/final-open latency not separately timed; Share supported-vs-fallback branch not separately identified; and two controlled HTTP 409 responses during rapid repeated UI actions with request-level root cause unclassified. SQLite proves no duplicate event, revision, current CaptureAsset, or confirmation key, and the user observed no visible error.
+
 ## Windows Bootstrap Acceptance
 
 ```text

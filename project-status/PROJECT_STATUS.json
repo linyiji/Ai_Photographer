@@ -325,6 +325,12 @@
       "page_crash": "NONE"
     },
     "bounded_fix_commit": "73c8782bca4600288c18526c7eefcb8f8366091c",
+    "acceptance_warnings": [
+      "H5_ENTRYPOINT_302_KIB_ADVISORY",
+      "RELOAD_AND_FINAL_OPEN_LATENCY_NOT_SEPARATELY_TIMED",
+      "SHARE_SUPPORTED_OR_FALLBACK_BRANCH_NOT_SEPARATELY_IDENTIFIED",
+      "CONTROLLED_HTTP_409_X2_RAPID_UI_ACTIONS_ROOT_CAUSE_UNCLASSIFIED"
+    ],
     "platform_matrix_change": "UPDATED_WITH_TESTED_SCOPE",
     "m01_m02_m03_m04": "PRESERVED",
     "parallel_worktrees": "UNTOUCHED",
