@@ -214,7 +214,11 @@
     "raw_live_video_upload": 0,
     "m01_contracts": "PRESERVED",
     "m02": "PRESERVED",
-    "feature_commits": ["7e3e5a85e09168322d99e8212cd320682bd57c23", "36c971db0033b243bf6663a2f44ce930db397428"]
+    "feature_commits": ["7e3e5a85e09168322d99e8212cd320682bd57c23", "36c971db0033b243bf6663a2f44ce930db397428", "a4a36d0eebf110545cd4d5e1569f24d43dfde129"],
+    "remote_feature_branch": "PASS",
+    "auto_ff_merge": "PASS",
+    "develop_feature_head": "a4a36d0eebf110545cd4d5e1569f24d43dfde129",
+    "merged_to": "develop"
   },
   "environment_gaps": ["DOCKER_MISSING"],
   "next_required_result": {

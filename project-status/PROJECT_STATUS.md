@@ -215,6 +215,8 @@ H5 Lab lazy page chunk: 61412 bytes
 
 Replay 仍调用 M02 的 Session/Workflow/Capability/Persistence 路径；每次运行使用隔离 SQLite。没有 arbitrary SQL/file/code endpoint，没有 Provider 调用或真实媒体。M01、M02、main 与 Live worktree 保持不变，CH-003 仍为 `IDENTIFIED / UNCHANGED`。
 
+Feature commits `7e3e5a8`, `36c971d`, `a4a36d0` 已推送，并 strict-fast-forward 合入及推送至 `develop`；没有 merge commit、rebase 或历史改写。
+
 ```text
 Challenges Addressed: Windows Bootstrap / repository integrity
 Challenges Introduced: NONE

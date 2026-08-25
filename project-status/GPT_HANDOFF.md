@@ -87,6 +87,7 @@ New Shell Reproducibility: PASS
 - M03 Replay/E2E Lab: versioned 12-scenario matrix, governed replay engine, 3 checkpoint resumes, typed fault injection, traces, semantic diff, deterministic evaluation, isolated SQLite, and H5 Dev Lab
 - M03 backend regression: 33 tests PASS; multi-run unexpected semantic diff = 0; normal S01 and Lab browser E2E PASS
 - Lab is disabled by default and blocked in production; its H5 page is isolated in a 61412-byte lazy chunk while entry increased only 181 bytes
+- M03 feature head `a4a36d0eebf110545cd4d5e1569f24d43dfde129` strict-fast-forward merged and pushed to `develop`
 
 ## M01 Contract Authority
 
