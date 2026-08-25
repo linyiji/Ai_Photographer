@@ -15,6 +15,8 @@ import {
 } from "./recipe/recipe";
 import { decodeImageFile, downsampleSource, drawSource } from "./renderer/browserImage";
 import { Canvas2DFineTuneRenderer } from "./renderer/cpuRenderer";
+import { WorkerFinalExporter } from "./renderer/workerFinalExporter";
+import type { WorkerExportArtifact } from "./renderer/workerProtocol";
 import { CompareState } from "./ui/compareState";
 import {
   ExportGuard,
@@ -124,8 +126,9 @@ const previewShell = element<HTMLDivElement>("#preview-shell");
 const regionLayer = element<HTMLDivElement>("#region-layer");
 const maskOverlay = element<HTMLCanvasElement>("#mask-overlay");
 const renderer = new Canvas2DFineTuneRenderer();
+const workerFinalExporter = WorkerFinalExporter.create();
 const metrics = new MobileMetrics();
-const exportGuard = new ExportGuard<FinalRenderResult>();
+const exportGuard = new ExportGuard<FinalRenderResult | WorkerExportArtifact>();
 let maskRuntime = new MaskRuntime(new FixtureMaskProvider());
 const compareState = new CompareState();
 let fullSource: SourceImage = createSyntheticFixture("busy-background", 1920, 1080);
@@ -146,6 +149,17 @@ let scheduler = new LatestStateRenderScheduler(fullSource.assetId, (callback) =>
 
 const status = (message: string): void => { element<HTMLDivElement>("#status").textContent = message; };
 const afterNextPaint = (): Promise<void> => new Promise((resolve) => requestAnimationFrame(() => resolve()));
+const exportFinal = async (
+  source: SourceImage,
+  recipe: AdjustmentRecipe,
+  masks?: OptionalMaskSet,
+): Promise<FinalRenderResult | WorkerExportArtifact> => {
+  if (workerFinalExporter) {
+    try { return await workerFinalExporter.exportJpeg(source, recipe, masks); }
+    catch (error) { status(`Worker 导出不可用，回退 Canvas2D 主线程：${(error as Error).message}`); }
+  }
+  return renderer.exportJpeg(source, recipe, masks);
+};
 const currentRecipe = (): AdjustmentRecipe => history.current();
 const previewMasks = () => cachedPreviewMasks;
 const refreshPreviewMasks = (): void => { cachedPreviewMasks = toRendererMasks(fullMasks, previewSource.width, previewSource.height); };
@@ -422,7 +436,7 @@ element("#export").addEventListener("click", async () => {
     button.classList.add("busy"); button.setAttribute("aria-disabled", "true"); button.textContent = "正在导出…再次点击可验证阻止";
     status("正在从不可变全分辨率 Source 渲染与编码…再次点击将被阻止并计数。");
     await afterNextPaint();
-    try { return await renderer.exportJpeg(fullSource, currentRecipe(), toRendererMasks(fullMasks, fullSource.width, fullSource.height)); }
+    try { return await exportFinal(fullSource, currentRecipe(), toRendererMasks(fullMasks, fullSource.width, fullSource.height)); }
     finally { button.classList.remove("busy"); button.removeAttribute("aria-disabled"); button.textContent = "完成并导出 JPEG"; }
   });
   if (IS_DEV) element("#debug-export-blocked").textContent = String(exportGuard.blocked);
@@ -477,14 +491,20 @@ if (IS_DEV) {
   document.querySelectorAll<HTMLButtonElement>("[data-final-bench]").forEach((button) => button.addEventListener("click", async () => {
     const dimensions = (button.dataset.finalBench ?? "1920x1080").split("x").map(Number);
     const width = dimensions[0] ?? 1920; const height = dimensions[1] ?? 1080;
-    button.disabled = true;
+    button.disabled = true; const originalText = button.textContent; button.textContent = `${width}×${height} Worker…`;
+    status(`${width}×${height} 最终渲染已移入 Worker；主界面应保持可滚动、无长时间冻结。`);
     try {
-      const fixture = createSyntheticFixture("busy-background", width, height);
       const needsSemanticMask = currentRecipe().adjustments.some((adjustment) => adjustment.scope === "PERSON" || adjustment.scope === "BACKGROUND");
-      const benchmarkSet = needsSemanticMask ? await new FixtureMaskProvider().create(fixture) : undefined;
-      const result = await renderer.exportJpeg(fixture, currentRecipe(), toRendererMasks(benchmarkSet, width, height));
-      element("#debug-output").textContent = `${width}x${height} · render=${result.renderMs.toFixed(1)}ms · encode=${result.encodeMs.toFixed(1)}ms · bytes=${result.byteSize} · ${result.mime}`;
-    } finally { button.disabled = false; }
+      let result: FinalRenderResult | WorkerExportArtifact;
+      if (workerFinalExporter) result = await workerFinalExporter.exportSynthetic(width, height, currentRecipe(), needsSemanticMask);
+      else {
+        const fixture = createSyntheticFixture("busy-background", width, height);
+        const benchmarkSet = needsSemanticMask ? await new FixtureMaskProvider().create(fixture) : undefined;
+        result = await renderer.exportJpeg(fixture, currentRecipe(), toRendererMasks(benchmarkSet, width, height));
+      }
+      element("#debug-output").textContent = `${width}x${height} · worker=${Boolean(workerFinalExporter)} · render=${result.renderMs.toFixed(1)}ms · encode=${result.encodeMs.toFixed(1)}ms · total=${(result.renderMs + result.encodeMs).toFixed(1)}ms · bytes=${result.byteSize} · ${result.mime}`;
+      status(`${width}×${height} Worker 最终渲染完成；页面未在主线程执行逐像素渲染。`);
+    } finally { button.disabled = false; button.textContent = originalText; }
   }));
 }
 

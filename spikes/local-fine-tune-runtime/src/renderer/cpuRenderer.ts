@@ -51,26 +51,6 @@ const createSeparableBoxBlur = (
   return output;
 };
 
-const scopeWeight = (
-  adjustment: Adjustment,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  masks?: OptionalMaskSet,
-): number => {
-  if (adjustment.scope === "ALL") return 1;
-  if (adjustment.scope === "LOCAL_REGION") {
-    return adjustment.region
-      ? regionWeightClamped((x + 0.5) / width, (y + 0.5) / height, adjustment.region)
-      : 0;
-  }
-  const index = y * width + x;
-  if (adjustment.scope === "PERSON") return masks?.person?.[index] ?? 0;
-  if (adjustment.scope === "BACKGROUND") return masks?.background?.[index] ?? 0;
-  return 0;
-};
-
 const validateAdjustments = (recipe: AdjustmentRecipe): Adjustment[] =>
   recipe.adjustments.map((adjustment) => {
     if (!isP0Parameter(adjustment.parameter)) {
@@ -80,6 +60,35 @@ const validateAdjustments = (recipe: AdjustmentRecipe): Adjustment[] =>
       ? { ...adjustment, region: clampRegion(adjustment.region) }
       : adjustment;
   });
+
+type ParameterValues = [brightness: number, warmth: number, saturation: number, softness: number];
+interface LocalValues { region: NonNullable<Adjustment["region"]>; values: ParameterValues }
+
+const emptyValues = (): ParameterValues => [0, 0, 0, 0];
+const parameterIndex = (parameter: Adjustment["parameter"]): 0 | 1 | 2 | 3 =>
+  parameter === "BRIGHTNESS" ? 0 : parameter === "WARMTH" ? 1 : parameter === "SATURATION" ? 2 : 3;
+
+const compileAdjustments = (adjustments: readonly Adjustment[]): {
+  all: ParameterValues;
+  person: ParameterValues;
+  background: ParameterValues;
+  local: LocalValues[];
+} => {
+  const all = emptyValues(); const person = emptyValues(); const background = emptyValues();
+  const localById = new Map<string, LocalValues>();
+  for (const adjustment of adjustments) {
+    const index = parameterIndex(adjustment.parameter);
+    if (adjustment.scope === "ALL") all[index] = all[index] + adjustment.value;
+    else if (adjustment.scope === "PERSON") person[index] = person[index] + adjustment.value;
+    else if (adjustment.scope === "BACKGROUND") background[index] = background[index] + adjustment.value;
+    else if (adjustment.region) {
+      let entry = localById.get(adjustment.region.id);
+      if (!entry) { entry = { region: adjustment.region, values: emptyValues() }; localById.set(adjustment.region.id, entry); }
+      entry.values[index] = entry.values[index] + adjustment.value;
+    }
+  }
+  return { all, person, background, local: [...localById.values()] };
+};
 
 /**
  * Canonical order is BRIGHTNESS → WARMTH → SATURATION → SOFTNESS.
@@ -106,25 +115,28 @@ export class Canvas2DFineTuneRenderer implements FineTuneRenderer {
   ): RenderResult {
     const started = performance.now();
     const adjustments = validateAdjustments(recipe);
+    const compiled = compileAdjustments(adjustments);
     const output = new Uint8ClampedArray(source.data.length);
     const needsSoftness = adjustments.some((adjustment) => adjustment.parameter === "SOFTNESS" && adjustment.value !== 0);
     const blurred = needsSoftness ? this.blurredSource(source) : source.data;
 
     for (let y = 0; y < source.height; y += 1) {
       for (let x = 0; x < source.width; x += 1) {
-        let brightness = 0;
-        let warmth = 0;
-        let saturation = 0;
-        let softness = 0;
-        for (const adjustment of adjustments) {
-          const contribution = adjustment.value * scopeWeight(adjustment, x, y, source.width, source.height, masks);
-          if (adjustment.parameter === "BRIGHTNESS") brightness += contribution;
-          else if (adjustment.parameter === "WARMTH") warmth += contribution;
-          else if (adjustment.parameter === "SATURATION") saturation += contribution;
-          else if (adjustment.parameter === "SOFTNESS") softness += contribution;
-        }
-
         const index = (y * source.width + x) * 4;
+        const personWeight = masks?.person?.[y * source.width + x] ?? 0;
+        const backgroundWeight = masks?.background?.[y * source.width + x] ?? 0;
+        let brightness = compiled.all[0] + compiled.person[0] * personWeight + compiled.background[0] * backgroundWeight;
+        let warmth = compiled.all[1] + compiled.person[1] * personWeight + compiled.background[1] * backgroundWeight;
+        let saturation = compiled.all[2] + compiled.person[2] * personWeight + compiled.background[2] * backgroundWeight;
+        let softness = compiled.all[3] + compiled.person[3] * personWeight + compiled.background[3] * backgroundWeight;
+        if (compiled.local.length) {
+          const nx = (x + 0.5) / source.width; const ny = (y + 0.5) / source.height;
+          for (const local of compiled.local) {
+            const weight = regionWeightClamped(nx, ny, local.region);
+            brightness += local.values[0] * weight; warmth += local.values[1] * weight;
+            saturation += local.values[2] * weight; softness += local.values[3] * weight;
+          }
+        }
         let r = source.data[index] ?? 0;
         let g = source.data[index + 1] ?? 0;
         let b = source.data[index + 2] ?? 0;
