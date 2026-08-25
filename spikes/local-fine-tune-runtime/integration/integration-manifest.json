@@ -26,12 +26,12 @@
     "os": "ColorOS 15.0",
     "browser": "Chrome Mobile 138.0.0.0",
     "result": "PASS_WITH_WARNING",
-    "evidence": "evidence/manual-device/ft-p2-oppo-k11.md"
+    "evidence": "evidence/advanced-polish/blur-performance.md"
   },
   "known_warnings": [
     "COMBINED p50/p95 50.3/109.2ms misses the ideal target but is inside the accepted warning range",
     "12MP Combined final is approximately 4.17s",
-    "BACKGROUND BLUR adds a bounded high-resolution CPU cost and requires final OPPO hot-path regression",
+    "BACKGROUND BLUR OPPO p95 is 127.0ms and 12MP Worker total is approximately 6.72s",
     "automatic semantic mask is not admitted",
     "WeChat and iOS/Safari Fine Tune runtimes are unverified"
   ],

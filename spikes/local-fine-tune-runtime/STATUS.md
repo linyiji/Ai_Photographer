@@ -1,8 +1,10 @@
 # Local Fine Tune status
 
-FT-P2: `PASS_WITH_WARNING`. Implementation and automated gates pass with 131 tests. OPPO K11 / ColorOS 15.0 / Chrome Mobile 138.0.0.0 passed all four ≥30-sample paths, touch regions, controlled semantic masks, recipe/history/Compare, EXIF 1/6/8, duplicate export, Worker high-resolution export and post-fix 10-minute stability.
+Integration readiness and advanced polish: `PASS_WITH_WARNING`. Implementation and automated gates pass with 154 tests. The production integration package is complete and `integration_ready=true`. Deterministic BACKGROUND-only BLUR passed scope, no-mask fallback, leakage, determinism, locked-pixel, high-resolution and Worker gates.
 
 Final device performance: ALL 44.4/79.3 ms, SEMANTIC 29.0/84.3 ms, LOCAL 26.4/79.1 ms and COMBINED 50.3/109.2 ms p50/p95. COMBINED retains the warning because it misses the ideal target but remains within accepted warning limits. 12MP Combined improved from approximately 11.87 s with main-thread freeze to 4.17 s in Worker with a scrollable UI.
+
+BACKGROUND BLUR OPPO regression: SEMANTIC count 300, input→present p50/p95 74.0/127.0 ms, render p50/p95 69.8/115.0 ms, memory 104.0 MB. The 4000×3000 Worker path remained scrollable and completed in render 6380.5 ms + encode 343.8 ms = 6724.3 ms. The added cost and unverified WeChat/iOS runtimes remain warnings.
 
 ```text
 IMPLEMENTATION_GATE=PASS
@@ -15,4 +17,4 @@ M01=PRESERVED
 
 FT-P0 and FT-P1 deterministic semantics remain preserved. No cloud image provider, generative edit, automatic semantic model, Main integration or raw Spike merge was introduced.
 
-Next candidate: `XFX_LOCAL_FINE_TUNE_INTEGRATION_READINESS_AND_ADVANCED_POLISH_01`. Do not start automatically.
+Next recommended task: `XFX_LOCAL_FINE_TUNE_INTEGRATION_01`, from a future accepted Main checkpoint. Do not start automatically and do not merge Spike history wholesale.
