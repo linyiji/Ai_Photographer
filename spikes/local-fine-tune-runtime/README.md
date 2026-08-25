@@ -4,6 +4,8 @@ Independent H5 spike proving deterministic, non-generative, non-destructive fine
 
 FT-P1 adds provider-independent ephemeral semantic masks and deterministic PERSON/BACKGROUND scopes. The bundled demo enables them for its deterministic fixture; uploaded images retain ALL/LOCAL_REGION while automatic segmentation is unavailable pending provider admission. No image leaves the browser. See `docs/mask-runtime.md`, `docs/mask-provider-evaluation.md`, and `docs/mask-quality-policy.md`.
 
+FT-P2 adds mobile instrumentation, latest-state scheduling, adaptive preview, immutable SOFTNESS caching, duplicate-export protection and EXIF 1/6/8 fixtures. Serve the Vite development runtime through trusted HTTPS on the target phone and use its Device benchmark panel. Current status is `READY_FOR_MANUAL_DEVICE_TEST`; proxy data is not OPPO evidence.
+
 ## Run
 
 Use the repository runtime authority: Node `24.18.0`, npm `11.6.2`.

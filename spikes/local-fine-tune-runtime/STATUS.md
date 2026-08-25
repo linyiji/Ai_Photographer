@@ -1,5 +1,7 @@
 # FT-P0 Status
 
+FT-P2: `READY_FOR_MANUAL_DEVICE_TEST`. Implementation, automated and browser-proxy gates pass with 131 tests; OPPO K11 performance, touch, 10-minute stability, thermal and real-device orientation remain `MANUAL_REVIEW_REQUIRED`. `FT-P2=NOT_YET_PASS`, `FINE_TUNE_INTEGRATION_READINESS=NOT_READY`, `AUTO_SEMANTIC_MASK=NOT_YET_PASS`.
+
 FT-P1 is `PASS_WITH_WARNING`: semantic runtime, fixture/external providers, PERSON/BACKGROUND, cache, quality metrics, 96 tests, build, and desktop browser acceptance pass. `AUTO_SEMANTIC_MASK=NOT_YET_PASS` because the evaluated model redistribution authority and portrait quality are not established. Orientation is `NOT_FULLY_TESTED`; real device is not required for FT-P1.
 
 ```text
