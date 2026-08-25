@@ -39,6 +39,7 @@ export default function Index(){
   if(stage==='QA')return [{label:'接受照片',fn:()=>run('ACCEPT')},{label:'局部重拍',fn:()=>run('RETAKE_MICRO')}]
   if(stage==='REALITY_PLUS')return [{label:'接受轻度风暴纵深',fn:()=>run('ACCEPT_REALITY_PLUS')},{label:'跳过细调并完成',fn:()=>run('SKIP_FINE_TUNE')}]
   if(stage==='FINE_TUNE')return [{label:'保存配方并完成',fn:()=>run('SAVE_ADJUSTMENT_RECIPE',{contrast:14})}]
+  if(stage==='FINAL')return [{label:'开始新的拍摄',fn:start}]
   return []
  },[session,stage,targetCandidates.length])
  if(targetFirst&&!session)return <View className='shell'><Text className='marker'>P02 · TARGET FIRST</Text><Text className='hero'>先说出你想要的画面</Text><Text className='copy'>“风暴到来前，一个人坚定地站在河岸。” 此意图将在会话建立后进入候选生成，不越过 Reality Fact Lock。</Text><Button className='primary' onClick={()=>{setTargetFirst(false);start()}}>保存意图并建立会话</Button><Button className='secondary' onClick={()=>setTargetFirst(false)}>返回</Button></View>

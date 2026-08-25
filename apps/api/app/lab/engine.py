@@ -23,8 +23,8 @@ class ReplayEngine:
         self.root=root;self.fixture_path=fixture_path;self.matrix=json.loads(matrix_path.read_text(encoding="utf-8"));self.results:dict[str,dict[str,Any]]={};root.mkdir(parents=True,exist_ok=True)
     def scenarios(self):return [self.expand(item) for item in self.matrix["scenarios"]]
     def expand(self,item):
-        actions=self._actions(item.get("actions","HAPPY"));fault=item.get("fault");expected_events=[f"{x['action']}_COMMITTED" for x in actions]
-        return {"scenario_id":item["scenario_id"],"scenario_version":"1.0.0","title":item["title"],"purpose":item["purpose"],"entry_mode":item.get("entry_mode","REALITY_FIRST"),"initial_conditions":{"seed":301},"fixture_assets":["repo-asset://scenario-fixtures/s01/subject-anchor.jpg","repo-asset://scenario-fixtures/s01/scene-anchor.jpg"],"capability_outputs":{"fixture":"s01-storm-before-arrival.json"},"action_plan":actions,"expected_stage_sequence":self._expected_stages(actions),"expected_event_types":["SESSION_CREATED",*expected_events],"expected_asset_lineage":["CAPTURE","REALITY_PLUS","FINAL"],"expected_final_disposition":item.get("final","FINAL"),"expected_warnings":[],"allowed_nondeterminism":self.matrix["defaults"]["allowed_nondeterminism"],"fault_plan":[fault] if fault else [],"evaluation_rules":{"controlled_failure":item.get("controlled_failure",False),"require_acyclic_assets":True}}
+        actions=self._actions(item.get("actions","HAPPY"));fault=item.get("fault");controlled=item.get("controlled_failure",False);successful=actions[:fault["step"]] if fault and controlled else actions;expected_events=[f"{x['action']}_COMMITTED" for x in successful];final=item.get("final","FINAL");assets=["CAPTURE","REALITY_PLUS","FINAL"] if final=="FINAL" else ["CAPTURE"] if final in {"QA","REALITY_PLUS"} else [];accepted=["TARGET","CAPTURE"] if final in {"REALITY_PLUS","FINE_TUNE","FINAL"} else ["TARGET"] if final in {"SHOT","LIVE","CAPTURE","QA"} else []
+        return {"scenario_id":item["scenario_id"],"scenario_version":"1.0.0","title":item["title"],"purpose":item["purpose"],"entry_mode":item.get("entry_mode","REALITY_FIRST"),"initial_conditions":{"seed":301},"fixture_assets":["repo-asset://scenario-fixtures/s01/subject-anchor.jpg","repo-asset://scenario-fixtures/s01/scene-anchor.jpg"],"capability_outputs":{"fixture":"s01-storm-before-arrival.json"},"action_plan":actions,"expected_stage_sequence":self._expected_stages(actions),"expected_event_types":["SESSION_CREATED",*expected_events],"expected_asset_lineage":assets,"expected_final_disposition":final,"expected_warnings":[],"allowed_nondeterminism":self.matrix["defaults"]["allowed_nondeterminism"],"fault_plan":[fault] if fault else [],"evaluation_rules":{"controlled_failure":controlled,"require_acyclic_assets":True,"expected_revision":len(successful),"expected_accepted_candidate_kinds":accepted,"expected_final_present":final=="FINAL"}}
     def run(self,scenario_id:str,mode:str="FROM_SCRATCH",checkpoint_position:int|None=None,seed:int=301):
         scenario=next((x for x in self.scenarios() if x["scenario_id"]==scenario_id),None)
         if not scenario:raise DomainError("SCENARIO_NOT_FOUND","Unknown replay scenario.",404)
@@ -48,7 +48,7 @@ class ReplayEngine:
                 if fault_plan and fault_plan.get("recover"):
                     self._step(service,sid,index,command["action"],command.get("payload",{}),f"{replay_id}:{index}:recovery",None,trace)
                 else:failure_step=index;break
-        final=service.get(sid);canonical=self.canonical(final);evaluation=self.evaluate(scenario,final,trace,failure_step);diff=self.diff(canonical,canonical)
+        final=service.get(sid);canonical=self.canonical(final);actual_projection=self.projection(final);expected_projection=self.expected_projection(scenario);diff=self.diff(actual_projection,expected_projection);evaluation=self.evaluate(scenario,final,trace,failure_step,diff)
         duration=round((time.perf_counter()-started)*1000,3)
         result={"replay_id":replay_id,"scenario_id":scenario_id,"scenario_version":scenario["scenario_version"],"mode":mode,"status":"COMPLETED","duration_ms":duration,"step_count":len(trace),"final_stage":final["workflow_stage"],"final_revision":final["revision"],"evaluation_status":evaluation["status"],"warning_count":sum(len(x["warnings"]) for x in trace),"failure_step":failure_step,"trace_ref":f"/__lab__/replays/{replay_id}/trace","diff_ref":f"/__lab__/replays/{replay_id}/diff","trace":trace,"diff":diff,"evaluation":evaluation,"checkpoint":checkpoint,"canonical":canonical,"database_bytes":db_path.stat().st_size}
         self.results[replay_id]=result
@@ -67,7 +67,16 @@ class ReplayEngine:
         return {"schema_version":"1.0.0","error_code":exc.code,"category":category,"severity":"ERROR","retryable":exc.status>=500,"user_message_key":exc.code.lower(),"developer_context":{"lab":True,"request_key_ref":hashlib.sha256(key.encode()).hexdigest()[:12]},"session_id":sid,"correlation_id":None,"cause":None}
     @staticmethod
     def canonical(session):
-        return {"workflow":{"stage":session["workflow_stage"],"revision":session["revision"]},"state":session["state"],"candidates":[{"kind":x["kind"],"disposition":x["disposition"],"payload":x["payload"]} for x in session["candidates"]],"events":[{"event_type":x["event_type"],"payload":x["payload"]} for x in session["events"]],"assets":[{"kind":x["kind"],"status":x["status"],"storage_ref":x["storage_ref"],"lineage":x["lineage"]} for x in session["assets"]],"final":session["state"].get("final")}
+        order={"CAPTURE":0,"REALITY_PLUS":1,"FINAL":2};assets=sorted(session["assets"],key=lambda x:order.get(x["kind"],99))
+        return {"workflow":{"stage":session["workflow_stage"],"revision":session["revision"]},"state":session["state"],"candidates":[{"kind":x["kind"],"disposition":x["disposition"],"payload":x["payload"]} for x in session["candidates"]],"events":[{"event_type":x["event_type"],"payload":x["payload"]} for x in session["events"]],"assets":[{"kind":x["kind"],"status":x["status"],"storage_ref":x["storage_ref"],"lineage":x["lineage"]} for x in assets],"final":session["state"].get("final")}
+    @staticmethod
+    def projection(session):
+        order={"CAPTURE":0,"REALITY_PLUS":1,"FINAL":2}
+        return {"workflow":{"stage":session["workflow_stage"],"revision":session["revision"]},"events":[x["event_type"] for x in session["events"]],"assets":[x["kind"] for x in sorted(session["assets"],key=lambda x:order.get(x["kind"],99))],"accepted_candidates":sorted(x["kind"] for x in session["candidates"] if x["disposition"]=="ACCEPTED"),"final_present":bool(session["state"].get("final"))}
+    @staticmethod
+    def expected_projection(scenario):
+        rules=scenario["evaluation_rules"]
+        return {"workflow":{"stage":scenario["expected_final_disposition"],"revision":rules["expected_revision"]},"events":scenario["expected_event_types"],"assets":scenario["expected_asset_lineage"],"accepted_candidates":sorted(rules["expected_accepted_candidate_kinds"]),"final_present":rules["expected_final_present"]}
     @classmethod
     def diff(cls,left,right,path=""):
         findings=[]
@@ -83,11 +92,11 @@ class ReplayEngine:
             for index,(a,b) in enumerate(zip(left,right)):findings.extend(cls.diff(a,b,f"{path}[{index}]"))
         elif left!=right:findings.append({"path":path,"status":"MISMATCH","left":left,"right":right})
         return findings or ([{"path":"$","status":"MATCH"}] if not path else [])
-    def evaluate(self,scenario,session,trace,failure_step):
+    def evaluate(self,scenario,session,trace,failure_step,diff):
         expected=scenario["expected_final_disposition"];controlled=scenario["evaluation_rules"]["controlled_failure"];errors=[x for x in trace if x["error_contract"]]
-        final_ok=session["workflow_stage"]==expected;controlled_ok=not controlled or bool(errors);status="PASS" if final_ok and controlled_ok else "FAIL"
+        final_ok=session["workflow_stage"]==expected;controlled_ok=not controlled or bool(errors);diff_ok=diff==[{"path":"$","status":"MATCH"}];status="PASS" if final_ok and controlled_ok and diff_ok else "FAIL"
         dimensions={name:"PASS" for name in ("workflow_correctness","state_integrity","candidate_governance","event_integrity","asset_lineage","error_contract","idempotency","recovery","final_outcome","determinism")};dimensions["final_outcome"]="PASS" if final_ok else "FAIL"
-        return {"status":status,"dimensions":dimensions,"findings":[] if status=="PASS" else [{"code":"FINAL_STAGE_MISMATCH","expected":expected,"actual":session["workflow_stage"],"failure_step":failure_step}]}
+        return {"status":status,"dimensions":dimensions,"findings":[] if status=="PASS" else [{"code":"SEMANTIC_ORACLE_MISMATCH","expected":expected,"actual":session["workflow_stage"],"failure_step":failure_step,"diff":diff}]}
     @staticmethod
     def _actions(kind):
         actions=deepcopy(HAPPY_ACTIONS)
