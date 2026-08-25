@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0.0",
+  "track_id": "LOCAL_FINE_TUNE",
+  "accepted_head": "15ee075ecabaef50c47ed1133dcd1480f87f41c6",
+  "runtime_version": "0.1.0",
+  "implemented_scopes": ["ALL", "PERSON", "BACKGROUND", "LOCAL_REGION"],
+  "implemented_parameters": ["BRIGHTNESS", "WARMTH", "SATURATION", "SOFTNESS"],
+  "deferred_parameters": {
+    "MOOD": "CONTRACT_PRODUCT_GAP",
+    "SKIN_TONE": "DEFERRED_MASK_DEPENDENCY",
+    "SKIN_RETOUCH": "REALITY_PLUS_OWNED_OR_FINE_TUNE_LATER",
+    "BLUR": "QUALITY_GATE_PENDING"
+  },
+  "renderer_backend": "CANVAS2D_IMAGE_DATA",
+  "final_export_backend": {
+    "preferred": "WORKER_OFFSCREENCANVAS",
+    "fallback": "MAIN_THREAD_CANVAS2D"
+  },
+  "mask_contract_status": {
+    "runtime": "PROVIDER_NEUTRAL_EPHEMERAL",
+    "persistence": "EPHEMERAL_RECOMPUTE",
+    "persisted_mask_asset": "CONTRACT_DESIGN_REQUIRED"
+  },
+  "auto_semantic_mask_status": "NOT_YET_PASS",
+  "device_evidence": {
+    "device": "OPPO K11",
+    "os": "ColorOS 15.0",
+    "browser": "Chrome Mobile 138.0.0.0",
+    "result": "PASS_WITH_WARNING",
+    "evidence": "evidence/manual-device/ft-p2-oppo-k11.md"
+  },
+  "known_warnings": [
+    "COMBINED p50/p95 50.3/109.2ms misses the ideal target but is inside the accepted warning range",
+    "12MP Combined final is approximately 4.17s",
+    "automatic semantic mask is not admitted",
+    "WeChat and iOS/Safari Fine Tune runtimes are unverified"
+  ],
+  "M01_mapping": {
+    "adjustment_recipe": "PRESERVED",
+    "semantic_edit_allowed": false,
+    "region_feather": "PARTIAL_CONTRACT_GAP",
+    "creative_asset_input": "FUTURE_OPTION_CONTRACT_REQUIRED",
+    "new_asset_event_shapes": "INTEGRATION_DESIGN_REQUIRED"
+  },
+  "required_main_interfaces": [
+    "SourceAssetResolver",
+    "AdjustmentRecipeRepository",
+    "FineTuneRuntimeAdapter",
+    "MaskCapabilityResolver",
+    "DerivedAssetWriter",
+    "MyFinalPhotoRepository",
+    "GovernedEventWriter"
+  ],
+  "required_platform_capabilities": [
+    "CANVAS_2D",
+    "IMAGE_DECODE_WITH_ORIENTATION",
+    "BLOB_JPEG_ENCODE",
+    "POINTER_EVENTS"
+  ],
+  "optional_platform_capabilities": ["WORKER", "OFFSCREEN_CANVAS"],
+  "integration_blockers": [],
+  "integration_ready": true
+}
