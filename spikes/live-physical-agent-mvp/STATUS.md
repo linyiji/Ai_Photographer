@@ -1,73 +1,54 @@
 # Live Physical Agent Spike Status
 
 ```text
-Task = XFX_LIVE_P2_VISUAL_SERVO_GUIDANCE_AND_PLAYFUL_OVERLAY_01
+Task = XFX_LIVE_P2_CONTROL_POLICY_V2_AND_SERVO_STABILITY_01
 Profile = REALTIME_CAMERA_CV
 Mode = GUIDANCE_CONTROL
-Task Start Commit = 190806f5733949f44d0246abcf6fbf83fe977025
+Task Start Commit = 44e7914e3df7f778c1f0d4d6c127ddbb8048bef4
 
 LIVE-P0 = PASS
 LIVE-P1 = PASS
-P2 Implementation Gate = PASS
-Measurement Stabilization Automated = PASS
-Measurement Stabilization Real Device = FAIL
-Subject Tracking Lock = PASS_WITH_DEVICE_WARNING
-Subject Box Real Device = FAIL
-Target / Acceptable Zone Semantics = PASS
-Target Zone Comprehension = FAIL
-Direction Visual = FAIL
-STOP Visual = IMPLEMENTED / DEVICE CONTROL GATE FAIL
-READY Visual Lifecycle = FAIL
-Visual Servo Modes = IMPLEMENTED
-Theme Renderer = PASS
+Historical LIVE-P2 Baseline = FAIL / 33.9% / 59 EPISODES
+Historical Baseline Role = STARTING EVIDENCE ONLY
+
+Failure Reconstruction = PASS
+Wrong Direction Audit = 8/8 ACCOUNTED
+Post-READY Audit = 6/6 RECONSTRUCTED
+READY Terminal Lifecycle = PASS
+Post-READY Ordinary Automated = 0
+ControlEpoch = PASS
+Canonical Direction Transform = PASS
+Stale Guidance Suppression = PASS
+Axis Commitment = PASS
+Control / Display Observation Split = PASS
+Target Visual = PASS / ONE GUIDE FRAME
+Grid Default = OFF
+Text Guidance = PRESERVED
 DEFAULT Theme = PASS
 LINE_DOG = IMPLEMENTED_CANDIDATE
-Theme Controller Semantic Diff = 0
+Theme Semantic Diff = 0
 
-Automated Tests = 123/123 PASS
+Automated Tests = 156/156 PASS
 Typecheck = PASS
-Build = PASS / 21 MODULES
+Production Build = PASS / 21 MODULES
 Browser Replay = PASS
-Real Device = OPPO K11 / ColorOS 15 / Chrome Mobile
-Fresh Trials / Terminal Episodes = 8 / 59
-Fresh SUCCESS / NO_EFFECT / WRONG_DIRECTION = 20 / 31 / 8
-Fresh Correction Success = 33.9% / REQUIRED >=80% / FAIL
-Fresh Text-Dominant = 6/21 / 28.6%
-Fresh Visual+Text = 14/38 / 36.8%
-Fresh Action Compliance = 33/59 / 55.9%
-Fresh Average Time To Target = 22.2 s
-Fresh Ordinary Instructions Per Trial = 7.4
-Fresh Overshoot-like / STOP = 9 / 19
-Fresh Raw / Stabilized Jitter = 0.0244 / 0.0144
-Fresh Visual Latency Mean / P95 / Max = 261 / 500 / 500 ms
-Fresh Projection Age Mean / P95 / Max = 78 / 98 / 257 ms
-Fresh Lock Loss / Reacquisition = 1 / 2
-Fresh Target Entry / Exit = 46 / 38
-Wrong Physical Direction = >0 USER-OBSERVED / FAIL
-Post-READY Ordinary = 6 / FAIL
-Obvious Oscillation = USER-OBSERVED / FAIL
-Text Still Necessary = YES
-Fresh Preview / Vision Target / Vision Actual / State = 29.3 FPS / 8.0 HZ / 6.9 HZ / 6.6 HZ
-Fresh Inference p50 / p95 = 66 / 80.4 MS
+Counterfactual Post-READY Blocked = 6/6
+Counterfactual Wrong Prevented = 0/8 EVIDENCE-CONFIRMED / NOT DEVICE SUCCESS
 
-P2 Real Device Gate = FAIL
-LIVE-P2 = FAIL
-Status = FAIL
-Dominant Hypothesis = CONTROL_POLICY
-Secondary Hypotheses = MEASUREMENT / VISUAL_COMPREHENSION
+Status = READY_FOR_MANUAL_DEVICE_TEST
+P2 Implementation Gate = PASS
+OPPO Gate 1 = MANUAL_REVIEW_REQUIRED
+OPPO Gate 2 = NOT_STARTED
+P2 Real Device Gate = MANUAL_REVIEW_REQUIRED
+LIVE-P2 Final Gate = NOT_YET_REEVALUATED
 
 Raw Frame or Video Persistence = 0
 Raw Video Upload = 0
 Backend Calls = 0
 Provider Calls = 0
 Luna Calls = 0
-Payment / Entitlement = NOT_IMPLEMENTED
 CH-003 = IDENTIFIED / UNCHANGED
 Main / Develop / Fine Tune / AI Visual = UNTOUCHED
 ```
 
-## Fresh result
-
-The new post-implementation OPPO K11 sample—not the historical 54-Episode / 22.2% baseline—contains 59 terminal Episodes and reaches only 33.9% correction success. Visual-plus-text improves the fresh text-dominant arm from 28.6% to 36.8%, but remains far below the unchanged 80% gate. The user reports an unstable subject box, an unclear target zone, erroneous directions, obvious oscillation, and continued dependence on text. Six ordinary instructions after READY are independently present in the scalar traces.
-
-No further threshold tuning is performed. The next evidence-derived hypothesis is the controller lifecycle in which passive-confirmation READY can occur while a trial remains ARMED; later movement then creates new ordinary Episodes. Measurement lag and target-zone comprehension are secondary. Luna stays OFF and no next task starts automatically.
+The accepted 33.9% / 59-Episode sample remains the task's starting baseline, not its V2 acceptance result. Gate 1 requires three fresh OPPO K11 trials. Gate 2 and the unchanged `>=80%` Correction Success decision may begin only after Gate 1 passes. No next task or Luna work starts automatically.

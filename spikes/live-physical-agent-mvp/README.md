@@ -49,9 +49,13 @@ Controlled routes:
 
 Replay routes are explicitly synthetic, request no camera, call no provider, and exist only for deterministic browser evidence.
 
-## Visual servo overlay
+## Control Policy V2 and visual servo
 
-The spike now includes a stabilized subject box, target box, exact acceptable zone, optional grid, one direction cue, distinct STOP/READY visuals, and `TEXT_DOMINANT`, `VISUAL_SERVO`, and `VISUAL_PLUS_TEXT` modes. The DEFAULT and LINE_DOG themes share one immutable semantic state; the HUD must report semantic diff `0`. See `docs/visual-servo-guidance.md`, `docs/subject-lock-and-overlay.md`, and `docs/guidance-theme-runtime.md`.
+Each ordinary instruction now owns an immutable fresh `ControlEpoch`. READY is terminal for both success and passive confirmation; only explicit re-arm can create another trial. X/Scale remains committed through the active Episode, and replanning requires a newer post-terminal perception state. Measurement age over 180 ms, decision age over 160 ms, and the first reacquisition state suppress new direction issuance.
+
+Controller action is calculated only in non-mirrored sensor coordinates. Front-preview mirroring changes the rendered arrow sign, never the physical action or Chinese copy. Scalar Trace V2 records the causal epoch, camera/mirror state, measurement/decision ages, freshness, suppression, and latency without raw media.
+
+The functional overlay now uses one clear target frame, one stabilized subject corner box, one short cue, distinct STOP/READY, and grid OFF by default. Display smoothing is independent of control and reports current/p50/p95/max latency. DEFAULT is the acceptance theme; LINE_DOG remains an equivalent candidate. See `docs/control-policy-v2.md`, `docs/ready-terminal-lifecycle.md`, and `docs/control-vs-display-observation.md`.
 
 ## P1 perception semantics
 
@@ -92,22 +96,21 @@ Luna Calls = 0
 
 ## Manual P2 validation
 
-Use a trusted HTTPS tunnel without bypassing certificate warnings and complete `evidence/closed-loop/manual-device-test-template.md`. Run at least three trials with a fixed phone and one person. Verify one instruction, >=900 ms gap, silence while improving, automatic verification, correct physical direction, no X/Scale ping-pong, one-shot HOLD, and READY only while stable.
+Use a trusted HTTPS tunnel without bypassing certificate warnings. First complete the three-trial OPPO K11 Gate 1 in `evidence/control-policy-v2/oppo-k11-gate1.md`: wrong physical direction, post-READY ordinary actions, obvious oscillation, and persistent subject-box instability must all be zero. Only then run Gate 2 with at least 10 fresh trials and at least 30 naturally produced terminal Episodes. The unchanged Correction Success gate is `>=80%`.
 
-Latest complete post-visual-implementation real-device result:
+Current Control Policy V2 state:
 
 ```text
-Status = FAIL / COMPLETE FRESH VISUAL-SERVO SAMPLE
+Status = READY_FOR_MANUAL_DEVICE_TEST
 LIVE-P1 = PASS
 P2 Implementation Gate = PASS
-Visual Servo Automated Gate = PASS / 123 of 123 tests
-P2 Real Device Gate = FAIL / 8 trials / 59 terminal Episodes / 33.9% correction success
-Fresh A/B = TEXT 28.6% / VISUAL+TEXT 36.8%
-Hard failures = wrong direction observed / 6 post-READY ordinary / oscillation / unstable box / unclear target zone
-LIVE-P2 = FAIL
+Automated Gate = PASS / 156 of 156 tests
+Browser Replay = PASS
+P2 Real Device Gate = MANUAL_REVIEW_REQUIRED
+LIVE-P2 Final Gate = NOT_YET_REEVALUATED
 ```
 
-The 54-Episode / 22.2% sample remains preserved as the task starting baseline; it is not the result above. Fresh scalar evidence and hashes are in `evidence/visual-servo/oppo-k11.md`. No additional threshold tuning is authorized after this failure.
+The accepted 59-Episode / 33.9% sample remains preserved only as this task's starting baseline. It is not a V2 result and cannot satisfy Gate 1 or Gate 2.
 
 ## Stop boundary
 
