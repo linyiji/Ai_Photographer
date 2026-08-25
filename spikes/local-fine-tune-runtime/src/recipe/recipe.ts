@@ -9,7 +9,7 @@ import type {
   SpikeLocalRegionDescriptor,
 } from "../types/model";
 import { clampRegion } from "../mask/feather";
-import { clampNormalized, isP0Parameter } from "../renderer/safeRanges";
+import { clampNormalized, isImplementedParameter } from "../renderer/safeRanges";
 
 const ajv = new Ajv2020({ allErrors: true, strict: true });
 addFormats(ajv);
@@ -55,8 +55,11 @@ export const setAdjustment = (
   value: number,
   region?: SpikeLocalRegionDescriptor,
 ): AdjustmentRecipe => {
-  if (!isP0Parameter(parameter)) {
-    throw new Error(`${parameter} is deferred in FT-P0`);
+  if (!isImplementedParameter(parameter)) {
+    throw new Error(`${parameter} is deferred in the Local Fine Tune track`);
+  }
+  if (parameter === "BLUR" && scope !== "BACKGROUND") {
+    throw new Error("BLUR is admitted only for BACKGROUND scope");
   }
   if (scope === "LOCAL_REGION" && !region) {
     throw new Error("LOCAL_REGION adjustment requires persisted geometry");

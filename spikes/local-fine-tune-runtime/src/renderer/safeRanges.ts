@@ -11,7 +11,7 @@ export interface SafeRange {
 export const clampNormalized = (value: number): number =>
   Number.isFinite(value) ? Math.max(-1, Math.min(1, value)) : 0;
 
-export const SAFE_RANGES: Readonly<Record<"BRIGHTNESS" | "WARMTH" | "SATURATION" | "SOFTNESS", SafeRange>> = {
+export const SAFE_RANGES: Readonly<Record<"BRIGHTNESS" | "WARMTH" | "SATURATION" | "SOFTNESS" | "BLUR", SafeRange>> = {
   BRIGHTNESS: {
     neutral: 0,
     safeMin: -0.32,
@@ -43,8 +43,15 @@ export const SAFE_RANGES: Readonly<Record<"BRIGHTNESS" | "WARMTH" | "SATURATION"
       return safe >= 0 ? safe * 0.28 : safe * 0.12;
     },
   },
+  BLUR: {
+    neutral: 0,
+    safeMin: 0,
+    safeMax: 0.84,
+    unit: "background defocus mix",
+    map: (value) => Math.max(0, clampNormalized(value)) * 0.84,
+  },
 };
 
-export const isP0Parameter = (
+export const isImplementedParameter = (
   parameter: AdjustmentParameter,
 ): parameter is keyof typeof SAFE_RANGES => parameter in SAFE_RANGES;

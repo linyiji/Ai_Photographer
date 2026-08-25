@@ -1,5 +1,5 @@
 import { clampRegion, regionWeightClamped } from "../mask/feather";
-import { SAFE_RANGES, clampNormalized, isP0Parameter } from "./safeRanges";
+import { SAFE_RANGES, clampNormalized, isImplementedParameter } from "./safeRanges";
 import type {
   Adjustment,
   AdjustmentRecipe,
@@ -51,22 +51,101 @@ const createSeparableBoxBlur = (
   return output;
 };
 
+const createMaskedBackgroundBlur = (
+  input: Uint8ClampedArray<ArrayBuffer>,
+  mask: Float32Array,
+  width: number,
+  height: number,
+): Uint8ClampedArray<ArrayBuffer> => {
+  const horizontal = new Uint8ClampedArray(input.length);
+  const output = new Uint8ClampedArray(input.length);
+  const radius = Math.max(2, Math.min(48, Math.round(Math.min(width, height) * 0.008)));
+
+  for (let y = 0; y < height; y += 1) {
+    const sums: [number, number, number, number] = [0, 0, 0, 0];
+    const add = (x: number, direction: 1 | -1): void => {
+      const pixel = y * width + x;
+      const index = pixel * 4;
+      const weight = Math.max(0, Math.min(1, mask[pixel] ?? 0));
+      sums[0] += direction * (input[index] ?? 0) * weight;
+      sums[1] += direction * (input[index + 1] ?? 0) * weight;
+      sums[2] += direction * (input[index + 2] ?? 0) * weight;
+      sums[3] += direction * weight * 255;
+    };
+    for (let x = 0; x <= Math.min(width - 1, radius); x += 1) add(x, 1);
+    for (let x = 0; x < width; x += 1) {
+      if (x > 0) {
+        const removeX = x - radius - 1;
+        const addX = x + radius;
+        if (removeX >= 0) add(removeX, -1);
+        if (addX < width) add(addX, 1);
+      }
+      const count = Math.min(width - 1, x + radius) - Math.max(0, x - radius) + 1;
+      const index = (y * width + x) * 4;
+      horizontal[index] = sums[0] / count;
+      horizontal[index + 1] = sums[1] / count;
+      horizontal[index + 2] = sums[2] / count;
+      horizontal[index + 3] = sums[3] / count;
+    }
+  }
+
+  for (let x = 0; x < width; x += 1) {
+    const sums: [number, number, number, number] = [0, 0, 0, 0];
+    const add = (y: number, direction: 1 | -1): void => {
+      const index = (y * width + x) * 4;
+      sums[0] += direction * (horizontal[index] ?? 0);
+      sums[1] += direction * (horizontal[index + 1] ?? 0);
+      sums[2] += direction * (horizontal[index + 2] ?? 0);
+      sums[3] += direction * (horizontal[index + 3] ?? 0);
+    };
+    for (let y = 0; y <= Math.min(height - 1, radius); y += 1) add(y, 1);
+    for (let y = 0; y < height; y += 1) {
+      if (y > 0) {
+        const removeY = y - radius - 1;
+        const addY = y + radius;
+        if (removeY >= 0) add(removeY, -1);
+        if (addY < height) add(addY, 1);
+      }
+      const count = Math.min(height - 1, y + radius) - Math.max(0, y - radius) + 1;
+      const index = (y * width + x) * 4;
+      const alpha = sums[3] / count;
+      if (alpha > 0.5) {
+        output[index] = (sums[0] / count) * 255 / alpha;
+        output[index + 1] = (sums[1] / count) * 255 / alpha;
+        output[index + 2] = (sums[2] / count) * 255 / alpha;
+      } else {
+        output[index] = input[index] ?? 0;
+        output[index + 1] = input[index + 1] ?? 0;
+        output[index + 2] = input[index + 2] ?? 0;
+      }
+      output[index + 3] = input[index + 3] ?? 255;
+    }
+  }
+  return output;
+};
+
 const validateAdjustments = (recipe: AdjustmentRecipe): Adjustment[] =>
   recipe.adjustments.map((adjustment) => {
-    if (!isP0Parameter(adjustment.parameter)) {
-      throw new Error(`${adjustment.parameter} is deferred in FT-P0`);
+    if (!isImplementedParameter(adjustment.parameter)) {
+      throw new Error(`${adjustment.parameter} is deferred in the Local Fine Tune track`);
+    }
+    if (adjustment.parameter === "BLUR" && adjustment.scope !== "BACKGROUND") {
+      throw new Error("BLUR is admitted only for BACKGROUND scope");
     }
     return adjustment.scope === "LOCAL_REGION" && adjustment.region
       ? { ...adjustment, region: clampRegion(adjustment.region) }
       : adjustment;
   });
 
-type ParameterValues = [brightness: number, warmth: number, saturation: number, softness: number];
+type ParameterValues = [brightness: number, warmth: number, saturation: number, softness: number, blur: number];
 interface LocalValues { region: NonNullable<Adjustment["region"]>; values: ParameterValues }
 
-const emptyValues = (): ParameterValues => [0, 0, 0, 0];
-const parameterIndex = (parameter: Adjustment["parameter"]): 0 | 1 | 2 | 3 =>
-  parameter === "BRIGHTNESS" ? 0 : parameter === "WARMTH" ? 1 : parameter === "SATURATION" ? 2 : 3;
+const emptyValues = (): ParameterValues => [0, 0, 0, 0, 0];
+const parameterIndex = (parameter: Adjustment["parameter"]): 0 | 1 | 2 | 3 | 4 =>
+  parameter === "BRIGHTNESS" ? 0
+    : parameter === "WARMTH" ? 1
+      : parameter === "SATURATION" ? 2
+        : parameter === "SOFTNESS" ? 3 : 4;
 
 const compileAdjustments = (adjustments: readonly Adjustment[]): {
   all: ParameterValues;
@@ -91,7 +170,7 @@ const compileAdjustments = (adjustments: readonly Adjustment[]): {
 };
 
 /**
- * Canonical order is BRIGHTNESS → WARMTH → SATURATION → SOFTNESS.
+ * Canonical order is BRIGHTNESS → WARMTH → SATURATION → SOFTNESS → BACKGROUND BLUR.
  * Same-parameter values are additively composed per pixel and clamped.
  * Recipe array order is intentionally not semantic authority.
  */
@@ -182,6 +261,20 @@ export class Canvas2DFineTuneRenderer implements FineTuneRenderer {
         output[index + 1] = clampByte(g);
         output[index + 2] = clampByte(b);
         output[index + 3] = source.data[index + 3] ?? 255;
+      }
+    }
+
+    const blurMix = SAFE_RANGES.BLUR.map(clampNormalized(compiled.background[4]));
+    const backgroundMask = masks?.background;
+    if (blurMix > 0 && backgroundMask?.length === source.width * source.height) {
+      const backgroundBlur = createMaskedBackgroundBlur(output, backgroundMask, source.width, source.height);
+      for (let pixel = 0; pixel < source.width * source.height; pixel += 1) {
+        const factor = blurMix * Math.max(0, Math.min(1, backgroundMask[pixel] ?? 0));
+        if (factor <= 0) continue;
+        const index = pixel * 4;
+        output[index] = clampByte((output[index] ?? 0) + ((backgroundBlur[index] ?? 0) - (output[index] ?? 0)) * factor);
+        output[index + 1] = clampByte((output[index + 1] ?? 0) + ((backgroundBlur[index + 1] ?? 0) - (output[index + 1] ?? 0)) * factor);
+        output[index + 2] = clampByte((output[index + 2] ?? 0) + ((backgroundBlur[index + 2] ?? 0) - (output[index + 2] ?? 0)) * factor);
       }
     }
 

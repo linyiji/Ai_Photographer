@@ -106,18 +106,19 @@ const element = <T extends HTMLElement>(selector: string): T => {
   return found;
 };
 
-const PARAMETERS: readonly { parameter: Extract<AdjustmentParameter, "BRIGHTNESS" | "WARMTH" | "SATURATION" | "SOFTNESS">; label: string; hint: string }[] = [
+const PARAMETERS: readonly { parameter: Extract<AdjustmentParameter, "BRIGHTNESS" | "WARMTH" | "SATURATION" | "SOFTNESS" | "BLUR">; label: string; hint: string }[] = [
   { parameter: "BRIGHTNESS", label: "明暗", hint: "暗一些 · 亮一些" },
   { parameter: "WARMTH", label: "冷暖", hint: "冷一点 · 暖一点" },
   { parameter: "SATURATION", label: "鲜艳", hint: "克制 · 鲜明" },
   { parameter: "SOFTNESS", label: "柔和", hint: "清晰 · 柔和" },
+  { parameter: "BLUR", label: "背景虚化", hint: "自然 · 更虚化" },
 ];
 
 const controls = element<HTMLDivElement>("#controls");
 controls.innerHTML = PARAMETERS.map(({ parameter, label, hint }) => `
   <label class="control"><span class="control-head"><span class="control-label">${label}</span><span class="control-hint">${hint}</span></span>
     <span class="slider-row"><button type="button" data-step-parameter="${parameter}" data-direction="-1" data-testid="decrease-${parameter.toLowerCase()}" aria-label="减少${label}">−</button>
-    <input type="range" min="-1" max="1" step="0.01" value="0" data-parameter="${parameter}" data-testid="slider-${parameter.toLowerCase()}" aria-label="${label}" />
+    <input type="range" min="${parameter === "BLUR" ? "0" : "-1"}" max="1" step="0.01" value="0" data-parameter="${parameter}" data-testid="slider-${parameter.toLowerCase()}" aria-label="${label}" />
     <button type="button" data-step-parameter="${parameter}" data-direction="1" data-testid="increase-${parameter.toLowerCase()}" aria-label="增加${label}">＋</button></span>
   </label>`).join("");
 
@@ -198,10 +199,10 @@ const adjustmentValue = (parameter: AdjustmentParameter): number =>
 const syncControls = (): void => {
   document.querySelectorAll<HTMLInputElement>("input[data-parameter]").forEach((input) => {
     input.value = String(adjustmentValue(input.dataset.parameter as AdjustmentParameter));
-    input.disabled = scope === "LOCAL_REGION" && !activeRegion();
+    input.disabled = (scope === "LOCAL_REGION" && !activeRegion()) || (input.dataset.parameter === "BLUR" && scope !== "BACKGROUND");
   });
   document.querySelectorAll<HTMLButtonElement>("button[data-step-parameter]").forEach((button) => {
-    button.disabled = scope === "LOCAL_REGION" && !activeRegion();
+    button.disabled = (scope === "LOCAL_REGION" && !activeRegion()) || (button.dataset.stepParameter === "BLUR" && scope !== "BACKGROUND");
   });
   element<HTMLButtonElement>("#undo").disabled = !history.canUndo();
   element<HTMLButtonElement>("#redo").disabled = !history.canRedo();
@@ -366,7 +367,8 @@ document.querySelectorAll<HTMLButtonElement>("button[data-step-parameter]").forE
   button.addEventListener("click", () => {
     const parameter = button.dataset.stepParameter as AdjustmentParameter;
     const direction = Number(button.dataset.direction);
-    applyParameter(parameter, Math.max(-1, Math.min(1, adjustmentValue(parameter) + direction * 0.1)));
+    const minimum = parameter === "BLUR" ? 0 : -1;
+    applyParameter(parameter, Math.max(minimum, Math.min(1, adjustmentValue(parameter) + direction * 0.1)));
   }));
 
 element("#add-region").addEventListener("click", () => {

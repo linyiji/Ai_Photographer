@@ -4,12 +4,11 @@
   "accepted_head": "15ee075ecabaef50c47ed1133dcd1480f87f41c6",
   "runtime_version": "0.1.0",
   "implemented_scopes": ["ALL", "PERSON", "BACKGROUND", "LOCAL_REGION"],
-  "implemented_parameters": ["BRIGHTNESS", "WARMTH", "SATURATION", "SOFTNESS"],
+  "implemented_parameters": ["BRIGHTNESS", "WARMTH", "SATURATION", "SOFTNESS", "BLUR"],
   "deferred_parameters": {
     "MOOD": "CONTRACT_PRODUCT_GAP",
     "SKIN_TONE": "DEFERRED_MASK_DEPENDENCY",
-    "SKIN_RETOUCH": "REALITY_PLUS_OWNED_OR_FINE_TUNE_LATER",
-    "BLUR": "QUALITY_GATE_PENDING"
+    "SKIN_RETOUCH": "REALITY_PLUS_OWNED_OR_FINE_TUNE_LATER"
   },
   "renderer_backend": "CANVAS2D_IMAGE_DATA",
   "final_export_backend": {
@@ -32,6 +31,7 @@
   "known_warnings": [
     "COMBINED p50/p95 50.3/109.2ms misses the ideal target but is inside the accepted warning range",
     "12MP Combined final is approximately 4.17s",
+    "BACKGROUND BLUR adds a bounded high-resolution CPU cost and requires final OPPO hot-path regression",
     "automatic semantic mask is not admitted",
     "WeChat and iOS/Safari Fine Tune runtimes are unverified"
   ],
