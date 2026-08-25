@@ -16,17 +16,17 @@ describe("desktop synthetic render evidence", () => {
     recipe = setAdjustment(recipe, "LOCAL_REGION", "BRIGHTNESS", 0.2, region);
 
     const fixtureA = createSyntheticFixture("busy-background", 1920, 1080);
-    const fixtureB = createSyntheticFixture("busy-background", 2560, 1440);
+    const fixtureB = createSyntheticFixture("busy-background", 4000, 3000);
     const resultA = renderer.render(fixtureA, recipe, undefined, { mode: "final" });
     const resultB = renderer.render(fixtureB, recipe, undefined, { mode: "final" });
 
-    console.info(`FT_P0_PERFORMANCE ${JSON.stringify({
+    console.info(`FT_P2_PERFORMANCE ${JSON.stringify({
       fixtureA: { resolution: "1920x1080", renderMs: Number(resultA.renderMs.toFixed(1)) },
-      fixtureB: { resolution: "2560x1440", renderMs: Number(resultB.renderMs.toFixed(1)) },
+      fixtureB: { resolution: "4000x3000", renderMs: Number(resultB.renderMs.toFixed(1)) },
       backend: resultA.backend,
     })}`);
     expect([resultA.width, resultA.height]).toEqual([1920, 1080]);
-    expect([resultB.width, resultB.height]).toEqual([2560, 1440]);
+    expect([resultB.width, resultB.height]).toEqual([4000, 3000]);
     expect(resultA.renderMs).toBeLessThan(10_000);
     expect(resultB.renderMs).toBeLessThan(15_000);
   }, 30_000);
