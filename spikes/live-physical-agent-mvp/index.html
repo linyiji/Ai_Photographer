@@ -133,6 +133,8 @@
               <select id="target-preset" aria-label="Target preset"></select>
             </label>
             <button id="closed-loop-reset" class="button button--quiet" type="button">重置本机引导</button>
+            <button id="closed-loop-arm" class="button" type="button">ARM 新试验</button>
+            <button id="closed-loop-trace" class="button button--quiet" type="button">下载标量 Trace</button>
           </div>
         </div>
         <div class="perception-status">
@@ -151,8 +153,14 @@
           <div><dt>ACTIVE ACTION / AGE</dt><dd id="cl-action">— / —</dd></div>
           <div><dt>WAITING REMAINING / GAP</dt><dd id="cl-waiting">0 / 1200 ms</dd></div>
           <div><dt>VERIFICATION</dt><dd id="cl-verification">NONE</dd></div>
+          <div><dt>TRIAL / ELAPSED</dt><dd id="cl-trial">DISARMED / —</dd></div>
+          <div><dt>EPISODE ID / STATE</dt><dd id="cl-episode">— / —</dd></div>
+          <div><dt>BASELINE / CURRENT SIGNED Δ</dt><dd id="cl-episode-delta">— / —</dd></div>
+          <div><dt>BEST / SETTLED ERROR</dt><dd id="cl-episode-error">— / —</dd></div>
+          <div><dt>MOTION / CROSSED / DEADBAND</dt><dd id="cl-episode-flags">FALSE / FALSE / FALSE</dd></div>
+          <div><dt>TERMINAL / SUCCESS RATE</dt><dd id="cl-terminal">— / —</dd></div>
           <div><dt>STABLE / DURATION</dt><dd id="cl-stable">FALSE / 0 ms</dd></div>
-          <div><dt>INSTRUCTIONS / SUCCESS</dt><dd id="cl-counts-a">0 / 0</dd></div>
+          <div><dt>ORDINARY / HOLD / SUCCESS</dt><dd id="cl-counts-a">0 / 0 / 0</dd></div>
           <div><dt>IMPROVING / NO EFFECT</dt><dd id="cl-counts-b">0 / 0</dd></div>
           <div><dt>WRONG DIR / OSCILLATION</dt><dd id="cl-counts-c">0 / 0</dd></div>
           <div><dt>TIME TO TARGET</dt><dd id="cl-time-target">—</dd></div>

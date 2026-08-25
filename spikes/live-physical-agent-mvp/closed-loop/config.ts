@@ -7,6 +7,10 @@ export const CLOSED_LOOP_CONFIG: Readonly<ClosedLoopConfig> = Object.freeze({
   improvement_ratio: 0.35,
   wrong_direction_increase_ratio: 0.15,
   verification_jitter_normalized: 0.12,
+  action_response_grace_ms: 900,
+  settled_window_ms: 375,
+  episode_timeout_ms: 4500,
+  minimum_meaningful_movement_normalized: 0.18,
   local_failure_limit: 4,
   oscillation_window_ms: 3000,
 });

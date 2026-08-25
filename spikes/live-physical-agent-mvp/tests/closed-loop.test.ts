@@ -1,122 +1,49 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import assert from 'node:assert/strict'; import test from 'node:test';
 import { CLOSED_LOOP_TRAJECTORIES, frame } from '../fixtures/closed-loop/trajectories.js';
 import { CLOSED_LOOP_CONFIG, DEFAULT_TARGET } from '../closed-loop/config.js';
 import { actionForIssue, computeDelta, LocalClosedLoopEngine, rankIssues } from '../closed-loop/engine.js';
+import { replayScalarStates, ScalarTraceRecorder } from '../closed-loop/trace.js';
+const run=(name:keyof typeof CLOSED_LOOP_TRAJECTORIES,armed=true)=>{const e=new LocalClosedLoopEngine();if(armed)e.armTrial(0);return CLOSED_LOOP_TRAJECTORIES[name].map(s=>e.update(s));};
+const last=(name:keyof typeof CLOSED_LOOP_TRAJECTORIES)=>run(name).at(-1)!;
+const terminal=(name:keyof typeof CLOSED_LOOP_TRAJECTORIES)=>[...run(name)].reverse().find(o=>o.episode?.terminal_outcome)?.episode?.terminal_outcome;
 
-const run = (name: keyof typeof CLOSED_LOOP_TRAJECTORIES) => {
-  const engine = new LocalClosedLoopEngine();
-  return CLOSED_LOOP_TRAJECTORIES[name].map((state) => engine.update(state));
-};
-
-test('all required deterministic trajectory fixtures exist', () => {
-  assert.deepEqual(Object.keys(CLOSED_LOOP_TRAJECTORIES), [
-    'subject-missing-then-enter', 'left-to-target', 'right-to-target', 'too-far-move-closer',
-    'too-close-move-farther', 'x-and-scale-both-bad', 'improving-while-waiting', 'no-effect',
-    'wrong-direction', 'overshoot-through-deadband', 'jitter-inside-deadband',
-    'x-scale-priority-competition', 'oscillation-pressure', 'temporary-subject-loss', 'ready-stable-window',
-  ]);
-});
-
-test('delta/deadband are finite and missing measurements stay explicit', () => {
-  const valid = computeDelta(frame(0, 0.48, 0.36), DEFAULT_TARGET);
-  assert.equal(valid.x.status, 'SATISFIED'); assert.equal(valid.scale.status, 'SATISFIED');
-  assert.ok(Number.isFinite(valid.x.delta)); assert.ok(Number.isFinite(valid.scale.normalized_error));
-  const missing = computeDelta(frame(0, null, null), DEFAULT_TARGET);
-  assert.equal(missing.x.status, 'MISSING'); assert.equal(missing.x.delta, null); assert.equal(missing.scale.normalized_error, null);
-});
-
-test('physical action mapping is based on non-mirrored sensor coordinates', () => {
-  const leftOfTarget = computeDelta(frame(0, 0.2, DEFAULT_TARGET.height_ratio), DEFAULT_TARGET);
-  const rightOfTarget = computeDelta(frame(0, 0.8, DEFAULT_TARGET.height_ratio), DEFAULT_TARGET);
-  assert.equal(actionForIssue('X_POSITION', leftOfTarget), 'MOVE_LEFT');
-  assert.equal(actionForIssue('X_POSITION', rightOfTarget), 'MOVE_RIGHT');
-  // Front-preview CSS mirroring is deliberately not an input, so it cannot invert physical guidance.
-});
-
-test('persistence emits exactly one highest-priority instruction', () => {
-  const outputs = run('x-and-scale-both-bad');
-  assert.equal(outputs[1].issue?.kind, 'X_POSITION');
-  assert.equal(outputs[1].instruction?.action, 'MOVE_LEFT');
-  assert.equal(outputs[1].metrics.instruction_count, 1);
-});
-
-test('scale actions are correct in both directions', () => {
-  assert.equal(run('too-far-move-closer')[1].instruction?.action, 'MOVE_CLOSER');
-  assert.equal(run('too-close-move-farther')[1].instruction?.action, 'MOVE_FARTHER');
-});
-
-test('WAITING is silent while movement improves and respects instruction gap', () => {
-  const outputs = run('improving-while-waiting');
-  assert.equal(outputs[1].runtime_state, 'INSTRUCTING');
-  assert.equal(outputs[2].runtime_state, 'WAITING'); assert.equal(outputs[2].instruction, null);
-  assert.equal(outputs[3].verification, 'IMPROVING'); assert.equal(outputs[3].runtime_state, 'WAITING');
-  assert.equal(outputs[3].metrics.instruction_count, 1);
-  assert.ok(CLOSED_LOOP_CONFIG.instruction_gap_ms >= 900);
-});
-
-test('verification distinguishes success, no effect, and wrong direction', () => {
-  assert.equal(run('overshoot-through-deadband')[2].verification, 'SUCCESS');
-  assert.equal(run('no-effect')[2].verification, 'NO_EFFECT');
-  assert.equal(run('wrong-direction')[2].verification, 'WRONG_DIRECTION');
-});
-
-test('temporary subject loss enters SEARCHING without adding an instruction', () => {
-  const outputs = run('temporary-subject-loss');
-  assert.equal(outputs[2].runtime_state, 'SEARCHING');
-  assert.equal(outputs[2].instruction, null);
-  assert.equal(outputs[2].metrics.instruction_count, 1);
-});
-
-test('READY requires stable window and HOLD is emitted once without spam', () => {
-  const outputs = run('ready-stable-window');
-  assert.equal(outputs[0].ready, false); assert.equal(outputs[1].ready, false);
-  assert.equal(outputs[2].runtime_state, 'READY'); assert.equal(outputs[2].instruction?.action, 'HOLD');
-  assert.equal(outputs[3].runtime_state, 'READY'); assert.equal(outputs[3].instruction, null);
-  assert.equal(outputs[3].metrics.instruction_count, 1);
-});
-
-test('READY cannot start before an active correction passes WAITING verification', () => {
-  const engine = new LocalClosedLoopEngine();
-  engine.update(frame(0, 0.2, DEFAULT_TARGET.height_ratio));
-  engine.update(frame(250, 0.2, DEFAULT_TARGET.height_ratio));
-  assert.equal(engine.update(frame(500, 0.5, DEFAULT_TARGET.height_ratio, true)).runtime_state, 'WAITING');
-  const tooEarly = engine.update(frame(1100, 0.5, DEFAULT_TARGET.height_ratio, true));
-  assert.equal(tooEarly.ready, false); assert.equal(tooEarly.metrics.successful_corrections, 0);
-  const verified = engine.update(frame(1450, 0.5, DEFAULT_TARGET.height_ratio, true));
-  assert.equal(verified.verification, 'SUCCESS'); assert.equal(verified.ready, false);
-  const ready = engine.update(frame(2050, 0.5, DEFAULT_TARGET.height_ratio, true));
-  assert.equal(ready.ready, true); assert.equal(ready.metrics.successful_corrections, 1);
-});
-
-test('overshoot across target is not mislabeled as physical wrong direction', () => {
-  const engine = new LocalClosedLoopEngine();
-  engine.update(frame(0, 0.2, DEFAULT_TARGET.height_ratio));
-  engine.update(frame(250, 0.2, DEFAULT_TARGET.height_ratio));
-  const overshoot = engine.update(frame(1450, 0.6, DEFAULT_TARGET.height_ratio, true));
-  assert.notEqual(overshoot.verification, 'WRONG_DIRECTION');
-  assert.equal(overshoot.metrics.wrong_direction_count, 0);
-});
-
-test('priority pressure does not rapidly oscillate X and Scale while waiting', () => {
-  const outputs = run('oscillation-pressure');
-  assert.equal(outputs[1].issue?.kind, 'X_POSITION');
-  assert.equal(outputs[2].runtime_state, 'WAITING'); assert.equal(outputs[3].runtime_state, 'WAITING');
-  assert.equal(outputs[3].metrics.oscillation_count, 0);
-});
-
-test('candidate hysteresis requires 1.25x dominance before switching issues', () => {
-  const engine = new LocalClosedLoopEngine();
-  assert.equal(engine.update(frame(0, 0.25, 0.15)).issue?.kind, 'X_POSITION');
-  assert.equal(engine.update(frame(100, 0.35, 0.04)).issue?.kind, 'X_POSITION');
-  assert.equal(engine.update(frame(200, 0.35, 0.0)).issue?.kind, 'SCALE');
-  assert.equal(engine.update(frame(250, 0.2, 0.15)).metrics.oscillation_count, 1);
-});
-
-test('Y can be measured but is explicitly exempt from unsafe action mapping', () => {
-  const strictTarget = { ...DEFAULT_TARGET, id: 'strict-y', y_exempt: false };
-  const state = frame(0, 0.5, DEFAULT_TARGET.height_ratio, true, 0.2);
-  const delta = computeDelta(state, strictTarget);
-  const issue = rankIssues(state, delta).find((candidate) => candidate.kind === 'Y_POSITION');
-  assert.equal(issue?.action, null); assert.equal(issue?.action_mapping, 'DEFERRED_ACTION_MAPPING');
-});
+test('all 18 required recalibration fixtures exist',()=>assert.equal(Object.keys(CLOSED_LOOP_TRAJECTORIES).length,18));
+test('delta is signed target-current',()=>{assert.ok(computeDelta(frame(0,.2,.35),DEFAULT_TARGET).x.delta!>0);assert.ok(computeDelta(frame(0,.8,.35),DEFAULT_TARGET).x.delta!<0);});
+test('deadband and missing values remain explicit',()=>{assert.equal(computeDelta(frame(0,.48,.35),DEFAULT_TARGET).x.status,'SATISFIED');assert.equal(computeDelta(frame(0,null,null),DEFAULT_TARGET).x.status,'MISSING');});
+test('physical X mapping ignores preview mirroring',()=>{assert.equal(actionForIssue('X_POSITION',computeDelta(frame(0,.2,.35),DEFAULT_TARGET)),'MOVE_LEFT');assert.equal(actionForIssue('X_POSITION',computeDelta(frame(0,.8,.35),DEFAULT_TARGET)),'MOVE_RIGHT');});
+test('scale mapping is directional',()=>{assert.equal(actionForIssue('SCALE',computeDelta(frame(0,.5,.1),DEFAULT_TARGET)),'MOVE_CLOSER');assert.equal(actionForIssue('SCALE',computeDelta(frame(0,.5,.7),DEFAULT_TARGET)),'MOVE_FARTHER');});
+test('priority chooses X for combined large error',()=>assert.equal(rankIssues(frame(0,.2,.1),computeDelta(frame(0,.2,.1),DEFAULT_TARGET))[0].kind,'X_POSITION'));
+test('trial stays armed before ordinary instruction',()=>assert.equal(run('correct-gradual-x')[0].trial_state,'ARMED'));
+test('trial begins exactly at first ordinary instruction',()=>{const o=run('correct-gradual-x')[1];assert.equal(o.trial_state,'RUNNING');assert.equal(o.first_instruction_at,o.instruction?.timestamp_ms);});
+test('engine initialization never starts trial timing',()=>{const o=new LocalClosedLoopEngine().update(frame(500,.5,.35,true));assert.equal(o.first_instruction_at,null);assert.equal(o.metrics.time_to_target_ms,null);});
+test('ordinary instruction creates one episode',()=>{const o=run('correct-gradual-x')[1];assert.equal(o.metrics.ordinary_instruction_count,1);assert.equal(o.metrics.episode_count,1);assert.equal(o.episode?.episode_id,1);});
+test('eight render frames remain one instruction event',()=>{const o=last('eight-render-frames-one-instruction-event');assert.equal(o.metrics.ordinary_instruction_count,1);assert.equal(o.metrics.episode_count,1);});
+test('HOLD is excluded from ordinary instruction count',()=>{const o=last('hold-not-counted-as-instruction');assert.equal(o.metrics.ordinary_instruction_count,0);assert.equal(o.metrics.hold_count,1);});
+test('HOLD is one-shot',()=>{const out=run('hold-not-counted-as-instruction');assert.equal(out.filter(o=>o.instruction?.action==='HOLD').length,1);});
+test('delayed response does not become premature NO_EFFECT',()=>{const out=run('delayed-user-response');assert.equal(out[2].episode?.terminal_outcome,null);assert.equal(terminal('delayed-user-response'),'SUCCESS');});
+test('correct gradual X ends SUCCESS',()=>assert.equal(terminal('correct-gradual-x'),'SUCCESS'));
+test('correct gradual scale ends SUCCESS',()=>assert.equal(terminal('correct-gradual-scale'),'SUCCESS'));
+test('crossing into deadband ends SUCCESS',()=>assert.equal(terminal('target-cross-into-deadband'),'SUCCESS'));
+test('overshoot outside deadband is not WRONG_DIRECTION',()=>{const out=run('target-overshoot-outside-deadband');const ep=[...out].reverse().find(o=>o.episode?.terminal_outcome)?.episode;assert.equal(ep?.terminal_outcome,'NO_EFFECT');assert.ok(ep?.warning_flags.includes('OVERSHOOT_OUTSIDE_DEADBAND'));});
+test('true sustained wrong direction is terminal WRONG_DIRECTION',()=>assert.equal(terminal('true-wrong-direction'),'WRONG_DIRECTION'));
+test('no motion becomes NO_EFFECT after grace and settled window',()=>assert.equal(terminal('no-motion'),'NO_EFFECT'));
+test('jitter-only does not become WRONG_DIRECTION',()=>assert.equal(terminal('jitter-only'),'NO_EFFECT'));
+test('IMPROVING is intermediate and absent from denominator',()=>{const out=run('correct-gradual-x');assert.ok(out.some(o=>o.verification==='IMPROVING'));assert.equal(out.find(o=>o.verification==='IMPROVING')?.metrics.terminal_episode_count,0);});
+test('improving then stopping outside target is NO_EFFECT',()=>assert.equal(terminal('improving-then-stop'),'NO_EFFECT'));
+test('improve then regress before settle is not false SUCCESS',()=>assert.notEqual(terminal('improve-then-regress-before-settle'),'SUCCESS'));
+test('each episode has exactly one terminal count',()=>{const o=last('repeated-no-effect-reissue');assert.equal(o.metrics.terminal_episode_count,o.metrics.no_effect_count+o.metrics.wrong_direction_count+o.metrics.successful_corrections);});
+test('reissue only follows terminal and gap',()=>{const out=run('repeated-no-effect-reissue');const events=out.filter(o=>o.instruction&&o.instruction.action!=='HOLD').map(o=>o.instruction!);assert.equal(events.length,2);assert.ok(events[1].timestamp_ms-events[0].timestamp_ms>=CLOSED_LOOP_CONFIG.instruction_gap_ms);});
+test('same action retry count is explicit',()=>assert.equal(last('repeated-no-effect-reissue').episode?.reissue_count,1));
+test('READY is blocked before episode terminal',()=>assert.equal(last('ready-blocked-before-terminal').ready,false));
+test('READY follows successful episode and stable window',()=>assert.equal(last('ready-after-success').ready,true));
+test('time to target starts at first correction',()=>{const o=last('trial-timer-invariant');assert.equal(o.metrics.time_to_target_ms,o.ready_at!-o.first_instruction_at!);});
+test('time-to-target respects observed instruction gaps',()=>{const o=last('trial-timer-invariant');assert.ok(o.metrics.time_to_target_ms!>=CLOSED_LOOP_CONFIG.instruction_gap_ms+CLOSED_LOOP_CONFIG.settled_window_ms);});
+test('success-rate denominator uses terminal outcomes only',()=>{const o=last('correct-gradual-x');assert.equal(o.metrics.correction_success_rate,1);assert.equal(o.metrics.terminal_episode_count,1);});
+test('temporary subject loss does not create another instruction',()=>{const o=last('temporary-subject-loss-during-episode');assert.equal(o.metrics.ordinary_instruction_count,1);});
+test('X then Scale episodes remain sequential',()=>{const out=run('x-then-scale-sequential-corrections');const actions=out.flatMap(o=>o.instruction&&o.instruction.action!=='HOLD'?[o.instruction.action]:[]);assert.deepEqual(actions.slice(0,2),['MOVE_LEFT','MOVE_CLOSER']);});
+test('no oscillation while active episode is latched',()=>assert.equal(last('x-then-scale-sequential-corrections').metrics.oscillation_count,0));
+test('Y remains measured but action mapping is deferred',()=>{const t={...DEFAULT_TARGET,y_exempt:false};const s=frame(0,.5,.35,true,.2);const i=rankIssues(s,computeDelta(s,t)).find(x=>x.kind==='Y_POSITION');assert.equal(i?.action,null);});
+test('local recovery occurs after bounded terminal failures',()=>{const config={...CLOSED_LOOP_CONFIG,local_failure_limit:1};const e=new LocalClosedLoopEngine(DEFAULT_TARGET,config);e.armTrial(0);const out=CLOSED_LOOP_TRAJECTORIES['no-motion'].map(s=>e.update(s));assert.equal(out.at(-1)?.runtime_state,'LOCAL_RECOVERY_REQUIRED');assert.equal(out.at(-1)?.metrics.recovery_count,1);});
+test('scalar trace contains no raw media or landmarks',()=>{const states=CLOSED_LOOP_TRAJECTORIES['correct-gradual-x'];const outputs=replayScalarStates(states);const r=new ScalarTraceRecorder();states.forEach((s,i)=>r.append(s,outputs[i]));const json=r.json();assert.doesNotMatch(json,/landmark|image|video|frame/i);});
+test('scalar replay is deterministic',()=>{const states=CLOSED_LOOP_TRAJECTORIES['correct-gradual-x'];assert.deepEqual(replayScalarStates(states),replayScalarStates(states));});
+test('external hot-path counters remain zero',()=>{const m=last('correct-gradual-x').metrics;assert.deepEqual([m.provider_calls,m.backend_per_frame_calls,m.luna_calls,m.raw_video_upload],[0,0,0,0]);});

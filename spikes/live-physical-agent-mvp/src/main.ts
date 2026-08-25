@@ -5,6 +5,7 @@ import type { PoseMeasurement, StructuredPerceptionState } from '../perception/t
 import { ACTION_COPY, CLOSED_LOOP_CONFIG, TARGET_PRESETS } from '../closed-loop/config.js';
 import { LocalClosedLoopEngine } from '../closed-loop/engine.js';
 import type { ClosedLoopSnapshot } from '../closed-loop/types.js';
+import { ScalarTraceRecorder } from '../closed-loop/trace.js';
 
 type FacingMode = 'user' | 'environment';
 type PermissionStateLabel = PermissionState | 'not_requested' | 'unsupported' | 'error';
@@ -49,6 +50,8 @@ const guidanceOverlayText = requireElement<HTMLElement>('guidance-overlay-text')
 const closedLoopHud = requireElement<HTMLElement>('closed-loop-hud');
 const targetPreset = requireElement<HTMLSelectElement>('target-preset');
 const closedLoopReset = requireElement<HTMLButtonElement>('closed-loop-reset');
+const closedLoopArm = requireElement<HTMLButtonElement>('closed-loop-arm');
+const closedLoopTrace = requireElement<HTMLButtonElement>('closed-loop-trace');
 const closedLoopFields = {
   runtimeState: requireElement<HTMLElement>('cl-runtime-state'), ready: requireElement<HTMLElement>('cl-ready'),
   instruction: requireElement<HTMLElement>('cl-instruction'), target: requireElement<HTMLElement>('cl-target'),
@@ -59,6 +62,9 @@ const closedLoopFields = {
   stable: requireElement<HTMLElement>('cl-stable'), countsA: requireElement<HTMLElement>('cl-counts-a'),
   countsB: requireElement<HTMLElement>('cl-counts-b'), countsC: requireElement<HTMLElement>('cl-counts-c'),
   timeTarget: requireElement<HTMLElement>('cl-time-target'), decisions: requireElement<HTMLElement>('cl-decisions'),
+  trial: requireElement<HTMLElement>('cl-trial'), episode: requireElement<HTMLElement>('cl-episode'),
+  episodeDelta: requireElement<HTMLElement>('cl-episode-delta'), episodeError: requireElement<HTMLElement>('cl-episode-error'),
+  episodeFlags: requireElement<HTMLElement>('cl-episode-flags'), terminal: requireElement<HTMLElement>('cl-terminal'),
 };
 const perceptionFields = {
   previewFps: requireElement<HTMLElement>('p-preview-fps'),
@@ -113,6 +119,7 @@ const formatMetric = (value: number | null | undefined, digits = 3): string =>
 
 let currentTarget = TARGET_PRESETS[0];
 const closedLoop = new LocalClosedLoopEngine(currentTarget);
+const scalarTrace = new ScalarTraceRecorder();
 
 const perceptionRuntime = new PerceptionRuntime({
   onStatus: (status, mode, text) => {
@@ -126,6 +133,7 @@ const perceptionRuntime = new PerceptionRuntime({
     latestPerceptionState = state;
     latestRawMeasurement = rawMeasurement;
     latestClosedLoop = closedLoop.update(state);
+    scalarTrace.append(state, latestClosedLoop);
     if (latestClosedLoop.instruction && latestClosedLoop.instruction.action !== 'HOLD') {
       displayedActionCopy = latestClosedLoop.instruction.copy_zh;
       displayedActionUntilMs = state.timestamp_ms + 700;
@@ -238,8 +246,11 @@ function renderClosedLoop(): void {
     closedLoopFields.issue.textContent = '— / —'; closedLoopFields.issueAge.textContent = '0 ms';
     closedLoopFields.action.textContent = '— / —'; closedLoopFields.waiting.textContent = `0 / ${CLOSED_LOOP_CONFIG.instruction_gap_ms} ms`;
     closedLoopFields.verification.textContent = 'NONE'; closedLoopFields.stable.textContent = 'FALSE / 0 ms';
-    closedLoopFields.countsA.textContent = '0 / 0'; closedLoopFields.countsB.textContent = '0 / 0';
+    closedLoopFields.countsA.textContent = '0 / 0 / 0'; closedLoopFields.countsB.textContent = '0 / 0';
     closedLoopFields.countsC.textContent = '0 / 0'; closedLoopFields.timeTarget.textContent = '—'; closedLoopFields.decisions.textContent = '0';
+    closedLoopFields.trial.textContent = 'DISARMED / —'; closedLoopFields.episode.textContent = '— / —';
+    closedLoopFields.episodeDelta.textContent = '— / —'; closedLoopFields.episodeError.textContent = '— / —';
+    closedLoopFields.episodeFlags.textContent = 'FALSE / FALSE / FALSE'; closedLoopFields.terminal.textContent = '— / —';
     return;
   }
   const subject = snapshot.current; const metrics = snapshot.metrics;
@@ -258,7 +269,14 @@ function renderClosedLoop(): void {
   closedLoopFields.waiting.textContent = `${snapshot.waiting_remaining_ms.toFixed(0)} / ${CLOSED_LOOP_CONFIG.instruction_gap_ms} ms`;
   closedLoopFields.verification.textContent = snapshot.verification;
   closedLoopFields.stable.textContent = `${String(subject.stable).toUpperCase()} / ${snapshot.stable_duration_ms.toFixed(0)} ms`;
-  closedLoopFields.countsA.textContent = `${metrics.instruction_count} / ${metrics.successful_corrections}`;
+  const episode = snapshot.episode;
+  closedLoopFields.trial.textContent = `${snapshot.trial_state} / ${snapshot.trial_elapsed_ms === null ? '—' : `${(snapshot.trial_elapsed_ms / 1000).toFixed(1)} s`}`;
+  closedLoopFields.episode.textContent = `${episode?.episode_id ?? '—'} / ${episode?.state ?? '—'}`;
+  closedLoopFields.episodeDelta.textContent = `${formatMetric(episode?.baseline_signed_delta)} / ${formatMetric(episode?.current_signed_delta)}`;
+  closedLoopFields.episodeError.textContent = `${formatMetric(episode?.best_normalized_error)} / ${formatMetric(episode?.final_settled_error)}`;
+  closedLoopFields.episodeFlags.textContent = `${String(Boolean(episode?.motion_detected_at)).toUpperCase()} / ${String(episode?.target_crossed ?? false).toUpperCase()} / ${String(episode?.entered_deadband ?? false).toUpperCase()}`;
+  closedLoopFields.terminal.textContent = `${episode?.terminal_outcome ?? '—'} / ${metrics.correction_success_rate === null ? '—' : `${(metrics.correction_success_rate * 100).toFixed(1)}%`}`;
+  closedLoopFields.countsA.textContent = `${metrics.ordinary_instruction_count} / ${metrics.hold_count} / ${metrics.successful_corrections}`;
   closedLoopFields.countsB.textContent = `${metrics.improving_count} / ${metrics.no_effect_count}`;
   closedLoopFields.countsC.textContent = `${metrics.wrong_direction_count} / ${metrics.oscillation_count}`;
   closedLoopFields.timeTarget.textContent = metrics.time_to_target_ms === null ? '—' : `${(metrics.time_to_target_ms / 1000).toFixed(1)} s`;
@@ -273,7 +291,7 @@ function closedLoopPresentation(snapshot: ClosedLoopSnapshot): { state: string; 
   if (displayedActionCopy && snapshot.timestamp_ms <= displayedActionUntilMs) {
     return { state: `P2 LOCAL · ACTION · ${snapshot.active_action ?? 'LOCAL'}`, text: displayedActionCopy };
   }
-  if (snapshot.runtime_state === 'WAITING') {
+  if (snapshot.runtime_state === 'WAITING_FOR_MOTION' || snapshot.runtime_state === 'TRACKING_MOTION') {
     return snapshot.current.stable
       ? { state: `P2 LOCAL · VERIFY IN ${snapshot.waiting_remaining_ms.toFixed(0)} ms`, text: '保持不动 · 正在确认' }
       : { state: 'P2 LOCAL · WAITING / SILENT', text: '移动中 · 暂停新指令' };
@@ -544,6 +562,15 @@ targetPreset.addEventListener('change', () => {
 closedLoopReset.addEventListener('click', () => {
   closedLoop.reset(); latestClosedLoop = null; displayedActionCopy = null; displayedActionUntilMs = 0;
   renderClosedLoop();
+});
+closedLoopArm.addEventListener('click', () => {
+  closedLoop.armTrial(performance.now()); scalarTrace.clear(); latestClosedLoop = null; displayedActionCopy = null; displayedActionUntilMs = 0;
+  renderClosedLoop(); setMessage('试验已 ARM；请从目标外位置开始，首个普通指令发出时开始计时。');
+});
+closedLoopTrace.addEventListener('click', () => {
+  const blob = new Blob([scalarTrace.json()], { type: 'application/json' }); const url = URL.createObjectURL(blob);
+  const link = document.createElement('a'); link.href = url; link.download = `live-p2-scalar-trace-${Date.now()}.json`; link.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
 });
 
 window.addEventListener('resize', renderCapabilities);
