@@ -5,8 +5,8 @@ export type ReplayResult={replay_id:string;scenario_id:string;mode:string;platfo
 export type UploadedAsset={asset_id:string;asset_kind:string;mime_type:string;size_bytes:number;sha256:string;created_at:string;source:string;storage_ref:string;original_name:string}
 export type SessionSummary={session_id:string;created_at:string;updated_at:string;workflow_stage:string;status:'ACTIVE'|'COMPLETED';thumbnail_asset_id?:string;final_asset_id?:string}
 export type RuntimeReadiness={schema_version:string;mode:'DEVELOPMENT'|'INTERNAL_DEMO'|'PRODUCTION';ready:boolean;public_production_ready:boolean;disclosure:string;fake_ai_present:boolean;blocking_capabilities:string[];capabilities:Record<string,{implementation:'REAL'|'FAKE_INTERNAL_ONLY'|'EXPERIMENTAL'|'UNAVAILABLE';status:string;note:string}>}
-// M02 local runtime endpoint; platform-specific configuration can replace this at L2.
-export const API_BASE='http://127.0.0.1:8000'
+// Defaults to the locked local runtime; mobile acceptance injects an ephemeral HTTPS API tunnel at build time.
+export const API_BASE=__XFX_API_BASE__
 async function request<T>(path:string,method:'GET'|'POST'='GET',data?:unknown,headers:Record<string,string>={}):Promise<T>{
  const response=await Taro.request<T>({url:`${API_BASE}${path}`,method,data,header:{'Content-Type':'application/json',...headers}})
  if(response.statusCode>=400){const body=response.data as any;throw new Error(`${body?.error?.error_code||body?.error?.code||'API_ERROR'} · ${body?.error?.correlation_id||'no-correlation'}`)}
