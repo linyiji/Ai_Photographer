@@ -40,6 +40,11 @@
           </dl>
         </div>
 
+        <div id="guidance-overlay" class="guidance-overlay" role="status" aria-live="polite">
+          <span id="guidance-overlay-state">P2 LOCAL · IDLE</span>
+          <strong id="guidance-overlay-text">启动相机后开始本机引导</strong>
+        </div>
+
         <div id="coordinate-strip" class="coordinate-strip" aria-label="坐标调试状态">
           <div>
             <span>SENSOR COORDINATE</span>
@@ -123,9 +128,12 @@
             <p class="eyebrow">LOCAL ONLY · ONE ISSUE · LUNA OFF</p>
             <h2>P2 Local Closed Loop</h2>
           </div>
-          <label class="target-picker">TARGET
-            <select id="target-preset" aria-label="Target preset"></select>
-          </label>
+          <div class="target-actions">
+            <label class="target-picker">TARGET
+              <select id="target-preset" aria-label="Target preset"></select>
+            </label>
+            <button id="closed-loop-reset" class="button button--quiet" type="button">重置本机引导</button>
+          </div>
         </div>
         <div class="perception-status">
           <span id="cl-runtime-state" class="status-pill">STATE · IDLE</span>

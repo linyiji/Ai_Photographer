@@ -1,4 +1,7 @@
 import type { StructuredPerceptionState } from '../../perception/types.js';
+import { DEFAULT_TARGET } from '../../closed-loop/config.js';
+
+const TARGET_SCALE = DEFAULT_TARGET.height_ratio;
 
 export function frame(timestamp_ms: number, center_x: number | null, height_ratio: number | null, stable = false, center_y: number | null = 0.5): StructuredPerceptionState {
   const present = center_x !== null && center_y !== null && height_ratio !== null;
@@ -17,19 +20,19 @@ export function frame(timestamp_ms: number, center_x: number | null, height_rati
 }
 
 export const CLOSED_LOOP_TRAJECTORIES = {
-  'subject-missing-then-enter': [frame(0, null, null), frame(400, 0.5, 0.6, true), frame(1000, 0.5, 0.6, true)],
-  'left-to-target': [frame(0, 0.2, 0.6), frame(300, 0.2, 0.6), frame(800, 0.36, 0.6), frame(1500, 0.5, 0.6, true), frame(2100, 0.5, 0.6, true), frame(2200, 0.5, 0.6, true)],
-  'right-to-target': [frame(0, 0.8, 0.6), frame(300, 0.8, 0.6), frame(1500, 0.5, 0.6, true)],
-  'too-far-move-closer': [frame(0, 0.5, 0.3), frame(300, 0.5, 0.3), frame(1500, 0.5, 0.6, true)],
-  'too-close-move-farther': [frame(0, 0.5, 0.9), frame(300, 0.5, 0.9), frame(1500, 0.5, 0.6, true)],
-  'x-and-scale-both-bad': [frame(0, 0.2, 0.3), frame(300, 0.2, 0.3), frame(1500, 0.5, 0.3, true), frame(1800, 0.5, 0.3, true)],
-  'improving-while-waiting': [frame(0, 0.2, 0.6), frame(300, 0.2, 0.6), frame(800, 0.35, 0.6), frame(1500, 0.35, 0.6, true)],
-  'no-effect': [frame(0, 0.2, 0.6), frame(300, 0.2, 0.6), frame(1500, 0.2, 0.6, true)],
-  'wrong-direction': [frame(0, 0.2, 0.6), frame(300, 0.2, 0.6), frame(1500, 0.1, 0.6, true)],
-  'overshoot-through-deadband': [frame(0, 0.2, 0.6), frame(300, 0.2, 0.6), frame(1500, 0.54, 0.6, true)],
-  'jitter-inside-deadband': [frame(0, 0.48, 0.59, true), frame(300, 0.52, 0.62, true), frame(600, 0.49, 0.58, true)],
-  'x-scale-priority-competition': [frame(0, 0.2, 0.2), frame(300, 0.2, 0.2)],
+  'subject-missing-then-enter': [frame(0, null, null), frame(400, 0.5, TARGET_SCALE, true), frame(1000, 0.5, TARGET_SCALE, true)],
+  'left-to-target': [frame(0, 0.2, TARGET_SCALE), frame(300, 0.2, TARGET_SCALE), frame(800, 0.36, TARGET_SCALE), frame(1500, 0.5, TARGET_SCALE, true), frame(2100, 0.5, TARGET_SCALE, true), frame(2200, 0.5, TARGET_SCALE, true)],
+  'right-to-target': [frame(0, 0.8, TARGET_SCALE), frame(300, 0.8, TARGET_SCALE), frame(1500, 0.5, TARGET_SCALE, true)],
+  'too-far-move-closer': [frame(0, 0.5, 0.15), frame(300, 0.5, 0.15), frame(1500, 0.5, TARGET_SCALE, true)],
+  'too-close-move-farther': [frame(0, 0.5, 0.65), frame(300, 0.5, 0.65), frame(1500, 0.5, TARGET_SCALE, true)],
+  'x-and-scale-both-bad': [frame(0, 0.2, 0.1), frame(300, 0.2, 0.1), frame(1500, 0.5, 0.1, true), frame(1800, 0.5, 0.1, true)],
+  'improving-while-waiting': [frame(0, 0.2, TARGET_SCALE), frame(300, 0.2, TARGET_SCALE), frame(800, 0.35, TARGET_SCALE), frame(1500, 0.35, TARGET_SCALE, true)],
+  'no-effect': [frame(0, 0.2, TARGET_SCALE), frame(300, 0.2, TARGET_SCALE), frame(1500, 0.2, TARGET_SCALE, true)],
+  'wrong-direction': [frame(0, 0.2, TARGET_SCALE), frame(300, 0.2, TARGET_SCALE), frame(1500, 0.1, TARGET_SCALE, true)],
+  'overshoot-through-deadband': [frame(0, 0.2, TARGET_SCALE), frame(300, 0.2, TARGET_SCALE), frame(1500, 0.54, TARGET_SCALE, true)],
+  'jitter-inside-deadband': [frame(0, 0.48, 0.34, true), frame(300, 0.52, 0.37, true), frame(600, 0.49, 0.33, true)],
+  'x-scale-priority-competition': [frame(0, 0.2, 0.1), frame(300, 0.2, 0.1)],
   'oscillation-pressure': [frame(0, 0.2, 0.3), frame(300, 0.2, 0.3), frame(600, 0.3, 0.2), frame(900, 0.2, 0.3)],
-  'temporary-subject-loss': [frame(0, 0.2, 0.6), frame(300, 0.2, 0.6), frame(600, null, null), frame(900, 0.3, 0.6)],
-  'ready-stable-window': [frame(0, 0.5, 0.6, true), frame(599, 0.5, 0.6, true), frame(600, 0.5, 0.6, true), frame(900, 0.5, 0.6, true)],
+  'temporary-subject-loss': [frame(0, 0.2, TARGET_SCALE), frame(300, 0.2, TARGET_SCALE), frame(600, null, null), frame(900, 0.3, TARGET_SCALE)],
+  'ready-stable-window': [frame(0, 0.5, TARGET_SCALE, true), frame(599, 0.5, TARGET_SCALE, true), frame(600, 0.5, TARGET_SCALE, true), frame(900, 0.5, TARGET_SCALE, true)],
 } as const;

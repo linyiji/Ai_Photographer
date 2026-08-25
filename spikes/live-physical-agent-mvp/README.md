@@ -54,21 +54,24 @@ Replay routes are explicitly synthetic, request no camera, call no provider, and
 - One subject, VIDEO mode, no segmentation, candidate 8 Hz, at most one inference in flight.
 - Missing geometry stays nullable; no fake zero coordinates.
 - Sensor geometry is normalized and non-mirrored; front-preview mirroring is CSS-only.
+- Phone-tuned visibility/presence candidates are `0.50/0.50`, shared by Worker and fallback.
 - EMA, timestamp-normalized velocity, stability, bounded loss, and reacquisition reset are transient.
 - Real-device P1 passed on OPPO K11 / ColorOS 15 / Chrome Mobile: preview ~29–30 fps, vision 8.0 Hz, state 6.9 Hz, inference p50/p95 68.8/97.4 ms.
 
 ## P2 local control semantics
 
-- Three debug target presets; candidate defaults are X/Y `0.50/0.50`, height `0.60`, tolerances `0.05/0.06/0.08`, ready stability `600 ms`.
+- Three debug target presets; phone-tuned natural-medium defaults are X/Y `0.50/0.50`, height `0.35`, tolerances `0.05/0.06/0.07`, ready stability `600 ms`.
 - Delta uses `target-current`; normalized error uses tolerance; values inside deadband are satisfied.
 - Priority weights are missing `100`, X `10`, scale `8`, Y `6`. Only one issue/action can be active.
-- Issue persistence is `300 ms`; a competing issue must exceed `1.25x` to switch.
+- Issue persistence is `250 ms` after the first phone UX pass; a competing issue must exceed `1.25x` to switch.
 - Local action library is fixed Chinese copy for `MOVE_LEFT`, `MOVE_RIGHT`, `MOVE_CLOSER`, `MOVE_FARTHER`, and one-shot `HOLD`.
 - Sensor image-right maps to the facing subject's physical left. Front-preview mirroring never enters action calculation.
 - Y is measured but explicitly exempted by the included presets because no validated vertical action exists.
 - Minimum instruction gap is `1200 ms`; WAITING keeps Camera/Vision/Delta live but blocks ordinary instruction emission.
 - Verification classifies SUCCESS, IMPROVING, NO_EFFECT, or WRONG_DIRECTION after the movement stabilizes. Improvement remains silent.
 - READY requires subject present, applicable targets satisfied, and stable for `600 ms`; HOLD is emitted once on entry.
+- The primary instruction/status overlay is centered in the lower-middle camera area. WAITING never retains the previous ordinary action copy; it shows silent movement/verification state instead.
+- Each emitted action remains readable for 700 ms without incrementing or re-emitting it; a local reset control exits fail-safe recovery without restarting Camera/Pose.
 - Repeated local failures stop at `LOCAL_RECOVERY_REQUIRED`; they never escalate to Luna.
 
 All parameters are spike-local Candidates, not global Authority.
@@ -90,11 +93,11 @@ Use a trusted HTTPS tunnel without bypassing certificate warnings and complete `
 Until that real-device closed-loop run is completed:
 
 ```text
-Status = READY_FOR_MANUAL_DEVICE_TEST
+Status = FAIL
 LIVE-P1 = PASS
 P2 Implementation Gate = PASS
-P2 Real Device Gate = MANUAL_REVIEW_REQUIRED
-LIVE-P2 = NOT_YET_PASS
+P2 Real Device Gate = FAIL
+LIVE-P2 = FAIL
 ```
 
 ## Stop boundary

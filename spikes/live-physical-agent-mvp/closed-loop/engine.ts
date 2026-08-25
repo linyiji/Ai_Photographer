@@ -69,6 +69,7 @@ export class LocalClosedLoopEngine {
   private waitingUntil = 0;
   private verification: VerificationResult = 'NONE';
   private verificationBaseline: number | null = null;
+  private verificationBaselineDelta: number | null = null;
   private readyStableSince: number | null = null;
   private runStartedAt: number | null = null;
   private localFailureStreak = 0;
@@ -84,7 +85,7 @@ export class LocalClosedLoopEngine {
   reset(): void {
     this.runtimeState = 'IDLE'; this.candidateKind = null; this.candidateIssue = null; this.candidateSince = 0; this.activeIssue = null;
     this.activeIssueSince = 0; this.activeAction = null; this.actionIssuedAt = null; this.waitingUntil = 0;
-    this.verification = 'NONE'; this.verificationBaseline = null; this.readyStableSince = null;
+    this.verification = 'NONE'; this.verificationBaseline = null; this.verificationBaselineDelta = null; this.readyStableSince = null;
     this.runStartedAt = null; this.localFailureStreak = 0; this.lastIssueSwitchAt = 0;
     this.metrics = initialMetrics();
   }
@@ -113,6 +114,10 @@ export class LocalClosedLoopEngine {
       this.localFailureStreak = 0;
       this.clearAction();
     }
+    if (allSatisfied && this.runtimeState === 'WAITING') {
+      this.readyStableSince = null;
+      return this.snapshot(now, state, delta, this.activeIssue, instruction);
+    }
     if (allSatisfied) {
       this.activeIssue = null; this.candidateKind = null; this.candidateIssue = null;
       if (state.subject.stable) this.readyStableSince ??= now;
@@ -137,12 +142,14 @@ export class LocalClosedLoopEngine {
     if (this.runtimeState === 'INSTRUCTING') this.runtimeState = 'WAITING';
     if (this.runtimeState === 'WAITING') {
       const currentError = this.errorFor(this.activeIssue?.kind ?? null, delta);
+      const currentDelta = this.deltaFor(this.activeIssue?.kind ?? null, delta);
       if (now < this.waitingUntil || !state.subject.stable) return this.snapshot(now, state, delta, this.activeIssue ?? best, instruction);
       this.runtimeState = 'VERIFYING';
-      this.verification = this.verify(this.verificationBaseline, currentError);
+      this.verification = this.verify(this.verificationBaseline, currentError, this.verificationBaselineDelta, currentDelta);
       if (this.verification === 'SUCCESS') { this.metrics.successful_corrections += 1; this.localFailureStreak = 0; this.clearAction(); }
       else if (this.verification === 'IMPROVING') {
-        this.metrics.improving_count += 1; this.verificationBaseline = currentError; this.waitingUntil = now + this.config.instruction_gap_ms;
+        this.metrics.improving_count += 1; this.verificationBaseline = currentError; this.verificationBaselineDelta = currentDelta;
+        this.waitingUntil = now + this.config.instruction_gap_ms;
         this.runtimeState = 'WAITING';
         return this.snapshot(now, state, delta, this.activeIssue ?? best, instruction);
       } else {
@@ -167,7 +174,8 @@ export class LocalClosedLoopEngine {
     }
 
     this.activeAction = selected.action; this.actionIssuedAt = now; this.waitingUntil = now + this.config.instruction_gap_ms;
-    this.verificationBaseline = selected.normalized_error; this.verification = 'NONE'; this.instructionSequence += 1;
+    this.verificationBaseline = selected.normalized_error; this.verificationBaselineDelta = this.deltaFor(selected.kind, delta);
+    this.verification = 'NONE'; this.instructionSequence += 1;
     this.metrics.instruction_count += 1; this.runtimeState = 'INSTRUCTING';
     instruction = this.event(now, selected.action, selected.kind);
     return this.snapshot(now, state, delta, selected, instruction);
@@ -194,11 +202,12 @@ export class LocalClosedLoopEngine {
     this.candidateIssue = issue;
   }
 
-  private verify(previous: number | null, current: number | null): VerificationResult {
+  private verify(previous: number | null, current: number | null, previousDelta: number | null, currentDelta: number | null): VerificationResult {
     if (!finite(previous) || !finite(current)) return 'NO_EFFECT';
     if (current <= 1) return 'SUCCESS';
     const reduction = (previous - current) / Math.max(previous, 0.0001);
     if (reduction >= this.config.improvement_ratio) return 'IMPROVING';
+    if (finite(previousDelta) && finite(currentDelta) && previousDelta * currentDelta < 0) return 'NO_EFFECT';
     const increase = (current - previous) / Math.max(previous, 0.0001);
     if (increase >= this.config.wrong_direction_increase_ratio && current - previous > this.config.verification_jitter_normalized) return 'WRONG_DIRECTION';
     return 'NO_EFFECT';
@@ -211,9 +220,16 @@ export class LocalClosedLoopEngine {
     return null;
   }
 
+  private deltaFor(kind: IssueKind | null, delta: DeltaState): number | null {
+    if (kind === 'X_POSITION') return delta.x.delta;
+    if (kind === 'Y_POSITION') return delta.y.delta;
+    if (kind === 'SCALE') return delta.scale.delta;
+    return null;
+  }
+
   private clearAction(): void {
     this.activeAction = null; this.activeIssue = null; this.candidateKind = null; this.candidateIssue = null; this.candidateSince = 0;
-    this.verificationBaseline = null; this.runtimeState = 'ANALYZING';
+    this.verificationBaseline = null; this.verificationBaselineDelta = null; this.runtimeState = 'ANALYZING';
   }
 
   private event(timestamp: number, action: LocalAction, issue: IssueKind | null): InstructionEvent {

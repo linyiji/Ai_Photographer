@@ -19,7 +19,7 @@ test('all required deterministic trajectory fixtures exist', () => {
 });
 
 test('delta/deadband are finite and missing measurements stay explicit', () => {
-  const valid = computeDelta(frame(0, 0.48, 0.61), DEFAULT_TARGET);
+  const valid = computeDelta(frame(0, 0.48, 0.36), DEFAULT_TARGET);
   assert.equal(valid.x.status, 'SATISFIED'); assert.equal(valid.scale.status, 'SATISFIED');
   assert.ok(Number.isFinite(valid.x.delta)); assert.ok(Number.isFinite(valid.scale.normalized_error));
   const missing = computeDelta(frame(0, null, null), DEFAULT_TARGET);
@@ -27,8 +27,8 @@ test('delta/deadband are finite and missing measurements stay explicit', () => {
 });
 
 test('physical action mapping is based on non-mirrored sensor coordinates', () => {
-  const leftOfTarget = computeDelta(frame(0, 0.2, 0.6), DEFAULT_TARGET);
-  const rightOfTarget = computeDelta(frame(0, 0.8, 0.6), DEFAULT_TARGET);
+  const leftOfTarget = computeDelta(frame(0, 0.2, DEFAULT_TARGET.height_ratio), DEFAULT_TARGET);
+  const rightOfTarget = computeDelta(frame(0, 0.8, DEFAULT_TARGET.height_ratio), DEFAULT_TARGET);
   assert.equal(actionForIssue('X_POSITION', leftOfTarget), 'MOVE_LEFT');
   assert.equal(actionForIssue('X_POSITION', rightOfTarget), 'MOVE_RIGHT');
   // Front-preview CSS mirroring is deliberately not an input, so it cannot invert physical guidance.
@@ -76,6 +76,28 @@ test('READY requires stable window and HOLD is emitted once without spam', () =>
   assert.equal(outputs[3].metrics.instruction_count, 1);
 });
 
+test('READY cannot start before an active correction passes WAITING verification', () => {
+  const engine = new LocalClosedLoopEngine();
+  engine.update(frame(0, 0.2, DEFAULT_TARGET.height_ratio));
+  engine.update(frame(250, 0.2, DEFAULT_TARGET.height_ratio));
+  assert.equal(engine.update(frame(500, 0.5, DEFAULT_TARGET.height_ratio, true)).runtime_state, 'WAITING');
+  const tooEarly = engine.update(frame(1100, 0.5, DEFAULT_TARGET.height_ratio, true));
+  assert.equal(tooEarly.ready, false); assert.equal(tooEarly.metrics.successful_corrections, 0);
+  const verified = engine.update(frame(1450, 0.5, DEFAULT_TARGET.height_ratio, true));
+  assert.equal(verified.verification, 'SUCCESS'); assert.equal(verified.ready, false);
+  const ready = engine.update(frame(2050, 0.5, DEFAULT_TARGET.height_ratio, true));
+  assert.equal(ready.ready, true); assert.equal(ready.metrics.successful_corrections, 1);
+});
+
+test('overshoot across target is not mislabeled as physical wrong direction', () => {
+  const engine = new LocalClosedLoopEngine();
+  engine.update(frame(0, 0.2, DEFAULT_TARGET.height_ratio));
+  engine.update(frame(250, 0.2, DEFAULT_TARGET.height_ratio));
+  const overshoot = engine.update(frame(1450, 0.6, DEFAULT_TARGET.height_ratio, true));
+  assert.notEqual(overshoot.verification, 'WRONG_DIRECTION');
+  assert.equal(overshoot.metrics.wrong_direction_count, 0);
+});
+
 test('priority pressure does not rapidly oscillate X and Scale while waiting', () => {
   const outputs = run('oscillation-pressure');
   assert.equal(outputs[1].issue?.kind, 'X_POSITION');
@@ -85,15 +107,15 @@ test('priority pressure does not rapidly oscillate X and Scale while waiting', (
 
 test('candidate hysteresis requires 1.25x dominance before switching issues', () => {
   const engine = new LocalClosedLoopEngine();
-  assert.equal(engine.update(frame(0, 0.25, 0.3)).issue?.kind, 'X_POSITION');
-  assert.equal(engine.update(frame(100, 0.3, 0.1)).issue?.kind, 'X_POSITION');
-  assert.equal(engine.update(frame(200, 0.3, 0.0)).issue?.kind, 'SCALE');
-  assert.equal(engine.update(frame(250, 0.25, 0.3)).metrics.oscillation_count, 1);
+  assert.equal(engine.update(frame(0, 0.25, 0.15)).issue?.kind, 'X_POSITION');
+  assert.equal(engine.update(frame(100, 0.35, 0.04)).issue?.kind, 'X_POSITION');
+  assert.equal(engine.update(frame(200, 0.35, 0.0)).issue?.kind, 'SCALE');
+  assert.equal(engine.update(frame(250, 0.2, 0.15)).metrics.oscillation_count, 1);
 });
 
 test('Y can be measured but is explicitly exempt from unsafe action mapping', () => {
   const strictTarget = { ...DEFAULT_TARGET, id: 'strict-y', y_exempt: false };
-  const state = frame(0, 0.5, 0.6, true, 0.2);
+  const state = frame(0, 0.5, DEFAULT_TARGET.height_ratio, true, 0.2);
   const delta = computeDelta(state, strictTarget);
   const issue = rankIssues(state, delta).find((candidate) => candidate.kind === 'Y_POSITION');
   assert.equal(issue?.action, null); assert.equal(issue?.action_mapping, 'DEFERRED_ACTION_MAPPING');

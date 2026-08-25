@@ -157,6 +157,28 @@ h2 { margin: 0; font-size: 1rem; letter-spacing: -0.02em; }
 .coordinate-strip span { display: block; }
 .coordinate-strip strong { display: block; margin-top: 0.18rem; color: #e2e9e7; font: 650 0.58rem/1.25 ui-monospace, SFMono-Regular, Consolas, monospace; }
 
+.guidance-overlay {
+  position: absolute;
+  z-index: 4;
+  top: 62%;
+  right: 1rem;
+  left: 1rem;
+  display: grid;
+  gap: 0.35rem;
+  justify-items: center;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(255, 220, 155, 0.35);
+  border-radius: 1rem;
+  background: rgba(5, 8, 9, 0.78);
+  box-shadow: 0 0.8rem 2rem rgba(0, 0, 0, 0.32);
+  pointer-events: none;
+  transform: translateY(-50%);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+.guidance-overlay span { color: #b7aaa0; font: 800 0.6rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: 0.09em; }
+.guidance-overlay strong { color: #fff1d6; font-size: clamp(1.15rem, 5vw, 1.7rem); line-height: 1.25; text-align: center; text-shadow: 0 0.1rem 0.7rem rgba(0, 0, 0, 0.7); }
+
 .control-panel, .capability-card {
   margin-top: 0.85rem;
   border: 1px solid #252d31;
@@ -182,6 +204,8 @@ h2 { margin: 0; font-size: 1rem; letter-spacing: -0.02em; }
 .guidance-panel { border-color: rgba(255, 203, 114, 0.28); background: linear-gradient(145deg, rgba(34, 27, 17, 0.95), rgba(17, 20, 21, 0.95)); }
 .target-picker { display: grid; gap: 0.25rem; color: #9e8a68; font: 800 0.55rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: 0.08em; }
 .target-picker select { max-width: 10rem; padding: 0.5rem; border: 1px solid #5c513d; border-radius: 0.55rem; color: #f3e8d1; background: #17130e; }
+.target-actions { display: flex; align-items: end; gap: 0.5rem; }
+.target-actions .button { min-height: 2.2rem; padding: 0.45rem 0.6rem; font-size: 0.68rem; }
 .instruction-copy { min-height: 2rem; margin: 0.75rem 0 0; padding: 0.7rem; border-radius: 0.7rem; color: #ffdc9b; background: rgba(255, 190, 70, 0.08); font-size: 1rem; font-weight: 800; text-align: center; }
 
 .control-panel { padding: 0.85rem; }

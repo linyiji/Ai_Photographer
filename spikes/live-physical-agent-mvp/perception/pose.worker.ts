@@ -1,5 +1,5 @@
 import { FilesetResolver, PoseLandmarker } from '@mediapipe/tasks-vision';
-import { POSE_OPTIONS } from './config.js';
+import { PERCEPTION_CONFIG, POSE_OPTIONS } from './config.js';
 import { extractPoseMeasurement } from './geometry.js';
 import { PerceptionStateTracker } from './state-tracker.js';
 import type { PerceptionWorkerRequest, PerceptionWorkerResponse } from './types.js';
@@ -52,11 +52,7 @@ self.onmessage = async (event: MessageEvent<PerceptionWorkerRequest>) => {
   try {
     if (!landmarker || !tracker) throw new Error('Pose worker is not initialized');
     const result = landmarker.detectForVideo(frame, timestamp);
-    const measurement = extractPoseMeasurement(result.landmarks[0] ?? [], timestamp, {
-      visibilityThreshold: 0.55,
-      presenceThreshold: 0.55,
-      minimumValidLandmarks: 8,
-    });
+    const measurement = extractPoseMeasurement(result.landmarks[0] ?? [], timestamp, PERCEPTION_CONFIG);
     const state = tracker.update(measurement, timestamp);
     send({
       type: 'result',

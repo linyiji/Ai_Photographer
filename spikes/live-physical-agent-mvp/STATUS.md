@@ -19,9 +19,9 @@ LIVE-P1 = PASS
 P2 Implementation Gate = PASS
 P2 Automated Tests = PASS
 P2 Typecheck / Build / Browser Replay = PASS / PASS / PASS
-P2 Real Device Gate = MANUAL_REVIEW_REQUIRED
-LIVE-P2 = NOT_YET_PASS
-Status = READY_FOR_MANUAL_DEVICE_TEST
+P2 Real Device Gate = FAIL
+LIVE-P2 = FAIL
+Status = FAIL
 
 Vision Package = @mediapipe/tasks-vision@1.0.1 / EXACT
 Model = Pose Landmarker Lite float16 v1 / LOCAL IGNORED ASSET
@@ -68,4 +68,4 @@ OPPO K11 real-device Camera + Pose passed the P1 hard gates, including Worker ex
 
 ## Active phase
 
-P2 local Target, Delta, Deadband, Priority, Persistence/Hysteresis, action library, WAITING, verification, and READY are implemented and pass deterministic automation. Real-device P2 closed-loop trials remain mandatory, so LIVE-P2 is not PASS. Luna, Backend inference, Voice, Agent, Capture, QA, Reality+, and complex Pose remain forbidden.
+P2 local Target, Delta, Deadband, Priority, Persistence/Hysteresis, action library, WAITING, verification, and READY are implemented and pass deterministic automation. Two complete OPPO K11 attempts were retained. After the bounded premature-READY fix, the second three-trial attempt reached READY without oscillation but produced only `5/(5+4+1) = 50%` terminal correction success, below the required `>=80%`; therefore the real-device gate and LIVE-P2 are FAIL. LIVE-P1 remains PASS. Luna, Backend inference, Voice, Agent, Capture, QA, Reality+, and complex Pose remain forbidden.

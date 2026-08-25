@@ -2,8 +2,8 @@ import type { PerceptionConfig } from './types.js';
 
 export const PERCEPTION_CONFIG: Readonly<PerceptionConfig> = Object.freeze({
   visionTargetHz: 8,
-  visibilityThreshold: 0.55,
-  presenceThreshold: 0.55,
+  visibilityThreshold: 0.50,
+  presenceThreshold: 0.50,
   minimumValidLandmarks: 8,
   emaAlpha: 0.35,
   stableWindowMs: 400,

@@ -1,13 +1,13 @@
 import type { ClosedLoopConfig, LocalAction, TargetState } from './types.js';
 
 export const CLOSED_LOOP_CONFIG: Readonly<ClosedLoopConfig> = Object.freeze({
-  issue_persistence_ms: 300,
+  issue_persistence_ms: 250,
   dominance_ratio: 1.25,
   instruction_gap_ms: 1200,
   improvement_ratio: 0.35,
   wrong_direction_increase_ratio: 0.15,
   verification_jitter_normalized: 0.12,
-  local_failure_limit: 3,
+  local_failure_limit: 4,
   oscillation_window_ms: 3000,
 });
 
@@ -27,9 +27,9 @@ export const ACTION_COPY: Readonly<Record<LocalAction, string>> = Object.freeze(
 });
 
 export const TARGET_PRESETS: readonly TargetState[] = Object.freeze([
-  Object.freeze({ id: 'center-medium', label: '居中 · 中景', center_x: 0.50, center_y: 0.50, height_ratio: 0.60, tolerance_x: 0.05, tolerance_y: 0.06, tolerance_height: 0.08, ready_stable_ms: 600, y_exempt: true }),
-  Object.freeze({ id: 'center-close', label: '居中 · 近景', center_x: 0.50, center_y: 0.48, height_ratio: 0.72, tolerance_x: 0.05, tolerance_y: 0.06, tolerance_height: 0.07, ready_stable_ms: 600, y_exempt: true }),
-  Object.freeze({ id: 'left-composition', label: '左侧构图 · 中景', center_x: 0.36, center_y: 0.50, height_ratio: 0.60, tolerance_x: 0.05, tolerance_y: 0.06, tolerance_height: 0.08, ready_stable_ms: 600, y_exempt: true }),
+  Object.freeze({ id: 'center-medium', label: '居中 · 自然中景', center_x: 0.50, center_y: 0.50, height_ratio: 0.35, tolerance_x: 0.05, tolerance_y: 0.06, tolerance_height: 0.07, ready_stable_ms: 600, y_exempt: true }),
+  Object.freeze({ id: 'center-close', label: '居中 · 近景', center_x: 0.50, center_y: 0.48, height_ratio: 0.50, tolerance_x: 0.05, tolerance_y: 0.06, tolerance_height: 0.07, ready_stable_ms: 600, y_exempt: true }),
+  Object.freeze({ id: 'left-composition', label: '左侧构图 · 自然中景', center_x: 0.36, center_y: 0.50, height_ratio: 0.35, tolerance_x: 0.05, tolerance_y: 0.06, tolerance_height: 0.07, ready_stable_ms: 600, y_exempt: true }),
 ]);
 
 export const DEFAULT_TARGET = TARGET_PRESETS[0];
