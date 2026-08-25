@@ -43,7 +43,10 @@ TypeScript: PASS
 H5 Build: PASS_WITH_WARNING
 WeChat Build: PASS
 Desktop E2E: PASS
-Auto FF Merge: NOT_ATTEMPTED
+Feature Acceptance Head: db8c51f07a81e2b9f06635627c650dc3f21f7dca
+Develop Before Merge: 46393ce0a37bb9e339933679438ff57f58c1e835
+Develop Merge Result: db8c51f07a81e2b9f06635627c650dc3f21f7dca
+Auto FF Merge: PASS
 ```
 
 Camera is primary and device import remains the controlled fallback. The user-operated OPPO K11 / ColorOS 15.0 / Chrome Mobile 138.0.7204.168 trusted-HTTPS gate passed permission timing, rear/front switching, lifecycle, still capture, local retake, confirmation, import, rotation, explicit backend resume, Final, My Works, download, and share/fallback. A selected still remains local until `使用这张`; retake before confirmation does not call the server or advance Workflow. Per-candidate confirmation produced exactly one upload and one workflow commit. The H5 Camera matrix is promoted only for this tested scope; WeChat remains unverified. Production mode remains blocked while deterministic fake intelligence is selected.

@@ -96,6 +96,10 @@ Frame Stream Upload = 0
 Unconfirmed Still Upload = 0
 Committed Real User Media = 0
 Provider Calls = 0
+Feature Acceptance Head = db8c51f07a81e2b9f06635627c650dc3f21f7dca
+Develop Before Merge = 46393ce0a37bb9e339933679438ff57f58c1e835
+Develop Merge Result = db8c51f07a81e2b9f06635627c650dc3f21f7dca
+Auto FF Merge = PASS
 ```
 
 Warnings are limited to the existing H5 302 KiB size advisory and two timing values that the user did not separately measure. Share passed its governed acceptance but the user did not identify whether the supported Web Share or safe fallback branch executed. The Platform Matrix is promoted only for the tested OPPO K11 H5 scope; WeChat remains `UNVERIFIED_REAL_DEVICE`.
@@ -125,6 +129,8 @@ PARALLEL WORKTREES = UNTOUCHED
 Device acceptance/status commit = this report's containing commit
 Automation commit = SELF / final feature branch HEAD at push
 Remote feature branch = PASS / origin/feature/m05-real-user-golden-flow
+Strict-FF develop push = PASS / db8c51f07a81e2b9f06635627c650dc3f21f7dca
+Closure-only commit = this report's next containing commit on develop
 ```
 
 ## Next task

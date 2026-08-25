@@ -96,6 +96,7 @@ New Shell Reproducibility: PASS
 - M05 real user Golden Flow implementation and automated gate: backend 76/76, frontend 11/11, TypeScript, H5/WeChat builds, M05 Replay 12/12, deterministic regressions, Production fake-AI gate, and desktop E2E PASS
 - M05 OPPO K11 / ColorOS 15.0 / Chrome Mobile 138.0.7204.168 user-operated trusted-HTTPS gate PASS: permission timing, rear/front/switch, close/reopen, still/local retake, import, rotation, exactly-once confirmation, explicit backend resume, Final, My Works, download, and share/fallback
 - Mobile acceptance API topology bounded fix `73c8782bca4600288c18526c7eefcb8f8366091c`; ephemeral tunnel origins remained build-only and no real user media was committed
+- M05 feature acceptance head `db8c51f07a81e2b9f06635627c650dc3f21f7dca` strict-fast-forward merged from `46393ce0a37bb9e339933679438ff57f58c1e835` into `develop` and pushed; `main` and protected parallel worktrees remained unchanged
 
 ## M01 Contract Authority
 
@@ -192,6 +193,8 @@ Real Device Gate: PASS
 M05 Final Gate: PASS
 INTERNAL_USER_GOLDEN_FLOW_READY: YES
 PUBLIC_PRODUCTION_READY: NO
+Auto FF Merge: PASS
+Develop Merge Result: db8c51f07a81e2b9f06635627c650dc3f21f7dca
 Device: OPPO K11 / ColorOS 15.0 / Chrome Mobile 138.0.7204.168
 Checklist: docs/platform/72-h5-camera-and-capture-user-acceptance-v1.0.md
 Evidence: project-status/evidence/m05/h5-real-device-oppo-k11.md

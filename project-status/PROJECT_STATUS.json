@@ -329,7 +329,12 @@
     "m01_m02_m03_m04": "PRESERVED",
     "parallel_worktrees": "UNTOUCHED",
     "ch_003": "IDENTIFIED_UNCHANGED",
-    "auto_ff_merge": "NOT_ATTEMPTED"
+    "feature_acceptance_head": "db8c51f07a81e2b9f06635627c650dc3f21f7dca",
+    "remote_feature_branch": "PASS",
+    "develop_before_merge": "46393ce0a37bb9e339933679438ff57f58c1e835",
+    "develop_merge_result": "db8c51f07a81e2b9f06635627c650dc3f21f7dca",
+    "auto_ff_merge": "PASS",
+    "merged_to": "develop"
   },
   "next_required_result": null,
   "next_recommended_task": "XFX_M06_REAL_CAPABILITY_INTEGRATION_WAVE_01",
