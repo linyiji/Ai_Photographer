@@ -76,6 +76,12 @@ export class PlatformAdapterRegistry{
   catch{return normalizedFailure('PLATFORM_UNSUPPORTED','UNSUPPORTED','Haptic API unavailable')}
  }
 
+ async voice(text:string):Promise<PlatformResult>{
+  if(this.platform!=='H5'||typeof window==='undefined'||!('speechSynthesis' in window)||typeof SpeechSynthesisUtterance==='undefined')return normalizedFailure('PLATFORM_UNSUPPORTED',this.platform==='WECHAT'?'UNVERIFIED_REAL_DEVICE':'UNSUPPORTED','Voice output is unavailable in this runtime')
+  try{window.speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(text);utterance.lang='zh-CN';window.speechSynthesis.speak(utterance);return {ok:true,code:'OK',supportLevel:'PARTIAL'}}
+  catch{return normalizedFailure('PLATFORM_UNSUPPORTED','UNSUPPORTED','Voice output failed')}
+ }
+
  async chooseCandidate(source:CaptureSource):Promise<PlatformResult<LocalCaptureCandidate>>{
   try{
    const chosen=await Taro.chooseImage({count:1,sizeType:['original'],sourceType:[source]})
