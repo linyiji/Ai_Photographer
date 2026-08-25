@@ -49,6 +49,46 @@ export interface OptionalMaskSet {
   skin?: Float32Array;
 }
 
+export type SemanticMaskKind = "PERSON" | "BACKGROUND";
+export type MaskLifecycle = "NOT_REQUESTED" | "LOADING" | "READY" | "ERROR" | "UNAVAILABLE";
+
+export interface SemanticMask {
+  kind: SemanticMaskKind;
+  width: number;
+  height: number;
+  data: Float32Array;
+}
+
+export interface MaskQualityMetrics {
+  iou?: number;
+  boundaryError?: number;
+  leakage?: number;
+}
+
+export interface SemanticMaskSet {
+  sourceAssetId: string;
+  sourceWidth: number;
+  sourceHeight: number;
+  coordinateSpace: "DECODED_UPRIGHT_SOURCE";
+  providerId: string;
+  providerVersion: string;
+  createdAt: string;
+  masks: Record<SemanticMaskKind, SemanticMask>;
+  quality?: MaskQualityMetrics;
+}
+
+export interface MaskProviderResult {
+  masks: SemanticMaskSet;
+  cacheHit: boolean;
+  inferenceMs: number;
+}
+
+export interface MaskProvider {
+  readonly id: string;
+  readonly version: string;
+  create(source: SourceImage, options?: Readonly<Record<string, unknown>>): Promise<SemanticMaskSet>;
+}
+
 export interface RenderOptions {
   mode: "preview" | "final";
 }
@@ -72,5 +112,5 @@ export interface FineTuneRenderer {
     masks: OptionalMaskSet | undefined,
     options: RenderOptions,
   ): RenderResult;
-  exportJpeg(source: SourceImage, recipe: AdjustmentRecipe, quality?: number): Promise<FinalRenderResult>;
+  exportJpeg(source: SourceImage, recipe: AdjustmentRecipe, masks?: OptionalMaskSet, quality?: number): Promise<FinalRenderResult>;
 }

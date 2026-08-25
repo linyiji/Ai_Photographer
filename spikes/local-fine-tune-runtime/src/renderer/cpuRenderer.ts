@@ -170,8 +170,8 @@ export class Canvas2DFineTuneRenderer implements FineTuneRenderer {
     };
   }
 
-  async exportJpeg(source: SourceImage, recipe: AdjustmentRecipe, quality = 0.92): Promise<FinalRenderResult> {
-    const rendered = this.render(source, recipe, undefined, { mode: "final" });
+  async exportJpeg(source: SourceImage, recipe: AdjustmentRecipe, masks?: OptionalMaskSet, quality = 0.92): Promise<FinalRenderResult> {
+    const rendered = this.render(source, recipe, masks, { mode: "final" });
     const canvas = document.createElement("canvas");
     canvas.width = rendered.width;
     canvas.height = rendered.height;

@@ -50,7 +50,7 @@ const sameTarget = (
 
 export const setAdjustment = (
   recipe: AdjustmentRecipe,
-  scope: Extract<AdjustmentScope, "ALL" | "LOCAL_REGION">,
+  scope: AdjustmentScope,
   parameter: AdjustmentParameter,
   value: number,
   region?: SpikeLocalRegionDescriptor,
