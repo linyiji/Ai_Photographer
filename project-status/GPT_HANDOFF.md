@@ -92,6 +92,7 @@ New Shell Reproducibility: PASS
 - Real development binary path: bounded multipart JPEG/PNG/WebP upload, SHA256 metadata, stable local storage ref, safe read/download, real Capture action, Final download/share, and Session-scoped asset lineage
 - M04 Lab platform extension: 8 deterministic profiles and 12 adapter scenarios; M03 deterministic Replay remains MATCH
 - M04 validation: 70 backend tests and 5 frontend platform tests PASS; H5 binary browser E2E, refresh/readback, partial retake, Lab E2E, TypeScript, H5 and WeChat builds PASS (H5 retained size warning)
+- M04 feature head `95df89afd1834397d27ab552273d13195eb3901d` strict-fast-forward merged and pushed to `develop`; remote feature evidence retained
 
 ## M01 Contract Authority
 

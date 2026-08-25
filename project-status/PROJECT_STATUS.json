@@ -263,7 +263,13 @@
     "platform_catalog": "PRESERVED",
     "m02": "PRESERVED",
     "m03": "PRESERVED",
-    "live_worktree": "UNTOUCHED"
+    "live_worktree": "UNTOUCHED",
+    "feature_commits": ["4c493882cfb8663a7c7b8f43acf2100fa92df457", "2ee655db30a49ae3f80eeea0c4c426c47d5d5c92", "95df89afd1834397d27ab552273d13195eb3901d"],
+    "remote_feature_branch": "PASS",
+    "auto_ff_merge": "PASS",
+    "develop_before_merge": "68afacb7b9900f27fc99b75a63ef68724177f0d1",
+    "develop_feature_head": "95df89afd1834397d27ab552273d13195eb3901d",
+    "merged_to": "develop"
   },
   "environment_gaps": ["DOCKER_MISSING"],
   "next_required_result": {

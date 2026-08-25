@@ -250,6 +250,8 @@ Production DB: NOT_LOCKED
 
 M01 Contracts、Platform Catalog、M02/M03 行为均保持；Fake Live 继续选中。没有 Provider、真实 Live/CV/Voice/Agent/Reality+、支付、外部 Auth 或生产基础设施。
 
+Feature commits `4c49388`, `2ee655d`, `95df89a` 已推送，并从 `68afacb` strict-fast-forward 合入及推送至 `develop`；没有 merge commit、rebase、cherry-pick 或历史改写。
+
 ```text
 Challenges Addressed: Windows Bootstrap / repository integrity
 Challenges Introduced: NONE
