@@ -1,1 +1,20 @@
-{"scenario_id":"S01_STORM_BEFORE_ARRIVAL","version":"1.0.0","reality":{"weather":"storm_approaching","light":"soft_overcast","scene":"open_riverside_walkway","subject":"single_person_in_dark_coat"},"targets":[{"id":"target-cinematic","title":"风暴电影感","summary":"低机位、留出压迫云层，人物坚定面向风暴。"},{"id":"target-editorial","title":"冷峻杂志感","summary":"中近景、干净轮廓与克制表情。"},{"id":"target-story","title":"出发前一刻","summary":"环境人像，表现行动即将开始。"}],"shot":{"framing":"three-quarter portrait","camera_position":"slightly low","subject_position":"right third","major_pose":"shoulders open, chin toward storm"},"live_steps":["向左半步，让云层进入画面","肩膀打开，目光越过镜头","保持不动，进入拍摄窗口"],"capture":{"storage_ref":"repo-asset://scenario-fixtures/s01/capture-001.jpg","mime_type":"image/jpeg","width":1440,"height":1920},"evaluation":{"score":0.91,"decision":"ACCEPT","findings":["subject sharp","horizon stable","target composition matched"]},"reality_plus":{"storage_ref":"repo-asset://scenario-fixtures/s01/reality-plus-001.json","effect":"storm_depth_subtle"},"recipe":{"exposure":-0.15,"contrast":12,"temperature":-4,"vignette":8},"final":{"storage_ref":"repo-asset://scenario-fixtures/s01/final-001.jpg"}}
+{
+  "scenario_id": "S01_STORM_BEFORE_ARRIVAL",
+  "version": "1.0.0",
+  "subject_anchor_asset_ref": "repo-asset://scenario-fixtures/s01/subject-anchor.jpg",
+  "scene_anchor_asset_ref": "repo-asset://scenario-fixtures/s01/scene-anchor.jpg",
+  "accepted_target_id": "target-cinematic",
+  "reality": {"weather":"storm_approaching","light":"soft_overcast","scene":"open_riverside_walkway","subject":"single_person_in_dark_coat"},
+  "targets": [
+    {"id":"target-cinematic","title":"风暴电影感","summary":"低机位、留出压迫云层，人物坚定面向风暴。"},
+    {"id":"target-editorial","title":"冷峻杂志感","summary":"中近景、干净轮廓与克制表情。"},
+    {"id":"target-story","title":"出发前一刻","summary":"环境人像，表现行动即将开始。"}
+  ],
+  "shot": {"framing":"three-quarter portrait","camera_position":"slightly low","subject_position":"right third","major_pose":"shoulders open, chin toward storm"},
+  "live_steps": ["向左半步，让云层进入画面","肩膀打开，目光越过镜头","保持不动，进入拍摄窗口"],
+  "capture": {"storage_ref":"repo-asset://scenario-fixtures/s01/capture-001.jpg","mime_type":"image/jpeg","width":1440,"height":1920},
+  "evaluation": {"score":0.91,"decision":"ACCEPT","findings":["subject sharp","horizon stable","target composition matched"]},
+  "reality_plus": {"storage_ref":"repo-asset://scenario-fixtures/s01/reality-plus-001.json","effect":"storm_depth_subtle"},
+  "recipe": {"exposure":-0.15,"contrast":12,"temperature":-4,"vignette":8},
+  "final": {"storage_ref":"repo-asset://scenario-fixtures/s01/final-001.jpg"}
+}

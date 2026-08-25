@@ -1,9 +1,9 @@
 # GPT / Codex Handoff
 
 **Baseline:** V0.6 Complete  
-**Current Milestone:** M01 — PASS
+**Current Milestone:** M02 — PASS
 
-**Current Task:** XFX_M01_GLOBAL_CONTRACTS_LOCK_MERGE_CLOSURE — PASS
+**Current Task:** XFX_MAIN_FULLSTACK_FOUNDATION_AND_M02_01 — PASS
 
 ## Project Context
 
@@ -79,6 +79,10 @@ New Shell Reproducibility: PASS
 - M01 Global Contracts V1 frozen as 21 language-neutral JSON Schema 2020-12 contracts
 - Workflow V1 frozen with 11 stages, legal transitions, all QA decisions, and partial-retake preservation semantics
 - Candidate governance, persistent/ephemeral State Authority, Domain Event catalog, Error Contract, asset lineage, evaluation, and 11 platform capability contracts frozen
+- Backend Runtime L1 locked at Python 3.14.7, uv 0.12.5, FastAPI 0.141.1, Pydantic 2.13.4, Uvicorn 0.52.4, and pytest 9.1.1
+- M02 Taro P01–P13 product shell, FastAPI capability seams, SQLite persistence, domain events, asset lineage, deterministic S01 fixture, idempotency, and partial-retake flow
+- S01 real browser network flow reached FINAL; refresh read back revision 11, 3 assets, and 12 events from SQLite
+- H5 and WeChat builds passed; H5 retained a non-blocking entrypoint-size advisory
 
 ## M01 Contract Authority
 
@@ -119,15 +123,19 @@ Merged To: develop
 ## Independent Live Parallel Track
 
 ```text
-Status: RUNNING_IN_SEPARATE_WORKTREE
+Status: LIVE_P0_PASS_EVIDENCE_INGESTED
 Worktree: D:\Projects\_worktrees\Ai_Photographer-live
 Branch: spike/live-physical-agent-mvp-v0.1
-Admission Observed Head: 8e5ef051570a222424e428c1f8c5a95ebed7e46b
+Evidence Commit: 5b4aba45065dc49d435e4790e807e9a5a4ad2d3c
+Closure Read-only Observed Head: c439e7877ca64f87b7c5bc32667f5b7cd1e78961
+Real Device Gate: PASS — OPPO K11 / ColorOS 15 / Chrome Mobile
+Warnings: Late / Drop ~= 220 / 14; Vite Script Error x2 / ROOT_CAUSE_UNCLASSIFIED
+LIVE-P1: NOT_STARTED
 Integration: NOT_STARTED
 Merge Closure Action: UNTOUCHED
 ```
 
-Live evidence remains an independent experimental track. Future integration must start from then-current `develop`; this closure did not update, merge, or rewrite the Live branch.
+Live evidence remains an independent experimental track and advanced independently while M02 ran. Future integration must start from then-current `develop`; this task did not update, merge, or rewrite the Live branch.
 
 ## Governance Authority
 
@@ -157,13 +165,7 @@ project-status/CHALLENGES.json
 Next Recommended Task:
 
 ```text
-XFX_BACKEND_RUNTIME_L1_LOCK_01
+XFX_M03_REPLAY_E2E_LAB_01
 ```
 
-Following Main Task:
-
-```text
-XFX_M02_FULLSTACK_VERTICAL_SLICE_01
-```
-
-不要自动执行下一任务。M01 source 已 strict-fast-forward 合入并推送至 `develop`，其语义保持不变。未创建正式 App Skeleton。Live Parallel Track 在独立 worktree 中运行，但未被本 Task 触碰或集成。Python、Backend、正式 Camera/CV、Live 集成与 M02 均未启动；CH-003 保持 `IDENTIFIED`，Challenge Registry 未修改。
+不要自动执行下一任务。M01 Contract Authority 与 Frontend Runtime L1 保持不变。M02 仅使用 deterministic fake capability 与 SQLite development adapter；真实 Camera/CV、AI Provider、Voice、Dual Device、Reality+、生产数据库和 LIVE-P1 均未启动。Live worktree 未被触碰；CH-003 保持 `IDENTIFIED / UNCHANGED`。

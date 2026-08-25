@@ -2,6 +2,7 @@ import {Button,Text,View} from '@tarojs/components'
 import Taro,{useLoad} from '@tarojs/taro'
 import {useMemo,useState} from 'react'
 import {api,Session} from '../../api/client'
+import {sessionStorage} from '../../platform/sessionStorage'
 import './index.css'
 
 const labels:Record<string,{id:string;eyebrow:string;title:string;copy:string}>={
@@ -20,10 +21,10 @@ const labels:Record<string,{id:string;eyebrow:string;title:string;copy:string}>=
 
 export default function Index(){
  const [session,setSession]=useState<Session|null>(null);const [busy,setBusy]=useState(false);const [error,setError]=useState('');const [targetFirst,setTargetFirst]=useState(false)
- const restore=async()=>{const id=await Taro.getStorage({key:'xfx-session'}).then(x=>String(x.data)).catch(()=> '');if(id)setSession(await api.get(id))}
- useLoad(()=>{restore().catch(()=>Taro.removeStorage({key:'xfx-session'}))})
+ const restore=async()=>{const id=await sessionStorage.read();if(id)setSession(await api.get(id))}
+ useLoad(()=>{restore().catch(()=>sessionStorage.clear())})
  const run=async(action:string,payload:Record<string,any>={})=>{if(!session)return;setBusy(true);setError('');try{setSession(await api.action(session.session_id,action,payload))}catch(e){setError(e instanceof Error?e.message:'请求失败')}finally{setBusy(false)}}
- const start=async()=>{setBusy(true);setError('');try{const value=await api.create();await Taro.setStorage({key:'xfx-session',data:value.session_id});setSession(value)}catch(e){setError(e instanceof Error?e.message:'无法开始')}finally{setBusy(false)}}
+ const start=async()=>{setBusy(true);setError('');try{const value=await api.create();await sessionStorage.write(value.session_id);setSession(value)}catch(e){setError(e instanceof Error?e.message:'无法开始')}finally{setBusy(false)}}
  const stage=session?.workflow_stage||'ENTRY';const meta=labels[stage];const targetCandidates=session?.candidates?.filter(x=>x.kind==='TARGET')||[]
  const actions=useMemo(()=>{
   if(!session)return [{label:'Reality First · 开始',fn:start},{label:'Target First · 先描述想要的画面',fn:()=>setTargetFirst(true)}]

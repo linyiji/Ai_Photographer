@@ -5,7 +5,7 @@
 **Current Milestone:** M02 — Full-stack Foundation
 **Current Task:** XFX_MAIN_FULLSTACK_FOUNDATION_AND_M02_01
 
-**Current Task Status:** IN_PROGRESS
+**Current Task Status:** PASS
 
 **Overall Project Status:** IN_PROGRESS
 **Primary Environment:** Windows First
@@ -16,7 +16,7 @@
 |---|---|---|
 | M00 Project Baseline | PASS | M00_BASELINE_LOCK = PASS |
 | M01 Global Contracts | PASS | M01_CONTRACT_LOCK = PASS |
-| M02 Application Skeleton | IN_PROGRESS | M02_SKELETON_RUNNABLE |
+| M02 Application Skeleton | PASS | M02_SKELETON_RUNNABLE = PASS; FULLSTACK_VERTICAL_SLICE = PASS |
 | M03 Fast Feedback Lab | NOT_STARTED | M03_REPLAY_READY |
 | M04 WeChat Camera/CV Spike | NOT_STARTED | M04_CAMERA_FEASIBILITY |
 | M05 MVP Golden Flow | NOT_STARTED | M05_MVP_GOLDEN_FLOW |
@@ -44,14 +44,26 @@ GitHub `origin` 已切换为 `ssh://git@ssh.github.com:443/linyiji/Ai_Photograph
 
 历史说明：HTTPS Git transport failed in current network. Resolved by switching repository remote transport to GitHub SSH over port 443.
 
-## Environment Gaps
+## Backend Runtime L1 and M02 Full-stack Foundation
 
 ```text
-Python: MISSING
+Python: 3.14.7 — LOCKED_L1
+uv: 0.12.5 — LOCKED_L1
+FastAPI: 0.141.1 — LOCKED_L1
+Pydantic: 2.13.4 — LOCKED_L1
+Uvicorn: 0.52.4 — LOCKED_L1
+pytest: 9.1.1 — LOCKED_L1
+SQLite: M02_DEVELOPMENT_ADAPTER
+Production DB: NOT_LOCKED
+M02_SKELETON_RUNNABLE: PASS
+FULLSTACK_VERTICAL_SLICE: PASS
+S01 Browser E2E / refresh readback: PASS
+H5: PASS_WITH_WARNING (entrypoint size advisory)
+WeChat: PASS
 Docker: MISSING
 ```
 
-Python 与 Docker 只记录为 `ENVIRONMENT_GAP`；未自动安装，不影响 Environment L0 PASS。
+Python 由 `uv` 管理并通过 fresh/frozen reproduction；`PYTHON_MISSING` 已移除。Docker 仍为 `ENVIRONMENT_GAP`，本任务未安装或使用。M02 使用 SQLite，不锁定生产数据库。
 
 ## Environment L0 Lock
 
@@ -116,14 +128,18 @@ Merged To: develop
 ## Independent Live Parallel Track
 
 ```text
-Status: RUNNING_IN_SEPARATE_WORKTREE
+Status: LIVE_P0_PASS_EVIDENCE_INGESTED
 Worktree: D:\Projects\_worktrees\Ai_Photographer-live
 Branch: spike/live-physical-agent-mvp-v0.1
-Admission Observed Head: 8e5ef051570a222424e428c1f8c5a95ebed7e46b
+Evidence Commit: 5b4aba45065dc49d435e4790e807e9a5a4ad2d3c
+Closure Read-only Observed Head: c439e7877ca64f87b7c5bc32667f5b7cd1e78961 (independent parallel advancement)
+Real Device Gate: PASS — OPPO K11 / ColorOS 15 / Chrome Mobile
+Warnings: Late / Drop ~= 220 / 14; Vite Script Error x2, ROOT_CAUSE_UNCLASSIFIED
+LIVE-P1: NOT_STARTED
 Integration: NOT_STARTED
 ```
 
-该并行 Track 不属于 M01 Contract Lock；本 Task 未 checkout、reset、rebase、merge、delete、prune、导入或修改其 worktree/branch。
+该并行 Track 在本任务期间独立前进；本 Task 未 checkout、reset、rebase、merge、delete、prune、导入或修改其 worktree/branch。
 
 ## M01 Global Contracts Lock
 
@@ -183,13 +199,7 @@ Challenges Reopened: NONE
 ## Next Recommended Task
 
 ```text
-XFX_BACKEND_RUNTIME_L1_LOCK_01
+XFX_M03_REPLAY_E2E_LAB_01
 ```
 
-Following Main Task:
-
-```text
-XFX_M02_FULLSTACK_VERTICAL_SLICE_01
-```
-
-这里只记录下一主流程顺序；本次不开始 Backend Runtime Lock 或 M02，不修改 `main`。Live Parallel Track 保持独立运行。
+这里只记录下一主流程任务；本次不开始 M03，不修改 `main`。Live Parallel Track 保持独立，CH-003 仍为 `IDENTIFIED / UNCHANGED`。
