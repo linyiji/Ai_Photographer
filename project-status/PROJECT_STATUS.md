@@ -2,10 +2,10 @@
 
 **Project Baseline:** V0.6 Complete  
 **Current Product Prototype:** S01 V1.6.1  
-**Current Milestone:** M05 — Real Asset Capture and User Golden Flow
-**Current Task:** XFX_M05_REAL_DEVICE_ACCEPTANCE_AND_CLOSURE_01
+**Current Milestone:** M06 — Real Capability Integration Wave
+**Current Task:** XFX_M06_REAL_CAPABILITY_INTEGRATION_WAVE_01
 
-**Current Task Status:** PASS
+**Current Task Status:** READY_FOR_PROVIDER_ACCEPTANCE
 
 **Overall Project Status:** IN_PROGRESS
 **Primary Environment:** Windows First
@@ -20,7 +20,7 @@
 | M03 Fast Feedback Lab | PASS | M03_REPLAY_READY = PASS |
 | M04 Platform Adapter Integration Foundation | PASS | M04_PLATFORM_ADAPTER_FOUNDATION = PASS |
 | M05 MVP Golden Flow | PASS | Implementation PASS; Real Device PASS; M05 Final Gate PASS |
-| M06 Real Capability Replacement | NOT_STARTED | Capability Gates |
+| M06 Real Capability Replacement | VALIDATING | Implementation PASS; Real Provider MANUAL_REVIEW_REQUIRED |
 | M07 Cross-platform | NOT_STARTED | M07_CROSS_PLATFORM_BASELINE |
 
 ## M05 Real User Golden Flow
@@ -52,6 +52,34 @@ Auto FF Merge: PASS
 Camera is primary and device import remains the controlled fallback. The user-operated OPPO K11 / ColorOS 15.0 / Chrome Mobile 138.0.7204.168 trusted-HTTPS gate passed permission timing, rear/front switching, lifecycle, still capture, local retake, confirmation, import, rotation, explicit backend resume, Final, My Works, download, and share/fallback. A selected still remains local until `使用这张`; retake before confirmation does not call the server or advance Workflow. Per-candidate confirmation produced exactly one upload and one workflow commit. The H5 Camera matrix is promoted only for this tested scope; WeChat remains unverified. Production mode remains blocked while deterministic fake intelligence is selected.
 
 Retained acceptance warnings: the existing H5 302 KiB size advisory; reload/final-open latency not separately timed; Share supported-vs-fallback branch not separately identified; and two controlled HTTP 409 responses during rapid repeated UI actions with request-level root cause unclassified. SQLite proves no duplicate event, revision, current CaptureAsset, or confirmation key, and the user observed no visible error.
+
+## M06 Governed Real Capability Admission
+
+```text
+Branch: feature/m06-real-capability-wave
+Start Head: 24b28b9107af2c7c99bd9eb4215f6190e68f241e
+Status: READY_FOR_PROVIDER_ACCEPTANCE
+Implementation Gate: PASS
+Real Provider Gate: MANUAL_REVIEW_REQUIRED
+QA Promotion Gate: NOT_YET_PASS
+M06 Final Gate: NOT_YET_PASS
+Provider / Model: NOT_CONFIGURED
+QA Canonical Adapter: FAKE_INTERNAL_ONLY
+QA Fixture Shadow: PASS
+Shadow State Mutation: 0
+Controlled Evaluation: 22 / 22 PASS
+Backend / Frontend Tests: 94 / 94 PASS; 11 / 11 PASS
+TypeScript / H5 / WeChat: PASS / PASS_WITH_WARNING / PASS
+Browser Real-QA Flow: NOT_RUN
+Real Provider Calls: 0
+M03 Deterministic Provider Calls: 0
+PUBLIC_PRODUCTION_READY: NO
+Auto FF Merge: NOT_ATTEMPTED
+```
+
+Main-owned provider-neutral Gateway, Prompt/Model Registry, execution provenance, Capture QA Candidate validation, fault normalization, M03 AI Lab modes, and controlled evaluation harness are implemented. Fixture metrics are 100% schema-valid/disposition/must-detect with zero invented facts and zero retake false negatives, but they prove harness behavior only. No provider/model/credential configuration existed, so real QA was not run or promoted and this feature is not merged to `develop`.
+
+Admission remains honest: QA is `ADMISSION_READY`; Reality is `BLOCKED_INPUT_CONTRACT`; Target is `BLOCKED_PROVIDER`; Shot is `BLOCKED_INPUT_CONTRACT`; Live, Reality+, and Fine Tune are `BLOCKED_PARALLEL_TRACK`. M01, Workflow, Platform Catalog, normal product UI, main, and protected parallel worktrees remain unchanged.
 
 ## Windows Bootstrap Acceptance
 
@@ -291,7 +319,7 @@ Challenges Reopened: NONE
 ## Next Recommended Task
 
 ```text
-XFX_M06_REAL_CAPABILITY_INTEGRATION_WAVE_01
+XFX_M06_REAL_PROVIDER_ACCEPTANCE_01
 ```
 
-这里只记录下一主流程任务；本次不开始 M06，不修改 `main`。Live Parallel Track 保持独立，CH-003 仍为 `IDENTIFIED / UNCHANGED`。
+这里只记录下一证据任务；本次不开始真实 Provider Acceptance，不修改 `main`。Live/Fine Tune/AI Visual 保持独立，CH-003 仍为 `IDENTIFIED / UNCHANGED`。

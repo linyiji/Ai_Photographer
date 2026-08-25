@@ -1,9 +1,9 @@
 # GPT / Codex Handoff
 
 **Baseline:** V0.6 Complete  
-**Current Milestone:** M05 — PASS
+**Current Milestone:** M06 — REAL PROVIDER ACCEPTANCE PENDING
 
-**Current Task:** XFX_M05_REAL_DEVICE_ACCEPTANCE_AND_CLOSURE_01 — PASS
+**Current Task:** XFX_M06_REAL_CAPABILITY_INTEGRATION_WAVE_01 — READY_FOR_PROVIDER_ACCEPTANCE
 
 ## Project Context
 
@@ -97,6 +97,9 @@ New Shell Reproducibility: PASS
 - M05 OPPO K11 / ColorOS 15.0 / Chrome Mobile 138.0.7204.168 user-operated trusted-HTTPS gate PASS: permission timing, rear/front/switch, close/reopen, still/local retake, import, rotation, exactly-once confirmation, explicit backend resume, Final, My Works, download, and share/fallback
 - Mobile acceptance API topology bounded fix `73c8782bca4600288c18526c7eefcb8f8366091c`; ephemeral tunnel origins remained build-only and no real user media was committed
 - M05 feature acceptance head `db8c51f07a81e2b9f06635627c650dc3f21f7dca` strict-fast-forward merged from `46393ce0a37bb9e339933679438ff57f58c1e835` into `develop` and pushed; `main` and protected parallel worktrees remained unchanged
+- M06 provider-neutral AI Capability Gateway, versioned Prompt/Model Registry, non-secret execution records, bounded retry/error normalization, Capture QA Candidate adapter, mandatory shadow invariant, 22-case controlled evaluator, and M03 AI Lab modes implemented on `feature/m06-real-capability-wave`
+- M06 fixture QA evaluation PASS: schema 100%, disposition 100%, critical must-detect 100%, invented reality facts 0, retake false negatives 0; Shadow Session mutation 0 and normal Replay provider calls 0
+- No explicit provider/model/credential configuration was present; Real Provider Gate remains MANUAL_REVIEW_REQUIRED, QA remains FAKE_INTERNAL_ONLY, and M06 feature is intentionally not merged to `develop`
 
 ## M01 Contract Authority
 
@@ -202,6 +205,29 @@ Evidence: project-status/evidence/m05/h5-real-device-oppo-k11.md
 
 The user operated the phone; no phone behavior was inferred. Server evidence proves zero unconfirmed upload and exactly one upload/commit per confirmed local candidate. The accepted Session also exercised a governed QA micro-retake, producing a second separately authorized still after `RETAKE_MICRO_COMMITTED`. No raw video/frame stream, provider call, secret, tunnel hostname, or real test photo was committed. H5 Camera acceptance is limited to the named OPPO K11 scope; WeChat remains unverified, production DB/object storage remain unlocked, and `PUBLIC_PRODUCTION_READY` remains false.
 
+## M06 AI Capability Admission
+
+```text
+Branch: feature/m06-real-capability-wave
+Start Head: 24b28b9107af2c7c99bd9eb4215f6190e68f241e
+Status: READY_FOR_PROVIDER_ACCEPTANCE
+Implementation Gate: PASS
+Real Provider Gate: MANUAL_REVIEW_REQUIRED
+QA Promotion Gate: NOT_YET_PASS
+M06 Final Gate: NOT_YET_PASS
+Provider / Model / Credential: NOT_CONFIGURED
+Canonical QA: FAKE_INTERNAL_ONLY
+Fixture Shadow: PASS / Session mutation 0
+Controlled Cases: 22 / PASS
+Real Provider Calls: 0
+Regression: Backend 94 / 94; Frontend 11 / 11; TypeScript PASS; H5 PASS_WITH_WARNING; WeChat PASS
+Browser Real-QA Flow: NOT_RUN
+PUBLIC_PRODUCTION_READY: NO
+Merge: NOT_ATTEMPTED
+```
+
+Authority: `docs/architecture/73-real-capability-admission-matrix-v1.0.md`, `docs/ai/74-ai-capability-gateway-v1.0.md`, and `docs/ai/75-capture-qa-real-adapter-v1.0.md`. QA may consume only an accepted uploaded CaptureAsset; unconfirmed still, raw video, and frame stream provider paths are blocked. Fixture metrics never substitute for real-model quality. Reality/Shot remain blocked by contract/input gaps, Target by provider absence, and Live/Reality+/Fine Tune by their parallel gates.
+
 以：
 
 ```text
@@ -215,7 +241,7 @@ project-status/CHALLENGES.json
 Next Recommended Task:
 
 ```text
-XFX_M06_REAL_CAPABILITY_INTEGRATION_WAVE_01
+XFX_M06_REAL_PROVIDER_ACCEPTANCE_01
 ```
 
-不要自动执行下一任务。M01 Contract Authority、Frontend Runtime L1 与 M04 保持不变。真实 CV、AI Provider、Voice、Dual Device、Reality+、生产数据库和 Live 集成均未启动。Live/Fine-tune Worktree 未被触碰；CH-003 保持 `IDENTIFIED / UNCHANGED`。
+不要自动执行下一任务。下一步必须先提供显式 Provider、Model/Version、环境 Credential 配置和调用预算。M01 Contract Authority、Frontend Runtime L1 与 M04 保持不变；Live/Fine Tune/AI Visual 未集成，CH-003 保持 `IDENTIFIED / UNCHANGED`。
