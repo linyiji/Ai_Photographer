@@ -1,12 +1,15 @@
 import type { StructuredPerceptionState } from '../perception/types.js';
 
 export type IssueKind = 'SUBJECT_MISSING' | 'X_POSITION' | 'Y_POSITION' | 'SCALE';
-export type LocalAction = 'MOVE_LEFT' | 'MOVE_RIGHT' | 'MOVE_CLOSER' | 'MOVE_FARTHER' | 'HOLD';
-export type RuntimeState = 'IDLE' | 'SEARCHING' | 'ANALYZING' | 'INSTRUCTING' | 'WAITING_FOR_MOTION' | 'TRACKING_MOTION' | 'VERIFYING' | 'READY' | 'LOCAL_RECOVERY_REQUIRED';
+export type DirectionalAction = 'MOVE_LEFT' | 'MOVE_RIGHT' | 'MOVE_CLOSER' | 'MOVE_FARTHER';
+export type LocalAction = DirectionalAction | 'STOP_HERE' | 'HOLD';
+export type RuntimeState = 'IDLE' | 'SEARCHING' | 'ANALYZING' | 'INSTRUCTING' | 'WAITING_FOR_MOTION' | 'TRACKING_MOTION' | 'BRAKING' | 'VERIFYING' | 'SATISFIED_PENDING_CONFIRMATION' | 'READY' | 'LOCAL_RECOVERY_REQUIRED';
 export type VerificationResult = 'NONE' | 'SUCCESS' | 'IMPROVING' | 'NO_EFFECT' | 'WRONG_DIRECTION';
 export type TerminalOutcome = 'SUCCESS' | 'NO_EFFECT' | 'WRONG_DIRECTION';
 export type EpisodeState = 'WAITING_FOR_MOTION' | 'TRACKING_MOTION' | 'VERIFYING' | 'TERMINAL';
 export type TrialState = 'DISARMED' | 'ARMED' | 'RUNNING' | 'READY';
+export type ReadySource = 'EPISODE_SUCCESS' | 'PASSIVE_CONFIRMATION' | null;
+export type NoEffectSubtype = 'NO_MOTION' | 'INSUFFICIENT_PROGRESS' | 'OVERSHOOT' | 'JITTER_OR_UNCERTAIN' | 'AXIS_COUPLED' | 'PREMATURE_SETTLE' | 'LATE_RESPONSE' | 'UNCLASSIFIED' | null;
 export type DimensionStatus = 'SATISFIED' | 'UNSATISFIED' | 'MISSING' | 'EXEMPT';
 
 export interface TargetState {
@@ -35,6 +38,9 @@ export interface ClosedLoopConfig {
   minimum_meaningful_movement_normalized: number;
   local_failure_limit: number;
   oscillation_window_ms: number;
+  braking_corridor_normalized: number;
+  braking_prediction_horizon_ms: number;
+  passive_confirmation_ms: number;
 }
 
 export interface DimensionDelta {
@@ -68,7 +74,7 @@ export interface InstructionEvent {
 export interface ActionEpisode {
   episode_id: number;
   issue: IssueKind;
-  action: Exclude<LocalAction, 'HOLD'>;
+  action: DirectionalAction;
   issued_at: number;
   baseline_signed_delta: number;
   baseline_abs_error: number;
@@ -86,6 +92,11 @@ export interface ActionEpisode {
   terminal_outcome: TerminalOutcome | null;
   terminal_at: number | null;
   reissue_count: number;
+  no_effect_subtype: NoEffectSubtype;
+  action_compliant: boolean;
+  axis_completed: boolean;
+  stop_cue_issued_at: number | null;
+  predicted_normalized_error_at_stop: number | null;
   warning_flags: string[];
   state: EpisodeState;
 }
@@ -94,6 +105,7 @@ export interface ClosedLoopMetrics {
   instruction_count: number;
   ordinary_instruction_count: number;
   hold_count: number;
+  stop_cue_count: number;
   episode_count: number;
   terminal_episode_count: number;
   successful_corrections: number;
@@ -104,6 +116,10 @@ export interface ClosedLoopMetrics {
   local_decisions: number;
   time_to_target_ms: number | null;
   correction_success_rate: number | null;
+  action_compliance_count: number;
+  action_compliance_rate: number | null;
+  axis_completion_count: number;
+  axis_completion_rate: number | null;
   recovery_count: number;
   luna_calls: 0;
   backend_per_frame_calls: 0;
@@ -132,5 +148,10 @@ export interface ClosedLoopSnapshot {
   trial_elapsed_ms: number | null;
   stable_duration_ms: number;
   ready: boolean;
+  geometry_satisfied: boolean;
+  ready_source: ReadySource;
+  passive_confirmation_remaining_ms: number;
+  near_target_corridor: boolean;
+  predicted_delta: number | null;
   metrics: ClosedLoopMetrics;
 }

@@ -65,6 +65,9 @@ const closedLoopFields = {
   trial: requireElement<HTMLElement>('cl-trial'), episode: requireElement<HTMLElement>('cl-episode'),
   episodeDelta: requireElement<HTMLElement>('cl-episode-delta'), episodeError: requireElement<HTMLElement>('cl-episode-error'),
   episodeFlags: requireElement<HTMLElement>('cl-episode-flags'), terminal: requireElement<HTMLElement>('cl-terminal'),
+  subtype: requireElement<HTMLElement>('cl-subtype'), rates: requireElement<HTMLElement>('cl-rates'),
+  braking: requireElement<HTMLElement>('cl-braking'), stop: requireElement<HTMLElement>('cl-stop'),
+  readySource: requireElement<HTMLElement>('cl-ready-source'), passive: requireElement<HTMLElement>('cl-passive'),
 };
 const perceptionFields = {
   previewFps: requireElement<HTMLElement>('p-preview-fps'),
@@ -246,11 +249,14 @@ function renderClosedLoop(): void {
     closedLoopFields.issue.textContent = '— / —'; closedLoopFields.issueAge.textContent = '0 ms';
     closedLoopFields.action.textContent = '— / —'; closedLoopFields.waiting.textContent = `0 / ${CLOSED_LOOP_CONFIG.instruction_gap_ms} ms`;
     closedLoopFields.verification.textContent = 'NONE'; closedLoopFields.stable.textContent = 'FALSE / 0 ms';
-    closedLoopFields.countsA.textContent = '0 / 0 / 0'; closedLoopFields.countsB.textContent = '0 / 0';
+    closedLoopFields.countsA.textContent = '0 / 0 / 0 / 0'; closedLoopFields.countsB.textContent = '0 / 0';
     closedLoopFields.countsC.textContent = '0 / 0'; closedLoopFields.timeTarget.textContent = '—'; closedLoopFields.decisions.textContent = '0';
     closedLoopFields.trial.textContent = 'DISARMED / —'; closedLoopFields.episode.textContent = '— / —';
     closedLoopFields.episodeDelta.textContent = '— / —'; closedLoopFields.episodeError.textContent = '— / —';
     closedLoopFields.episodeFlags.textContent = 'FALSE / FALSE / FALSE'; closedLoopFields.terminal.textContent = '— / —';
+    closedLoopFields.subtype.textContent = '—'; closedLoopFields.rates.textContent = '— / — / —';
+    closedLoopFields.braking.textContent = 'FALSE / —'; closedLoopFields.stop.textContent = 'FALSE / 0';
+    closedLoopFields.readySource.textContent = 'FALSE / —'; closedLoopFields.passive.textContent = '0 ms';
     return;
   }
   const subject = snapshot.current; const metrics = snapshot.metrics;
@@ -276,7 +282,13 @@ function renderClosedLoop(): void {
   closedLoopFields.episodeError.textContent = `${formatMetric(episode?.best_normalized_error)} / ${formatMetric(episode?.final_settled_error)}`;
   closedLoopFields.episodeFlags.textContent = `${String(Boolean(episode?.motion_detected_at)).toUpperCase()} / ${String(episode?.target_crossed ?? false).toUpperCase()} / ${String(episode?.entered_deadband ?? false).toUpperCase()}`;
   closedLoopFields.terminal.textContent = `${episode?.terminal_outcome ?? '—'} / ${metrics.correction_success_rate === null ? '—' : `${(metrics.correction_success_rate * 100).toFixed(1)}%`}`;
-  closedLoopFields.countsA.textContent = `${metrics.ordinary_instruction_count} / ${metrics.hold_count} / ${metrics.successful_corrections}`;
+  closedLoopFields.subtype.textContent = episode?.no_effect_subtype ?? '—';
+  closedLoopFields.rates.textContent = `${metrics.action_compliance_rate === null ? '—' : `${(metrics.action_compliance_rate*100).toFixed(1)}%`} / ${metrics.axis_completion_rate === null ? '—' : `${(metrics.axis_completion_rate*100).toFixed(1)}%`} / ${metrics.correction_success_rate === null ? '—' : `${(metrics.correction_success_rate*100).toFixed(1)}%`}`;
+  closedLoopFields.braking.textContent = `${String(snapshot.near_target_corridor).toUpperCase()} / ${formatMetric(snapshot.predicted_delta)}`;
+  closedLoopFields.stop.textContent = `${String(episode?.stop_cue_issued_at !== null && episode?.stop_cue_issued_at !== undefined).toUpperCase()} / ${metrics.stop_cue_count}`;
+  closedLoopFields.readySource.textContent = `${String(snapshot.geometry_satisfied).toUpperCase()} / ${snapshot.ready_source ?? '—'}`;
+  closedLoopFields.passive.textContent = `${snapshot.passive_confirmation_remaining_ms.toFixed(0)} ms`;
+  closedLoopFields.countsA.textContent = `${metrics.ordinary_instruction_count} / ${metrics.stop_cue_count} / ${metrics.hold_count} / ${metrics.successful_corrections}`;
   closedLoopFields.countsB.textContent = `${metrics.improving_count} / ${metrics.no_effect_count}`;
   closedLoopFields.countsC.textContent = `${metrics.wrong_direction_count} / ${metrics.oscillation_count}`;
   closedLoopFields.timeTarget.textContent = metrics.time_to_target_ms === null ? '—' : `${(metrics.time_to_target_ms / 1000).toFixed(1)} s`;
@@ -296,7 +308,9 @@ function closedLoopPresentation(snapshot: ClosedLoopSnapshot): { state: string; 
       ? { state: `P2 LOCAL · VERIFY IN ${snapshot.waiting_remaining_ms.toFixed(0)} ms`, text: '保持不动 · 正在确认' }
       : { state: 'P2 LOCAL · WAITING / SILENT', text: '移动中 · 暂停新指令' };
   }
+  if (snapshot.runtime_state === 'BRAKING') return { state: 'P2 LOCAL · BRAKING', text: ACTION_COPY.STOP_HERE };
   if (snapshot.runtime_state === 'VERIFYING') return { state: 'P2 LOCAL · VERIFYING', text: '正在确认调整结果' };
+  if (snapshot.runtime_state === 'SATISFIED_PENDING_CONFIRMATION') return { state: `P2 LOCAL · PASSIVE CONFIRM ${snapshot.passive_confirmation_remaining_ms.toFixed(0)} ms`, text: '保持不动 · 正在确认' };
   if (snapshot.runtime_state === 'READY') return { state: 'P2 LOCAL · READY', text: ACTION_COPY.HOLD };
   if (snapshot.runtime_state === 'LOCAL_RECOVERY_REQUIRED') return { state: 'P2 LOCAL · RECOVERY REQUIRED', text: '请回到画面中央后重试' };
   if (snapshot.issue?.kind === 'X_POSITION') return { state: `P2 LOCAL · CONFIRM X ${snapshot.issue_age_ms.toFixed(0)}/${CLOSED_LOOP_CONFIG.issue_persistence_ms} ms`, text: '正在确认水平位置' };

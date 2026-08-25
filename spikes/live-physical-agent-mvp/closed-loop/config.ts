@@ -13,6 +13,9 @@ export const CLOSED_LOOP_CONFIG: Readonly<ClosedLoopConfig> = Object.freeze({
   minimum_meaningful_movement_normalized: 0.18,
   local_failure_limit: 4,
   oscillation_window_ms: 3000,
+  braking_corridor_normalized: 1.5,
+  braking_prediction_horizon_ms: 350,
+  passive_confirmation_ms: 1200,
 });
 
 export const ISSUE_WEIGHTS = Object.freeze({
@@ -27,6 +30,7 @@ export const ACTION_COPY: Readonly<Record<LocalAction, string>> = Object.freeze(
   MOVE_RIGHT: '往右一点',
   MOVE_CLOSER: '再靠近一点',
   MOVE_FARTHER: '稍微退后一点',
+  STOP_HERE: '好，停一下',
   HOLD: '好，就这里',
 });
 
