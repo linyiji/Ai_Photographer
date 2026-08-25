@@ -1,5 +1,6 @@
 import "./style.css";
 import { createSyntheticFixture } from "./fixtures/synthetic";
+import { createAsymmetricExifJpeg } from "./fixtures/exif";
 import { RecipeHistory } from "./history/recipeHistory";
 import { addRegion, MAX_LOCAL_REGIONS } from "./mask/regions";
 import { clampRegion } from "./mask/feather";
@@ -15,6 +16,14 @@ import {
 import { decodeImageFile, downsampleSource, drawSource } from "./renderer/browserImage";
 import { Canvas2DFineTuneRenderer } from "./renderer/cpuRenderer";
 import { CompareState } from "./ui/compareState";
+import {
+  ExportGuard,
+  LatestStateRenderScheduler,
+  MobileMetrics,
+  classifyBenchmarkPath,
+  selectPreviewLongEdge,
+  type BenchmarkPath,
+} from "./performance/mobileRuntime";
 import type {
   AdjustmentParameter,
   AdjustmentRecipe,
@@ -22,12 +31,28 @@ import type {
   SpikeLocalRegionDescriptor,
   SemanticMaskSet,
   OptionalMaskSet,
+  FinalRenderResult,
 } from "./types/model";
 
 type UiScope = "ALL" | "PERSON" | "BACKGROUND" | "LOCAL_REGION";
 
 const root = document.querySelector<HTMLDivElement>("#app");
 if (!root) throw new Error("App root missing");
+const IS_DEV = import.meta.env.DEV;
+
+const debugPanel = IS_DEV ? `
+  <details class="debug-panel" data-testid="device-debug-panel">
+    <summary>Device benchmark</summary>
+    <div class="debug-grid">
+      <span>Device</span><b id="debug-device">—</b><span>Source / Preview</span><b id="debug-resolution">—</b>
+      <span>Backend</span><b>CANVAS2D_IMAGE_DATA</b><span>Scope</span><b id="debug-scope">ALL</b>
+      <span>Input→present</span><b id="debug-present">—</b><span>Render</span><b id="debug-render">—</b>
+      <span>Scheduled/executed/coalesced</span><b id="debug-scheduler">0 / 0 / 0</b><span>Mask</span><b id="debug-mask">—</b>
+      <span>Final render/encode</span><b id="debug-final">—</b><span>Memory</span><b id="debug-memory">UNAVAILABLE</b>
+    </div>
+    <div class="debug-actions"><button id="run-exif" type="button">Run EXIF 1/6/8</button><button data-final-bench="1920x1080" type="button">Run 1080p final</button><button data-final-bench="4000x3000" type="button">Run 12MP final</button></div>
+    <pre id="debug-output">Development-only instrumentation. Minimum 30 updates per path.</pre>
+  </details>` : "";
 
 root.innerHTML = `
   <main class="app-shell">
@@ -67,6 +92,7 @@ root.innerHTML = `
         <button class="primary" id="export" data-testid="export">完成并导出 JPEG</button>
         <div class="status" id="status" role="status">Source 未被修改。所有操作仅写入 AdjustmentRecipe。</div>
         <div class="metrics"><div class="metric"><b id="metric-last">—</b><span>Latest</span></div><div class="metric"><b id="metric-p50">—</b><span>P50</span></div><div class="metric"><b id="metric-p95">—</b><span>P95</span></div><div class="metric"><b id="metric-final">—</b><span>Final</span></div></div>
+        ${debugPanel}
       </aside>
     </section>
   </main>`;
@@ -97,32 +123,32 @@ const previewShell = element<HTMLDivElement>("#preview-shell");
 const regionLayer = element<HTMLDivElement>("#region-layer");
 const maskOverlay = element<HTMLCanvasElement>("#mask-overlay");
 const renderer = new Canvas2DFineTuneRenderer();
+const metrics = new MobileMetrics();
+const exportGuard = new ExportGuard<FinalRenderResult>();
 let maskRuntime = new MaskRuntime(new FixtureMaskProvider());
 const compareState = new CompareState();
 let fullSource: SourceImage = createSyntheticFixture("busy-background", 1920, 1080);
-let previewSource = downsampleSource(fullSource);
+const deviceMemory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+let previewLongEdge = selectPreviewLongEdge({ viewportWidth: window.innerWidth, deviceMemory, sourceLongEdge: Math.max(fullSource.width, fullSource.height) });
+let previewSource = downsampleSource(fullSource, previewLongEdge);
 let neutral = createRecipe({ source_asset_id: fullSource.assetId });
 let history = new RecipeHistory(neutral);
 let scope: UiScope = "ALL";
 let regions: SpikeLocalRegionDescriptor[] = [];
 let activeRegionId: string | undefined;
-let renderGeneration = 0;
 let previewLatencies: number[] = [];
 let lastFinalMs: number | undefined;
 let fullMasks: SemanticMaskSet | undefined;
 let cachedPreviewMasks: OptionalMaskSet | undefined;
 let maskVisible = false;
+let scheduler = new LatestStateRenderScheduler(fullSource.assetId, (callback) => requestAnimationFrame(() => callback()));
 
 const status = (message: string): void => { element<HTMLDivElement>("#status").textContent = message; };
 const currentRecipe = (): AdjustmentRecipe => history.current();
 const previewMasks = () => cachedPreviewMasks;
 const refreshPreviewMasks = (): void => { cachedPreviewMasks = toRendererMasks(fullMasks, previewSource.width, previewSource.height); };
 const activeRegion = (): SpikeLocalRegionDescriptor | undefined => regions.find((region) => region.id === activeRegionId);
-const percentile = (values: readonly number[], p: number): number | undefined => {
-  if (!values.length) return undefined;
-  const sorted = [...values].sort((a, b) => a - b);
-  return sorted[Math.min(sorted.length - 1, Math.floor((sorted.length - 1) * p))];
-};
+const percentile = (values: readonly number[], p: number): number | undefined => [...values].sort((a, b) => a - b)[Math.min(values.length - 1, Math.floor(Math.max(0, values.length - 1) * p))];
 
 const updateMetrics = (latest?: number): void => {
   element("#metric-last").textContent = latest === undefined ? "—" : `${latest.toFixed(1)} ms`;
@@ -131,6 +157,20 @@ const updateMetrics = (latest?: number): void => {
   const p95 = percentile(previewLatencies, 0.95);
   element("#metric-p95").textContent = p95 === undefined ? "—" : `${p95.toFixed(1)} ms`;
   element("#metric-final").textContent = lastFinalMs === undefined ? "—" : `${lastFinalMs.toFixed(0)} ms`;
+  if (!IS_DEV) return;
+  const path = classifyBenchmarkPath(currentRecipe().adjustments.map((adjustment) => adjustment.scope));
+  const present = metrics.summary(path);
+  const render = metrics.summary(path, "renderCompute");
+  const counters = scheduler.counters();
+  element("#debug-device").textContent = `${navigator.userAgent} · memory ${deviceMemory ?? "n/a"}GB`;
+  element("#debug-resolution").textContent = `${fullSource.width}×${fullSource.height} / ${previewSource.width}×${previewSource.height}`;
+  element("#debug-scope").textContent = path;
+  element("#debug-present").textContent = `${present.count} · ${present.p50?.toFixed(1) ?? "—"} / ${present.p95?.toFixed(1) ?? "—"} / ${present.max?.toFixed(1) ?? "—"}ms`;
+  element("#debug-render").textContent = `${render.p50?.toFixed(1) ?? "—"} / ${render.p95?.toFixed(1) ?? "—"}ms`;
+  element("#debug-scheduler").textContent = `${counters.scheduled} / ${counters.executed} / ${counters.coalesced}`;
+  element("#debug-mask").textContent = `${maskRuntime.lifecycle} · inference ${maskRuntime.inferenceCount}`;
+  const memory = (performance as Performance & { memory?: { usedJSHeapSize: number } }).memory;
+  element("#debug-memory").textContent = memory ? `${(memory.usedJSHeapSize / 1048576).toFixed(1)}MB` : "UNAVAILABLE";
 };
 
 const adjustmentValue = (parameter: AdjustmentParameter): number =>
@@ -259,18 +299,24 @@ function renderRegions(): void {
 }
 
 function scheduleRender(inputStarted = performance.now()): void {
-  const generation = ++renderGeneration;
-  requestAnimationFrame(() => {
-    if (generation !== renderGeneration) return;
+  const sourceToken = fullSource.assetId;
+  scheduler.schedule({ sourceToken, inputStarted, run: () => {
+    const path = classifyBenchmarkPath(currentRecipe().adjustments.map((adjustment) => adjustment.scope));
     const result = renderer.render(previewSource, currentRecipe(), previewMasks(), { mode: "preview" });
+    const writeStarted = performance.now();
     drawSource(canvas, result);
     drawMaskOverlay();
-    const latency = performance.now() - inputStarted;
-    previewLatencies.push(latency);
-    if (previewLatencies.length > 200) previewLatencies = previewLatencies.slice(-200);
-    updateMetrics(latency);
+    const canvasWrite = performance.now() - writeStarted;
     renderRegions();
-  });
+    requestAnimationFrame(() => {
+      if (fullSource.assetId !== sourceToken) return;
+      const latency = performance.now() - inputStarted;
+      metrics.record(path, { inputToPresent: latency, renderCompute: result.renderMs, canvasWrite });
+      previewLatencies.push(latency);
+      if (previewLatencies.length > 200) previewLatencies = previewLatencies.slice(-200);
+      updateMetrics(latency);
+    });
+  }});
 }
 
 const setScope = (next: UiScope): void => {
@@ -338,7 +384,7 @@ const showSource = (event: PointerEvent): void => { event.preventDefault(); comp
 const showAdjusted = (event: PointerEvent): void => { event.preventDefault(); compareState.end(currentRecipe()); scheduleRender(); };
 compare.addEventListener("pointerdown", showSource);
 compare.addEventListener("pointerup", showAdjusted);
-compare.addEventListener("pointercancel", showAdjusted);
+compare.addEventListener("pointercancel", (event) => { event.preventDefault(); compareState.cancel(currentRecipe()); scheduleRender(); });
 compare.addEventListener("pointerleave", (event) => { if (event.buttons) showAdjusted(event); });
 
 element("#save").addEventListener("click", () => {
@@ -369,13 +415,17 @@ element("#toggle-mask").addEventListener("click", () => {
 });
 
 element("#export").addEventListener("click", async () => {
-  status("正在从全分辨率 Source 渲染…");
-  const result = await renderer.exportJpeg(fullSource, currentRecipe(), toRendererMasks(fullMasks, fullSource.width, fullSource.height));
+  const button = element<HTMLButtonElement>("#export");
+  const result = await exportGuard.run(async () => {
+    button.disabled = true; button.textContent = "正在导出…"; status("正在从不可变全分辨率 Source 渲染与编码…");
+    try { return await renderer.exportJpeg(fullSource, currentRecipe(), toRendererMasks(fullMasks, fullSource.width, fullSource.height)); }
+    finally { button.disabled = false; button.textContent = "完成并导出 JPEG"; }
+  });
+  if (!result) { status("已有导出正在进行，请稍候。"); return; }
   lastFinalMs = result.renderMs + result.encodeMs; updateMetrics();
-  const url = URL.createObjectURL(result.blob);
-  const link = document.createElement("a"); link.href = url; link.download = "xfx-fine-tuned-final.jpg"; link.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-  status(`JPEG ${result.width}×${result.height} · ${(result.byteSize / 1024).toFixed(1)} KB · render ${result.renderMs.toFixed(0)} ms · encode ${result.encodeMs.toFixed(0)} ms`);
+  if (IS_DEV) element("#debug-final").textContent = `${result.renderMs.toFixed(0)} / ${result.encodeMs.toFixed(0)}ms`;
+  const url = URL.createObjectURL(result.blob); const link = document.createElement("a"); link.href = url; link.download = "xfx-fine-tuned-final.jpg"; link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000); status(`JPEG ${result.width}×${result.height} · ${(result.byteSize / 1024).toFixed(1)} KB · render ${result.renderMs.toFixed(0)} ms · encode ${result.encodeMs.toFixed(0)} ms`);
 });
 
 element<HTMLInputElement>("#image-upload").addEventListener("change", async (event) => {
@@ -383,16 +433,41 @@ element<HTMLInputElement>("#image-upload").addEventListener("change", async (eve
   if (!file) return;
   const started = performance.now();
   fullSource = await decodeImageFile(file, `local-file-${file.name}`);
-  previewSource = downsampleSource(fullSource);
+  previewLongEdge = selectPreviewLongEdge({ viewportWidth: window.innerWidth, deviceMemory, sourceLongEdge: Math.max(fullSource.width, fullSource.height) });
+  previewSource = downsampleSource(fullSource, previewLongEdge);
   fullMasks = undefined;
   refreshPreviewMasks();
   maskRuntime = new MaskRuntime();
+  scheduler.switchSource(fullSource.assetId); metrics.reset();
   neutral = createRecipe({ source_asset_id: fullSource.assetId }); history = new RecipeHistory(neutral);
   regions = []; activeRegionId = undefined; previewLatencies = [];
   element("#source-size").textContent = `${fullSource.width} × ${fullSource.height} · decode ${(performance.now() - started).toFixed(0)} ms`;
   if (scope === "PERSON" || scope === "BACKGROUND") setScope("ALL");
   syncControls(); scheduleRender(); status("图片仅在浏览器本地解码；自动语义 provider 尚未准入，人物/背景受控为不可用；未上传第三方。");
 });
+
+if (IS_DEV) {
+  element("#run-exif").addEventListener("click", async () => {
+    const results: string[] = [];
+    for (const orientation of [1, 6, 8] as const) {
+      const decoded = await decodeImageFile(await createAsymmetricExifJpeg(orientation), `exif-${orientation}`);
+      results.push(`EXIF${orientation}=${decoded.width}x${decoded.height}`);
+    }
+    element("#debug-output").textContent = results.join(" · ");
+  });
+  document.querySelectorAll<HTMLButtonElement>("[data-final-bench]").forEach((button) => button.addEventListener("click", async () => {
+    const dimensions = (button.dataset.finalBench ?? "1920x1080").split("x").map(Number);
+    const width = dimensions[0] ?? 1920; const height = dimensions[1] ?? 1080;
+    button.disabled = true;
+    try {
+      const fixture = createSyntheticFixture("busy-background", width, height);
+      const needsSemanticMask = currentRecipe().adjustments.some((adjustment) => adjustment.scope === "PERSON" || adjustment.scope === "BACKGROUND");
+      const benchmarkSet = needsSemanticMask ? await new FixtureMaskProvider().create(fixture) : undefined;
+      const result = await renderer.exportJpeg(fixture, currentRecipe(), toRendererMasks(benchmarkSet, width, height));
+      element("#debug-output").textContent = `${width}x${height} · render=${result.renderMs.toFixed(1)}ms · encode=${result.encodeMs.toFixed(1)}ms · bytes=${result.byteSize} · ${result.mime}`;
+    } finally { button.disabled = false; }
+  }));
+}
 
 window.addEventListener("resize", renderRegions);
 element("#source-size").textContent = `${fullSource.width} × ${fullSource.height} · synthetic fixture`;
@@ -412,6 +487,8 @@ declare global {
       source(): { width: number; height: number; assetId: string };
       renderNow(): number;
       masks(): { lifecycle: string; inferenceCount: number; available: boolean };
+      mobileMetrics(path: BenchmarkPath): ReturnType<MobileMetrics["summary"]>;
+      scheduler(): ReturnType<LatestStateRenderScheduler["counters"]>;
     };
   }
 }
@@ -428,4 +505,6 @@ window.__fineTuneTest = {
   source: () => ({ width: fullSource.width, height: fullSource.height, assetId: fullSource.assetId }),
   renderNow: () => renderer.render(previewSource, currentRecipe(), previewMasks(), { mode: "preview" }).renderMs,
   masks: () => ({ lifecycle: maskRuntime.lifecycle, inferenceCount: maskRuntime.inferenceCount, available: Boolean(fullMasks) }),
+  mobileMetrics: (path) => metrics.summary(path),
+  scheduler: () => scheduler.counters(),
 };

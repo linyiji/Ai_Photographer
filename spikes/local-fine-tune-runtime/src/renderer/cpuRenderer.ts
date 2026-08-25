@@ -1,4 +1,4 @@
-import { regionWeight } from "../mask/feather";
+import { clampRegion, regionWeightClamped } from "../mask/feather";
 import { SAFE_RANGES, clampNormalized, isP0Parameter } from "./safeRanges";
 import type {
   Adjustment,
@@ -62,7 +62,7 @@ const scopeWeight = (
   if (adjustment.scope === "ALL") return 1;
   if (adjustment.scope === "LOCAL_REGION") {
     return adjustment.region
-      ? regionWeight((x + 0.5) / width, (y + 0.5) / height, adjustment.region)
+      ? regionWeightClamped((x + 0.5) / width, (y + 0.5) / height, adjustment.region)
       : 0;
   }
   const index = y * width + x;
@@ -76,7 +76,9 @@ const validateAdjustments = (recipe: AdjustmentRecipe): Adjustment[] =>
     if (!isP0Parameter(adjustment.parameter)) {
       throw new Error(`${adjustment.parameter} is deferred in FT-P0`);
     }
-    return adjustment;
+    return adjustment.scope === "LOCAL_REGION" && adjustment.region
+      ? { ...adjustment, region: clampRegion(adjustment.region) }
+      : adjustment;
   });
 
 /**
@@ -85,6 +87,17 @@ const validateAdjustments = (recipe: AdjustmentRecipe): Adjustment[] =>
  * Recipe array order is intentionally not semantic authority.
  */
 export class Canvas2DFineTuneRenderer implements FineTuneRenderer {
+  private readonly blurCache = new WeakMap<SourceImage, Uint8ClampedArray<ArrayBuffer>>();
+  blurComputations = 0;
+
+  private blurredSource(source: SourceImage): Uint8ClampedArray<ArrayBuffer> {
+    const cached = this.blurCache.get(source);
+    if (cached) return cached;
+    const blurred = createSeparableBoxBlur(source.data, source.width, source.height);
+    this.blurCache.set(source, blurred); this.blurComputations += 1;
+    return blurred;
+  }
+
   render(
     source: SourceImage,
     recipe: AdjustmentRecipe,
@@ -95,7 +108,7 @@ export class Canvas2DFineTuneRenderer implements FineTuneRenderer {
     const adjustments = validateAdjustments(recipe);
     const output = new Uint8ClampedArray(source.data.length);
     const needsSoftness = adjustments.some((adjustment) => adjustment.parameter === "SOFTNESS" && adjustment.value !== 0);
-    const blurred = needsSoftness ? createSeparableBoxBlur(source.data, source.width, source.height) : source.data;
+    const blurred = needsSoftness ? this.blurredSource(source) : source.data;
 
     for (let y = 0; y < source.height; y += 1) {
       for (let x = 0; x < source.width; x += 1) {

@@ -14,6 +14,8 @@ export class CompareState {
     return cloneRecipe(recipe);
   }
 
+  cancel(recipe: AdjustmentRecipe): AdjustmentRecipe { return this.end(recipe); }
+
   isComparing(): boolean {
     return this.pressed;
   }

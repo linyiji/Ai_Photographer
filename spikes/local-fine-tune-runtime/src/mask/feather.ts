@@ -18,12 +18,11 @@ const smoothstep = (value: number): number => {
   return t * t * (3 - 2 * t);
 };
 
-export const regionWeight = (
+export const regionWeightClamped = (
   normalizedX: number,
   normalizedY: number,
-  descriptor: SpikeLocalRegionDescriptor,
+  region: SpikeLocalRegionDescriptor,
 ): number => {
-  const region = clampRegion(descriptor);
   if (
     normalizedX < region.x ||
     normalizedX > region.x + region.width ||
@@ -38,3 +37,6 @@ export const regionWeight = (
   const edgeDistance = Math.min(localX, 1 - localX, localY, 1 - localY);
   return smoothstep(edgeDistance / region.feather);
 };
+
+export const regionWeight = (normalizedX: number, normalizedY: number, descriptor: SpikeLocalRegionDescriptor): number =>
+  regionWeightClamped(normalizedX, normalizedY, clampRegion(descriptor));

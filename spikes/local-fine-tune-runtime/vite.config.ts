@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   base: "./",
@@ -8,5 +8,9 @@ export default defineConfig({
   },
   server: {
     strictPort: true,
+  },
+  test: {
+    // The 12MP CPU evidence must not compete with six other worker files.
+    fileParallelism: false,
   },
 });
