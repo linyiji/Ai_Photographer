@@ -3,6 +3,7 @@ import { createSyntheticFixture } from "./fixtures/synthetic";
 import { RecipeHistory } from "./history/recipeHistory";
 import { addRegion, MAX_LOCAL_REGIONS } from "./mask/regions";
 import { clampRegion } from "./mask/feather";
+import { FixtureMaskProvider, MaskRuntime, toRendererMasks } from "./mask/semantic";
 import {
   createRecipe,
   reloadRecipe,
@@ -19,9 +20,11 @@ import type {
   AdjustmentRecipe,
   SourceImage,
   SpikeLocalRegionDescriptor,
+  SemanticMaskSet,
+  OptionalMaskSet,
 } from "./types/model";
 
-type UiScope = "ALL" | "LOCAL_REGION";
+type UiScope = "ALL" | "PERSON" | "BACKGROUND" | "LOCAL_REGION";
 
 const root = document.querySelector<HTMLDivElement>("#app");
 if (!root) throw new Error("App root missing");
@@ -37,6 +40,7 @@ root.innerHTML = `
         <div class="stage-head"><span class="live-dot">即时预览</span><label class="upload-label">打开图片<input id="image-upload" type="file" accept="image/jpeg,image/png,image/webp" /></label></div>
         <div class="preview-shell" id="preview-shell">
           <canvas id="preview" data-testid="preview"></canvas>
+          <canvas id="mask-overlay" class="mask-overlay" data-testid="mask-overlay" hidden></canvas>
           <div class="region-layer" id="region-layer"></div>
         </div>
         <div class="stage-foot"><span id="source-size">—</span><span id="backend">CANVAS2D · LOCAL ONLY</span></div>
@@ -44,7 +48,7 @@ root.innerHTML = `
       <aside class="panel">
         <div class="scope-tabs" role="tablist" aria-label="调整范围">
           <button class="active" data-scope="ALL" data-testid="scope-all">整体</button>
-          <button disabled title="FT-P1">人物</button><button disabled title="FT-P1">背景</button>
+          <button data-scope="PERSON" data-testid="scope-person" disabled>人物</button><button data-scope="BACKGROUND" data-testid="scope-background" disabled>背景</button>
           <button data-scope="LOCAL_REGION" data-testid="scope-local">局部</button>
         </div>
         <div class="region-tools" id="region-tools" hidden>
@@ -59,6 +63,7 @@ root.innerHTML = `
           <button class="compare" id="compare" data-testid="compare">按住看 Reality+</button><button id="save" data-testid="save-recipe">保存配方</button>
         </div>
         <div class="save-row"><button class="text-button" id="reload" data-testid="reload-recipe">重新载入</button><button class="text-button" id="copy">复制 JSON</button></div>
+        <div class="mask-row"><span id="mask-state" data-testid="mask-state">NOT_REQUESTED</span><button class="text-button" id="toggle-mask" data-testid="toggle-mask">显示蒙版</button></div>
         <button class="primary" id="export" data-testid="export">完成并导出 JPEG</button>
         <div class="status" id="status" role="status">Source 未被修改。所有操作仅写入 AdjustmentRecipe。</div>
         <div class="metrics"><div class="metric"><b id="metric-last">—</b><span>Latest</span></div><div class="metric"><b id="metric-p50">—</b><span>P50</span></div><div class="metric"><b id="metric-p95">—</b><span>P95</span></div><div class="metric"><b id="metric-final">—</b><span>Final</span></div></div>
@@ -90,7 +95,9 @@ controls.innerHTML = PARAMETERS.map(({ parameter, label, hint }) => `
 const canvas = element<HTMLCanvasElement>("#preview");
 const previewShell = element<HTMLDivElement>("#preview-shell");
 const regionLayer = element<HTMLDivElement>("#region-layer");
+const maskOverlay = element<HTMLCanvasElement>("#mask-overlay");
 const renderer = new Canvas2DFineTuneRenderer();
+let maskRuntime = new MaskRuntime(new FixtureMaskProvider());
 const compareState = new CompareState();
 let fullSource: SourceImage = createSyntheticFixture("busy-background", 1920, 1080);
 let previewSource = downsampleSource(fullSource);
@@ -102,9 +109,14 @@ let activeRegionId: string | undefined;
 let renderGeneration = 0;
 let previewLatencies: number[] = [];
 let lastFinalMs: number | undefined;
+let fullMasks: SemanticMaskSet | undefined;
+let cachedPreviewMasks: OptionalMaskSet | undefined;
+let maskVisible = false;
 
 const status = (message: string): void => { element<HTMLDivElement>("#status").textContent = message; };
 const currentRecipe = (): AdjustmentRecipe => history.current();
+const previewMasks = () => cachedPreviewMasks;
+const refreshPreviewMasks = (): void => { cachedPreviewMasks = toRendererMasks(fullMasks, previewSource.width, previewSource.height); };
 const activeRegion = (): SpikeLocalRegionDescriptor | undefined => regions.find((region) => region.id === activeRegionId);
 const percentile = (values: readonly number[], p: number): number | undefined => {
   if (!values.length) return undefined;
@@ -140,6 +152,24 @@ const syncControls = (): void => {
   element<HTMLButtonElement>("#delete-region").disabled = !activeRegion();
   element<HTMLButtonElement>("#add-region").disabled = regions.length >= MAX_LOCAL_REGIONS;
   element("#region-count").textContent = `${regions.length} / ${MAX_LOCAL_REGIONS}`;
+  document.querySelectorAll<HTMLButtonElement>("[data-scope='PERSON'],[data-scope='BACKGROUND']").forEach((button) => {
+    button.disabled = maskRuntime.lifecycle !== "READY";
+  });
+  element("#mask-state").textContent = `${maskRuntime.lifecycle} · ${maskRuntime.inferenceCount} inference`;
+};
+
+const drawMaskOverlay = (): void => {
+  maskOverlay.hidden = !maskVisible || !fullMasks;
+  if (maskOverlay.hidden || !fullMasks) return;
+  const mask = cachedPreviewMasks?.person;
+  if (!mask) return;
+  maskOverlay.width = previewSource.width; maskOverlay.height = previewSource.height;
+  const pixels = new Uint8ClampedArray(mask.length * 4);
+  for (let index = 0; index < mask.length; index += 1) {
+    pixels[index * 4] = 75; pixels[index * 4 + 1] = 224; pixels[index * 4 + 2] = 162;
+    pixels[index * 4 + 3] = Math.round((mask[index] ?? 0) * 150);
+  }
+  maskOverlay.getContext("2d")?.putImageData(new ImageData(pixels, previewSource.width, previewSource.height), 0, 0);
 };
 
 const positionRegionLayer = (): void => {
@@ -232,8 +262,9 @@ function scheduleRender(inputStarted = performance.now()): void {
   const generation = ++renderGeneration;
   requestAnimationFrame(() => {
     if (generation !== renderGeneration) return;
-    const result = renderer.render(previewSource, currentRecipe(), undefined, { mode: "preview" });
+    const result = renderer.render(previewSource, currentRecipe(), previewMasks(), { mode: "preview" });
     drawSource(canvas, result);
+    drawMaskOverlay();
     const latency = performance.now() - inputStarted;
     previewLatencies.push(latency);
     if (previewLatencies.length > 200) previewLatencies = previewLatencies.slice(-200);
@@ -258,9 +289,9 @@ document.querySelectorAll<HTMLButtonElement>("[data-scope]").forEach((button) =>
   button.addEventListener("click", () => setScope(button.dataset.scope as UiScope)));
 
 const applyParameter = (parameter: AdjustmentParameter, value: number): void => {
-  const next = scope === "ALL"
-    ? setAdjustment(currentRecipe(), "ALL", parameter, value)
-    : setAdjustment(currentRecipe(), "LOCAL_REGION", parameter, value, activeRegion());
+  const next = scope === "LOCAL_REGION"
+    ? setAdjustment(currentRecipe(), scope, parameter, value, activeRegion())
+    : setAdjustment(currentRecipe(), scope, parameter, value);
   history.commit(next);
   syncControls();
   scheduleRender(performance.now());
@@ -331,9 +362,15 @@ element("#copy").addEventListener("click", async () => {
   status("M01-compatible AdjustmentRecipe JSON 已复制。");
 });
 
+element("#toggle-mask").addEventListener("click", () => {
+  maskVisible = !maskVisible;
+  element("#toggle-mask").textContent = maskVisible ? "隐藏蒙版" : "显示蒙版";
+  drawMaskOverlay();
+});
+
 element("#export").addEventListener("click", async () => {
   status("正在从全分辨率 Source 渲染…");
-  const result = await renderer.exportJpeg(fullSource, currentRecipe());
+  const result = await renderer.exportJpeg(fullSource, currentRecipe(), toRendererMasks(fullMasks, fullSource.width, fullSource.height));
   lastFinalMs = result.renderMs + result.encodeMs; updateMetrics();
   const url = URL.createObjectURL(result.blob);
   const link = document.createElement("a"); link.href = url; link.download = "xfx-fine-tuned-final.jpg"; link.click();
@@ -347,16 +384,25 @@ element<HTMLInputElement>("#image-upload").addEventListener("change", async (eve
   const started = performance.now();
   fullSource = await decodeImageFile(file, `local-file-${file.name}`);
   previewSource = downsampleSource(fullSource);
+  fullMasks = undefined;
+  refreshPreviewMasks();
+  maskRuntime = new MaskRuntime();
   neutral = createRecipe({ source_asset_id: fullSource.assetId }); history = new RecipeHistory(neutral);
   regions = []; activeRegionId = undefined; previewLatencies = [];
   element("#source-size").textContent = `${fullSource.width} × ${fullSource.height} · decode ${(performance.now() - started).toFixed(0)} ms`;
-  syncControls(); scheduleRender(); status("图片仅在浏览器本地解码；未上传第三方。");
+  if (scope === "PERSON" || scope === "BACKGROUND") setScope("ALL");
+  syncControls(); scheduleRender(); status("图片仅在浏览器本地解码；自动语义 provider 尚未准入，人物/背景受控为不可用；未上传第三方。");
 });
 
 window.addEventListener("resize", renderRegions);
 element("#source-size").textContent = `${fullSource.width} × ${fullSource.height} · synthetic fixture`;
 syncControls();
-scheduleRender();
+void maskRuntime.request(fullSource).then((result) => {
+  fullMasks = result?.masks;
+  refreshPreviewMasks();
+  syncControls(); scheduleRender();
+  status(result ? `Fixture 语义蒙版就绪 · ${result.inferenceMs.toFixed(1)} ms · 滑杆不会重复推理。` : "语义蒙版不可用。");
+});
 
 declare global {
   interface Window {
@@ -365,6 +411,7 @@ declare global {
       metrics(): { samples: number; p50?: number; p95?: number; max?: number; finalMs?: number };
       source(): { width: number; height: number; assetId: string };
       renderNow(): number;
+      masks(): { lifecycle: string; inferenceCount: number; available: boolean };
     };
   }
 }
@@ -379,5 +426,6 @@ window.__fineTuneTest = {
     finalMs: lastFinalMs,
   }),
   source: () => ({ width: fullSource.width, height: fullSource.height, assetId: fullSource.assetId }),
-  renderNow: () => renderer.render(previewSource, currentRecipe(), undefined, { mode: "preview" }).renderMs,
+  renderNow: () => renderer.render(previewSource, currentRecipe(), previewMasks(), { mode: "preview" }).renderMs,
+  masks: () => ({ lifecycle: maskRuntime.lifecycle, inferenceCount: maskRuntime.inferenceCount, available: Boolean(fullMasks) }),
 };

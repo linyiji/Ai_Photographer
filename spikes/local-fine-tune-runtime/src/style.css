@@ -23,6 +23,7 @@ h1 { margin: 0; font-size: clamp(24px, 4vw, 40px); font-weight: 620; letter-spac
 .live-dot::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #72d69d; box-shadow: 0 0 14px #72d69d; }
 .preview-shell { position: relative; display: grid; place-items: center; min-height: 360px; background: #050706; overflow: hidden; touch-action: none; }
 #preview { display: block; max-width: 100%; max-height: min(67vh, 720px); width: auto; height: auto; object-fit: contain; }
+.mask-overlay { position: absolute; max-width: 100%; max-height: min(67vh, 720px); width: auto; height: auto; pointer-events: none; mix-blend-mode: screen; }
 .region-layer { position: absolute; inset: 0; pointer-events: none; }
 .region-box { position: absolute; border: 1.5px solid rgba(235,255,244,.94); border-radius: 14px; box-shadow: 0 0 0 9999px rgba(2, 7, 5, .2), 0 5px 20px rgba(0,0,0,.34); pointer-events: auto; cursor: move; touch-action: none; }
 .region-box:not(.active) { border-color: rgba(205, 230, 217, .45); box-shadow: none; }
@@ -53,6 +54,7 @@ input[type="range"] { width: 100%; accent-color: #8fddb0; cursor: ew-resize; }
 .action-grid button:disabled { opacity: .35; cursor: not-allowed; }
 .compare { grid-column: span 2; user-select: none; touch-action: none; }
 .save-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.mask-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; color: #8fb7a5; font-size: 10px; }
 .primary { width: 100%; margin-top: 12px; min-height: 48px; border: 0; border-radius: 13px; color: #0b1b12; background: linear-gradient(135deg, #baf4d0, #78d59e); font-weight: 700; cursor: pointer; }
 .status { min-height: 38px; margin-top: 12px; padding: 9px 10px; border-radius: 10px; background: rgba(0,0,0,.17); color: #8fa097; font-size: 11px; line-height: 1.45; }
 .metrics { display: grid; grid-template-columns: repeat(4,1fr); gap: 7px; margin-top: 10px; }

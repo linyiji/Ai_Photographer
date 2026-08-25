@@ -1,6 +1,8 @@
-# Local Fine Tune Runtime — FT-P0
+# Local Fine Tune Runtime — FT-P0 / FT-P1
 
 Independent H5 spike proving deterministic, non-generative, non-destructive fine tuning driven entirely by the canonical M01 `AdjustmentRecipe`.
+
+FT-P1 adds provider-independent ephemeral semantic masks and deterministic PERSON/BACKGROUND scopes. The bundled demo enables them for its deterministic fixture; uploaded images retain ALL/LOCAL_REGION while automatic segmentation is unavailable pending provider admission. No image leaves the browser. See `docs/mask-runtime.md`, `docs/mask-provider-evaluation.md`, and `docs/mask-quality-policy.md`.
 
 ## Run
 
