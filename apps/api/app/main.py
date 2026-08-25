@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse,JSONResponse
 from pydantic import BaseModel,Field
 from .platform import DevelopmentLocalStorageAdapter,PlatformAdapterRegistry
+from .product import ProductRuntimeReadiness
 from .repository import Repository
 from .service import DomainError,SessionService
 
@@ -16,6 +17,7 @@ repository=Repository(DB_PATH)
 service=SessionService(repository,ROOT/"packages"/"scenario-fixtures"/"s01-storm-before-arrival.json")
 asset_storage=DevelopmentLocalStorageAdapter(Path(os.environ.get("XFX_ASSET_ROOT",ROOT/"apps"/"api"/".local"/"assets")),repository)
 platform_registry=PlatformAdapterRegistry(ROOT/"packages"/"platform"/"catalog.json")
+product_readiness=ProductRuntimeReadiness(os.environ.get("XFX_PRODUCT_MODE","INTERNAL_DEMO"))
 app=FastAPI(title="XFX Main API",version="0.4.0")
 app.add_middleware(CORSMiddleware,allow_origins=["*"],allow_methods=["*"],allow_headers=["*"])
 LAB_MODE=os.environ.get("XFX_LAB_MODE")=="1"
@@ -24,7 +26,7 @@ if LAB_MODE:
     from .lab.api import create_lab_router
     from .lab.engine import ReplayEngine
     lab_root=Path(os.environ.get("XFX_LAB_ROOT",ROOT/"apps"/"api"/".data"/"lab"))
-    lab_engine=ReplayEngine(lab_root,ROOT/"packages"/"scenario-fixtures"/"s01-storm-before-arrival.json",ROOT/"packages"/"scenario-fixtures"/"m03-scenario-matrix-v2.json",ROOT/"packages"/"scenario-fixtures"/"m04-platform-scenarios-v1.json",ROOT/"packages"/"platform"/"catalog.json")
+    lab_engine=ReplayEngine(lab_root,ROOT/"packages"/"scenario-fixtures"/"s01-storm-before-arrival.json",ROOT/"packages"/"scenario-fixtures"/"m03-scenario-matrix-v2.json",ROOT/"packages"/"scenario-fixtures"/"m04-platform-scenarios-v1.json",ROOT/"packages"/"platform"/"catalog.json",ROOT/"packages"/"scenario-fixtures"/"m05-user-flow-scenarios-v1.json")
     app.include_router(create_lab_router(lab_engine))
 
 class ActionBody(BaseModel):
@@ -45,6 +47,11 @@ def health():return {"status":"ok","runtime":"LOCKED_L1","database":"sqlite"}
 
 @app.get("/capabilities")
 def capabilities():return {"scenario":"S01_STORM_BEFORE_ARRIVAL","mode":"GOVERNED_REPLACEMENT","capabilities":["reality","target","shot","live","capture","qa","reality_plus","voice","agent"],"fake_live_selected":True}
+
+@app.get("/runtime/readiness")
+def runtime_readiness(mode:str|None=None):
+    try:return product_readiness.projection(mode)
+    except ValueError as exc:raise DomainError("INVALID_RUNTIME_MODE",str(exc),422) from exc
 
 @app.get("/platform/adapters")
 def platform_adapters(platform:str="H5",profile:str|None=None):
@@ -77,6 +84,12 @@ def final_content(session_id:str):
 
 @app.post("/sessions",status_code=201)
 def create_session():return service.create()
+
+@app.get("/sessions")
+def list_sessions(classification:str|None=None):
+    normalized=classification.upper() if classification else None
+    if normalized not in {None,"ACTIVE","COMPLETED"}:raise DomainError("INVALID_SESSION_CLASSIFICATION","Classification must be ACTIVE or COMPLETED.",422)
+    return service.list(normalized)
 
 @app.get("/sessions/{session_id}")
 def get_session(session_id:str):return service.get(session_id)

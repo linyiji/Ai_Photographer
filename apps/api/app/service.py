@@ -25,6 +25,17 @@ class SessionService:
             row=c.execute("SELECT * FROM sessions WHERE session_id=?",(sid,)).fetchone()
             if not row:raise DomainError("SESSION_NOT_FOUND","Session does not exist.",404)
             s=self.repository.decode(row);s["candidates"]=[self.repository.decode(x) for x in c.execute("SELECT * FROM candidates WHERE session_id=? ORDER BY candidate_id",(sid,))];s["assets"]=[self.repository.decode(x) for x in c.execute("SELECT * FROM assets WHERE session_id=? ORDER BY asset_id",(sid,))];s["events"]=[self.repository.decode(x) for x in c.execute("SELECT * FROM events WHERE session_id=? ORDER BY occurred_at",(sid,))];return s
+    def list(self,classification=None):
+        with self.repository.connect() as c:
+            rows=c.execute("SELECT * FROM sessions ORDER BY updated_at DESC").fetchall()
+            result=[]
+            for row in rows:
+                session=self.repository.decode(row);completed=session["workflow_stage"]=="FINAL"
+                category="COMPLETED" if completed else "ACTIVE"
+                if classification and classification!=category:continue
+                state=session["state"];capture=state.get("capture",{});final=state.get("final",{})
+                result.append({"session_id":session["session_id"],"created_at":session["created_at"],"updated_at":session["updated_at"],"workflow_stage":session["workflow_stage"],"status":category,"thumbnail_asset_id":capture.get("uploaded_asset_id"),"final_asset_id":final.get("source_upload_asset_id")})
+            return result
     def mutate(self,sid,action,payload,key,fault=None):
         request_hash=hashlib.sha256(json.dumps({"action":action,"payload":payload},sort_keys=True,separators=(",",":")).encode()).hexdigest()
         with self.repository.connect() as c:

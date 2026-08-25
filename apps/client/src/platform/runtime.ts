@@ -25,6 +25,39 @@ function descriptor(capabilityName:CapabilityName,platform:RuntimePlatform):Adap
 
 export function detectPlatform():RuntimePlatform{return Taro.getEnv()===Taro.ENV_TYPE.WEAPP?'WECHAT':'H5'}
 
+export type CaptureSource='camera'|'album'
+export type LocalCaptureCandidate={id:string;source:CaptureSource;previewUrl:string;filePath:string;file?:File;filename:string;orientation:'PORTRAIT'|'LANDSCAPE'|'UNKNOWN';confirmed:false}
+
+function cameraFailure(error:unknown,supportLevel:'PARTIAL'|'UNVERIFIED_REAL_DEVICE'):PlatformResult<never>{
+ const message=error instanceof Error?error.message:String(error);const lowered=message.toLowerCase()
+ const code=lowered.includes('permission')||lowered.includes('notallowed')||lowered.includes('denied')?'PERMISSION_DENIED':lowered.includes('cancel')?'USER_CANCELLED':'CAMERA_FAILURE'
+ return normalizedFailure(code,supportLevel,message)
+}
+
+export class H5StillCamera{
+ private stream:MediaStream|null=null
+ private video:HTMLVideoElement|null=null
+ private facingMode:'environment'|'user'='environment'
+ async open(containerId:string):Promise<PlatformResult<{facingMode:string}>>{
+  if(typeof navigator==='undefined'||!navigator.mediaDevices?.getUserMedia)return normalizedFailure('PLATFORM_UNSUPPORTED','UNSUPPORTED','Camera preview is unavailable in this browser')
+  try{
+   this.close();this.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:this.facingMode}},audio:false})
+   const host=document.getElementById(containerId);if(!host)throw new Error('Camera preview host is unavailable')
+   const video=document.createElement('video');video.autoplay=true;video.muted=true;video.playsInline=true;video.setAttribute('aria-label','相机实时预览');video.srcObject=this.stream;host.replaceChildren(video);await video.play();this.video=video
+   return {ok:true,code:'OK',supportLevel:'UNVERIFIED_REAL_DEVICE',value:{facingMode:this.facingMode}}
+  }catch(error){this.close();return cameraFailure(error,'PARTIAL')}
+ }
+ async switch(containerId:string){this.facingMode=this.facingMode==='environment'?'user':'environment';return this.open(containerId)}
+ async capture():Promise<PlatformResult<LocalCaptureCandidate>>{
+  if(!this.video||!this.video.videoWidth||!this.video.videoHeight)return normalizedFailure('CAMERA_FAILURE','PARTIAL','Camera preview is not ready')
+  const canvas=document.createElement('canvas');canvas.width=this.video.videoWidth;canvas.height=this.video.videoHeight;canvas.getContext('2d')?.drawImage(this.video,0,0)
+  const blob=await new Promise<Blob|null>(resolve=>canvas.toBlob(resolve,'image/jpeg',0.92));if(!blob)return normalizedFailure('CAMERA_FAILURE','PARTIAL','Still image could not be created')
+  const file=new File([blob],`capture-${Date.now()}.jpg`,{type:'image/jpeg'});const previewUrl=URL.createObjectURL(file)
+  return {ok:true,code:'OK',supportLevel:'UNVERIFIED_REAL_DEVICE',value:{id:`local-${Date.now()}`,source:'camera',previewUrl,filePath:previewUrl,file,filename:file.name,orientation:canvas.height>=canvas.width?'PORTRAIT':'LANDSCAPE',confirmed:false}}
+ }
+ close(){this.stream?.getTracks().forEach(track=>track.stop());this.stream=null;if(this.video){this.video.srcObject=null;this.video.remove();this.video=null}}
+}
+
 export class PlatformAdapterRegistry{
  readonly platform:RuntimePlatform
  readonly descriptors:AdapterDescriptor[]
@@ -42,21 +75,29 @@ export class PlatformAdapterRegistry{
   catch{return normalizedFailure('PLATFORM_UNSUPPORTED','UNSUPPORTED','Haptic API unavailable')}
  }
 
- async captureAndUpload():Promise<PlatformResult<UploadedAsset>>{
+ async chooseCandidate(source:CaptureSource):Promise<PlatformResult<LocalCaptureCandidate>>{
   try{
-   const chosen=await Taro.chooseImage({count:1,sizeType:['original'],sourceType:['camera','album']})
+   const chosen=await Taro.chooseImage({count:1,sizeType:['original'],sourceType:[source]})
    const filePath=chosen.tempFilePaths[0]
    if(!filePath)return normalizedFailure('USER_CANCELLED','UNVERIFIED_REAL_DEVICE','No image selected')
-   if(this.platform==='H5'&&chosen.tempFiles[0]?.originalFileObj){
-    const file=chosen.tempFiles[0].originalFileObj;const body=new FormData();body.append('file',file,file.name)
+   const original=this.platform==='H5'?chosen.tempFiles[0]?.originalFileObj:undefined
+   const file=original instanceof File?original:undefined
+   return {ok:true,code:'OK',supportLevel:this.platform==='WECHAT'?'UNVERIFIED_REAL_DEVICE':'PARTIAL',value:{id:`local-${Date.now()}`,source,previewUrl:filePath,filePath,file,filename:file?.name||`capture-${Date.now()}.jpg`,orientation:'UNKNOWN',confirmed:false}}
+  }catch(error){return cameraFailure(error,this.platform==='WECHAT'?'UNVERIFIED_REAL_DEVICE':'PARTIAL')}
+ }
+
+ async uploadCandidate(candidate:LocalCaptureCandidate):Promise<PlatformResult<UploadedAsset>>{
+  try{
+   if(this.platform==='H5'&&candidate.file){
+    const body=new FormData();body.append('file',candidate.file,candidate.filename)
     const response=await fetch(`${API_BASE}/assets/uploads`,{method:'POST',body});const data=await response.text()
     if(response.status!==201)return normalizedFailure(response.status===422?'INVALID_ASSET':'STORAGE_FAILURE','SUPPORTED',data)
     return {ok:true,code:'OK',supportLevel:'SUPPORTED',value:JSON.parse(data) as UploadedAsset}
    }
-   const response=await Taro.uploadFile({url:`${API_BASE}/assets/uploads`,filePath,name:'file'})
+   const response=await Taro.uploadFile({url:`${API_BASE}/assets/uploads`,filePath:candidate.filePath,name:'file'})
    if(response.statusCode!==201){return normalizedFailure(response.statusCode===422?'INVALID_ASSET':'STORAGE_FAILURE','SUPPORTED',response.data)}
    return {ok:true,code:'OK',supportLevel:this.platform==='WECHAT'?'UNVERIFIED_REAL_DEVICE':'SUPPORTED',value:JSON.parse(response.data) as UploadedAsset}
-  }catch(error){const message=error instanceof Error?error.message:String(error);return normalizedFailure(message.toLowerCase().includes('cancel')?'USER_CANCELLED':'CAMERA_FAILURE',this.platform==='WECHAT'?'UNVERIFIED_REAL_DEVICE':'PARTIAL',message)}
+  }catch(error){const message=error instanceof Error?error.message:String(error);return normalizedFailure(message.toLowerCase().includes('network')?'NETWORK_UNAVAILABLE':'STORAGE_FAILURE',this.platform==='WECHAT'?'UNVERIFIED_REAL_DEVICE':'PARTIAL',message)}
  }
 
  async download(url:string,filename='xiangfengxing-final.jpg'):Promise<PlatformResult>{
