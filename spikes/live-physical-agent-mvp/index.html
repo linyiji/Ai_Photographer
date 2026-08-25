@@ -33,8 +33,8 @@
           <div id="target-box" class="visual-box target-box" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
           <div id="subject-box" class="visual-box subject-box" aria-hidden="true"><span id="subject-lock-label">人物锁定中</span><i></i><i></i><i></i><i></i></div>
           <div id="direction-visual" class="direction-visual" aria-hidden="true"><strong id="direction-icon">←</strong><span id="direction-label">往左一点</span></div>
-          <div id="stop-visual" class="stop-visual" aria-hidden="true"><strong>◎</strong><span>好，停一下</span></div>
-          <div id="ready-visual" class="ready-visual" aria-hidden="true"><strong>✓</strong><span>好，就这里</span></div>
+          <div id="stop-visual" class="stop-visual" aria-hidden="true"><strong id="stop-icon">◎</strong><span>好，停一下</span></div>
+          <div id="ready-visual" class="ready-visual" aria-hidden="true"><strong id="ready-icon">✓</strong><span>好，就这里</span></div>
           <div id="tracking-visual" class="tracking-visual">正在寻找人物</div>
         </div>
 
@@ -150,6 +150,9 @@
                 <option value="VISUAL_PLUS_TEXT" selected>视觉 + 文字</option>
               </select>
             </label>
+            <label class="target-picker">THEME
+              <select id="guidance-theme" aria-label="Guidance theme"></select>
+            </label>
             <label class="toggle-setting"><input id="guidance-grid" type="checkbox" checked /> 九宫格</label>
             <button id="closed-loop-reset" class="button button--quiet" type="button">重置本机引导</button>
             <button id="closed-loop-arm" class="button" type="button">ARM 新试验</button>
@@ -189,6 +192,7 @@
           <div><dt>TRACK LOCK / CONF</dt><dd id="cl-visual-lock">UNLOCKED / 0.000</dd></div>
           <div><dt>RAW / STABILIZED JITTER</dt><dd id="cl-visual-jitter">0.0000 / 0.0000</dd></div>
           <div><dt>TARGET ENTRY / EXIT</dt><dd id="cl-visual-entry">0 / 0</dd></div>
+          <div><dt>THEME / SEMANTIC DIFF</dt><dd id="cl-theme">DEFAULT / 0</dd></div>
           <div><dt>STABLE / DURATION</dt><dd id="cl-stable">FALSE / 0 ms</dd></div>
           <div><dt>ORDINARY / STOP / HOLD / SUCCESS</dt><dd id="cl-counts-a">0 / 0 / 0 / 0</dd></div>
           <div><dt>IMPROVING / NO EFFECT</dt><dd id="cl-counts-b">0 / 0</dd></div>

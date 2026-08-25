@@ -9,6 +9,7 @@ import { ScalarTraceRecorder } from '../closed-loop/trace.js';
 import { VisualGuidanceProjector } from '../visual-guidance/projector.js';
 import type { NormalizedBox, VisualGuidanceState, VisualServoMode } from '../visual-guidance/types.js';
 import { projectBoxToCover } from '../visual-guidance/viewport.js';
+import { GUIDANCE_THEMES, renderGuidanceTheme } from '../visual-guidance/themes.js';
 
 type FacingMode = 'user' | 'environment';
 type PermissionStateLabel = PermissionState | 'not_requested' | 'unsupported' | 'error';
@@ -58,6 +59,7 @@ const closedLoopArm = requireElement<HTMLButtonElement>('closed-loop-arm');
 const closedLoopTrace = requireElement<HTMLButtonElement>('closed-loop-trace');
 const guidanceMode = requireElement<HTMLSelectElement>('guidance-mode');
 const guidanceGrid = requireElement<HTMLInputElement>('guidance-grid');
+const guidanceTheme = requireElement<HTMLSelectElement>('guidance-theme');
 const visualOverlay = requireElement<HTMLElement>('visual-servo-overlay');
 const visualGrid = requireElement<HTMLElement>('visual-grid');
 const acceptableZone = requireElement<HTMLElement>('acceptable-zone');
@@ -69,6 +71,8 @@ const directionIcon = requireElement<HTMLElement>('direction-icon');
 const directionLabel = requireElement<HTMLElement>('direction-label');
 const stopVisual = requireElement<HTMLElement>('stop-visual');
 const readyVisual = requireElement<HTMLElement>('ready-visual');
+const stopIcon = requireElement<HTMLElement>('stop-icon');
+const readyIcon = requireElement<HTMLElement>('ready-icon');
 const trackingVisual = requireElement<HTMLElement>('tracking-visual');
 const closedLoopFields = {
   runtimeState: requireElement<HTMLElement>('cl-runtime-state'), ready: requireElement<HTMLElement>('cl-ready'),
@@ -89,6 +93,7 @@ const closedLoopFields = {
   recovery: requireElement<HTMLElement>('cl-recovery'),
   visualStatus: requireElement<HTMLElement>('cl-visual-status'), visualLock: requireElement<HTMLElement>('cl-visual-lock'),
   visualJitter: requireElement<HTMLElement>('cl-visual-jitter'), visualEntry: requireElement<HTMLElement>('cl-visual-entry'),
+  theme: requireElement<HTMLElement>('cl-theme'),
 };
 const perceptionFields = {
   previewFps: requireElement<HTMLElement>('p-preview-fps'),
@@ -160,7 +165,7 @@ const perceptionRuntime = new PerceptionRuntime({
     latestRawMeasurement = rawMeasurement;
     latestClosedLoop = closedLoop.update(state);
     latestVisualGuidance = visualProjector.update(state, latestClosedLoop, rawMeasurement, { mode: guidanceMode.value as VisualServoMode, grid: guidanceGrid.checked, now: performance.now() });
-    scalarTrace.append(state, latestClosedLoop, latestVisualGuidance);
+    scalarTrace.append(state, latestClosedLoop, latestVisualGuidance, guidanceTheme.value);
     if (latestClosedLoop.instruction && latestClosedLoop.instruction.action !== 'HOLD') {
       displayedActionCopy = latestClosedLoop.instruction.copy_zh;
       displayedActionUntilMs = state.timestamp_ms + 700;
@@ -215,13 +220,17 @@ function renderVisualGuidance(): void {
     visualGrid.classList.toggle('is-visible', guidanceGrid.checked); trackingVisual.textContent = '正在寻找人物'; return;
   }
   visualOverlay.dataset.status = visual.visual_status; visualGrid.classList.toggle('is-visible', visual.grid_enabled);
+  const renderedTheme = renderGuidanceTheme(visual,guidanceTheme.value); const defaultTheme = renderGuidanceTheme(visual,'DEFAULT'); const semanticDiff = renderedTheme.semantic_signature===defaultTheme.semantic_signature?0:1;
+  visualOverlay.dataset.theme = renderedTheme.theme.theme_id; visualOverlay.style.setProperty('--guide',renderedTheme.theme.visual_tokens.guide); visualOverlay.style.setProperty('--target',renderedTheme.theme.visual_tokens.target); visualOverlay.style.setProperty('--near',renderedTheme.theme.visual_tokens.near); visualOverlay.style.setProperty('--danger',renderedTheme.theme.visual_tokens.danger); visualOverlay.style.setProperty('--line',renderedTheme.theme.visual_tokens.line_width); visualOverlay.style.setProperty('--corner',renderedTheme.theme.visual_tokens.corner_radius);
   const zoneBox: NormalizedBox = { left: visual.acceptable_zone.left, top: visual.acceptable_zone.top, width: visual.acceptable_zone.right-visual.acceptable_zone.left, height: visual.acceptable_zone.bottom-visual.acceptable_zone.top, center_x:(visual.acceptable_zone.left+visual.acceptable_zone.right)/2, center_y:(visual.acceptable_zone.top+visual.acceptable_zone.bottom)/2 };
   applyProjectedBox(acceptableZone, zoneBox); applyProjectedBox(targetBox, visual.target_box); applyProjectedBox(subjectBox, visual.tracked_subject_box);
   subjectLockLabel.textContent = visual.tracking_status === 'LOCKED' ? '人物已锁定' : visual.tracking_status === 'HELD' ? '人物暂时遮挡' : '人物锁定中';
   const direction = visual.direction_hint; const directionPresentation = direction === 'MOVE_LEFT' ? ['←','往左一点'] : direction === 'MOVE_RIGHT' ? ['→','往右一点'] : direction === 'MOVE_CLOSER' ? ['⊕','靠近目标框'] : direction === 'MOVE_FARTHER' ? ['⊖','退入目标框'] : null;
-  directionVisual.classList.toggle('is-visible', Boolean(directionPresentation) && !visual.braking && !visual.ready); if (directionPresentation) { directionIcon.textContent=directionPresentation[0]; directionLabel.textContent=directionPresentation[1]; }
+  directionVisual.classList.toggle('is-visible', Boolean(directionPresentation) && !visual.braking && !visual.ready); if (directionPresentation) { directionIcon.textContent=renderedTheme.direction_glyph??directionPresentation[0]; directionLabel.textContent=directionPresentation[1]; }
+  stopIcon.textContent=renderedTheme.stop_glyph; readyIcon.textContent=renderedTheme.ready_glyph;
   stopVisual.classList.toggle('is-visible', visual.braking && !visual.ready); readyVisual.classList.toggle('is-visible', visual.ready);
-  trackingVisual.textContent = visual.tracking_status === 'LOCKED' ? (visual.inside_target ? '已进入目标区域' : visual.near_target ? '接近目标区域' : '人物已锁定') : visual.tracking_status === 'HELD' ? '短暂丢失 · 保持锁定' : visual.tracking_status === 'UNLOCKED' ? '正在寻找人物' : '正在锁定人物';
+  trackingVisual.textContent = visual.tracking_status === 'LOCKED' ? (visual.inside_target ? '已进入目标区域' : visual.near_target ? '接近目标区域' : renderedTheme.lock_ornament) : visual.tracking_status === 'HELD' ? '短暂丢失 · 保持锁定' : visual.tracking_status === 'UNLOCKED' ? '正在寻找人物' : '正在锁定人物';
+  closedLoopFields.theme.textContent=`${renderedTheme.theme.theme_id} / ${semanticDiff}`;
 }
 
 function renderCapabilities(): void {
@@ -310,6 +319,7 @@ function renderClosedLoop(): void {
     closedLoopFields.recovery.textContent = '0 ms';
     closedLoopFields.visualStatus.textContent = `LOST / ${guidanceMode.value}`; closedLoopFields.visualLock.textContent = 'UNLOCKED / 0.000';
     closedLoopFields.visualJitter.textContent = '0.0000 / 0.0000'; closedLoopFields.visualEntry.textContent = '0 / 0';
+    closedLoopFields.theme.textContent = `${guidanceTheme.value||'DEFAULT'} / 0`;
     return;
   }
   const subject = snapshot.current; const metrics = snapshot.metrics;
@@ -640,6 +650,7 @@ targetPreset.addEventListener('change', () => {
 
 guidanceMode.addEventListener('change',()=>{ if(latestPerceptionState&&latestClosedLoop) latestVisualGuidance=visualProjector.update(latestPerceptionState,latestClosedLoop,latestRawMeasurement,{mode:guidanceMode.value as VisualServoMode,grid:guidanceGrid.checked,now:performance.now()}); renderVisualGuidance(); renderClosedLoop(); });
 guidanceGrid.addEventListener('change',()=>{ if(latestPerceptionState&&latestClosedLoop) latestVisualGuidance=visualProjector.update(latestPerceptionState,latestClosedLoop,latestRawMeasurement,{mode:guidanceMode.value as VisualServoMode,grid:guidanceGrid.checked,now:performance.now()}); renderVisualGuidance(); });
+guidanceTheme.addEventListener('change',()=>renderVisualGuidance());
 
 closedLoopReset.addEventListener('click', () => {
   if (latestClosedLoop?.runtime_state === 'LOCAL_RECOVERY_REQUIRED' && closedLoop.resumeAfterLocalRecovery(performance.now())) {
@@ -670,6 +681,8 @@ window.addEventListener('beforeunload', () => {
 renderCapabilities();
 updateCoordinateState();
 for (const preset of TARGET_PRESETS) targetPreset.add(new Option(preset.label, preset.id));
+for (const theme of Object.values(GUIDANCE_THEMES)) guidanceTheme.add(new Option(theme.display_name,theme.theme_id));
+guidanceTheme.value='DEFAULT';
 perceptionFields.targetHz.textContent = PERCEPTION_CONFIG.visionTargetHz.toFixed(1);
 renderPerceptionState();
 renderPerceptionTelemetry();
@@ -702,7 +715,7 @@ if (replayName) {
         latestRawMeasurement = null;
         latestClosedLoop = closedLoop.update(state);
         latestVisualGuidance = visualProjector.update(state, latestClosedLoop, null, { mode: guidanceMode.value as VisualServoMode, grid: guidanceGrid.checked, now: state.timestamp_ms });
-        scalarTrace.append(state, latestClosedLoop, latestVisualGuidance);
+        scalarTrace.append(state, latestClosedLoop, latestVisualGuidance, guidanceTheme.value);
         if (latestClosedLoop.instruction && latestClosedLoop.instruction.action !== 'HOLD') {
           displayedActionCopy = latestClosedLoop.instruction.copy_zh;
           displayedActionUntilMs = state.timestamp_ms + 700;

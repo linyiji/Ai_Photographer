@@ -12,11 +12,11 @@ export interface ScalarTraceRow {
   visual_guidance?: {
     visual_status: string; tracking_status: string; overlay_mode: string; raw_box_jitter: number;
     stabilized_box_jitter: number; projection_age_ms: number; target_entry_count: number; target_exit_count: number;
-    subject_lock_loss_count: number; reacquisition_count: number;
+    subject_lock_loss_count: number; reacquisition_count: number; theme_id?: string;
   };
 }
 
-export const scalarTraceRow = (state: StructuredPerceptionState, snapshot: ClosedLoopSnapshot, visual?: VisualGuidanceState | null): ScalarTraceRow => ({
+export const scalarTraceRow = (state: StructuredPerceptionState, snapshot: ClosedLoopSnapshot, visual?: VisualGuidanceState | null, themeId?: string): ScalarTraceRow => ({
   timestamp: state.timestamp_ms, sequence: state.sequence, subject_present: state.subject.present,
   center_x: state.subject.center_x, height_ratio: state.subject.height_ratio, velocity_x: state.subject.velocity_x,
   velocity_scale: state.subject.velocity_scale, stable: state.subject.stable, target_x: snapshot.target.center_x,
@@ -25,13 +25,13 @@ export const scalarTraceRow = (state: StructuredPerceptionState, snapshot: Close
   episode_id: snapshot.episode?.episode_id ?? null, episode_state: snapshot.episode?.state ?? null,
   verification: snapshot.verification,
   instruction_event: snapshot.instruction ? { sequence: snapshot.instruction.sequence, action: snapshot.instruction.action, timestamp_ms: snapshot.instruction.timestamp_ms } : null,
-  ...(visual ? { visual_guidance: { visual_status: visual.visual_status, tracking_status: visual.tracking_status, overlay_mode: visual.overlay_mode, raw_box_jitter: visual.metrics.raw_box_jitter, stabilized_box_jitter: visual.metrics.stabilized_box_jitter, projection_age_ms: visual.projection_age, target_entry_count: visual.metrics.target_box_entry_count, target_exit_count: visual.metrics.target_box_exit_count, subject_lock_loss_count: visual.metrics.subject_lock_loss_count, reacquisition_count: visual.metrics.reacquisition_count } } : {}),
+  ...(visual ? { visual_guidance: { visual_status: visual.visual_status, tracking_status: visual.tracking_status, overlay_mode: visual.overlay_mode, raw_box_jitter: visual.metrics.raw_box_jitter, stabilized_box_jitter: visual.metrics.stabilized_box_jitter, projection_age_ms: visual.projection_age, target_entry_count: visual.metrics.target_box_entry_count, target_exit_count: visual.metrics.target_box_exit_count, subject_lock_loss_count: visual.metrics.subject_lock_loss_count, reacquisition_count: visual.metrics.reacquisition_count, ...(themeId ? { theme_id: themeId } : {}) } } : {}),
 });
 
 export class ScalarTraceRecorder {
   readonly rows: ScalarTraceRow[] = [];
   clear(): void { this.rows.length = 0; }
-  append(state: StructuredPerceptionState, snapshot: ClosedLoopSnapshot, visual?: VisualGuidanceState | null): void { this.rows.push(scalarTraceRow(state, snapshot, visual)); }
+  append(state: StructuredPerceptionState, snapshot: ClosedLoopSnapshot, visual?: VisualGuidanceState | null, themeId?: string): void { this.rows.push(scalarTraceRow(state, snapshot, visual, themeId)); }
   json(): string { return JSON.stringify({ format: 'xfx-live-p2-scalar-trace-v1', raw_media: false, rows: this.rows }, null, 2); }
 }
 
