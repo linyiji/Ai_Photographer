@@ -14,3 +14,12 @@ Required three fresh trials must verify before Gate 2:
 - DEFAULT theme; grid OFF; Luna/Provider/Backend/Upload 0
 
 No prior 59-Episode sample may fill this gate.
+
+## Bounded defect attempt 1
+
+- Observation: switching rear to front on OPPO K11 produced an error/blank preview before a Gate 1 trial could be accepted.
+- Reproduction: start rear camera, then tap front/rear switch.
+- Root cause: stopping the old rear track asynchronously fired its `ended` listener after the new front stream became active. The listener tested only whether any stream existed, so it could stop the new stream.
+- Bounded fix: camera request sequence plus stream ownership guard. A stale request releases only its own acquired stream; an ended track may stop the session only when its owner stream is still active.
+- Automated regression: 3/3 camera-session tests PASS; complete suite 159/159 PASS; typecheck/build PASS.
+- Device revalidation: PENDING on the refreshed HTTPS build.

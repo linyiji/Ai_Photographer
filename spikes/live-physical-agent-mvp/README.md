@@ -104,7 +104,7 @@ Current Control Policy V2 state:
 Status = READY_FOR_MANUAL_DEVICE_TEST
 LIVE-P1 = PASS
 P2 Implementation Gate = PASS
-Automated Gate = PASS / 156 of 156 tests
+Automated Gate = PASS / 159 of 159 tests
 Browser Replay = PASS
 P2 Real Device Gate = MANUAL_REVIEW_REQUIRED
 LIVE-P2 Final Gate = NOT_YET_REEVALUATED

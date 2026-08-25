@@ -10,6 +10,7 @@ import { VisualGuidanceProjector } from '../visual-guidance/projector.js';
 import type { NormalizedBox, VisualGuidanceState, VisualServoMode } from '../visual-guidance/types.js';
 import { projectBoxToCover } from '../visual-guidance/viewport.js';
 import { GUIDANCE_THEMES, renderGuidanceTheme } from '../visual-guidance/themes.js';
+import { CameraSessionGuard, ownsActiveCameraSession } from '../camera/session-guard.js';
 
 type FacingMode = 'user' | 'environment';
 type PermissionStateLabel = PermissionState | 'not_requested' | 'unsupported' | 'error';
@@ -141,6 +142,7 @@ let latestClosedLoop: ClosedLoopSnapshot | null = null;
 let latestVisualGuidance: VisualGuidanceState | null = null;
 let displayedActionCopy: string | null = null;
 let displayedActionUntilMs = 0;
+const cameraSessionGuard = new CameraSessionGuard();
 
 const simulatedUnsupported = new URLSearchParams(window.location.search).get('simulateUnsupported') === '1';
 const supportsMediaDevices = !simulatedUnsupported && Boolean(navigator.mediaDevices?.getUserMedia);
@@ -503,6 +505,7 @@ function stopElapsedTimer(): void {
 }
 
 function stopCamera(options: { preserveMessage?: boolean } = {}): void {
+  cameraSessionGuard.invalidate();
   stopFrameScheduler();
   stopElapsedTimer();
   stream?.getTracks().forEach((track) => track.stop());
@@ -568,10 +571,14 @@ async function startCamera(facingMode: FacingMode): Promise<void> {
     return;
   }
 
+  const requestId = cameraSessionGuard.beginRequest();
   startButton.disabled = true;
   switchButton.disabled = true;
   setMessage(`正在请求${facingMode === 'user' ? '前置' : '后置'}摄像头…`);
-  stream?.getTracks().forEach((track) => track.stop());
+  const previousStream = stream;
+  stream = null;
+  video.srcObject = null;
+  previousStream?.getTracks().forEach((track) => track.stop());
   perceptionRuntime.resetSession();
   visualProjector.reset(); latestVisualGuidance = null;
 
@@ -585,6 +592,11 @@ async function startCamera(facingMode: FacingMode): Promise<void> {
         frameRate: { ideal: 30, max: 30 }
       }
     });
+
+    if (!cameraSessionGuard.isCurrent(requestId)) {
+      nextStream.getTracks().forEach((track) => track.stop());
+      return;
+    }
 
     stream = nextStream;
     video.srcObject = stream;
@@ -614,10 +626,12 @@ async function startCamera(facingMode: FacingMode): Promise<void> {
     setMessage(`${activeFacingMode === 'user' ? '前置' : '后置'}摄像头已启动；画面仅在本机预览。`);
 
     videoTrack?.addEventListener('ended', () => {
-      if (stream) stopCamera({ preserveMessage: true });
+      if (!ownsActiveCameraSession(stream, nextStream)) return;
+      stopCamera({ preserveMessage: true });
       setMessage('摄像头媒体轨道已结束。', 'error');
     }, { once: true });
   } catch (error) {
+    if (!cameraSessionGuard.isCurrent(requestId)) return;
     setPermission(error instanceof DOMException && error.name === 'NotAllowedError' ? 'denied' : 'error');
     stopCamera({ preserveMessage: true });
     setMessage(describeCameraError(error), 'error');

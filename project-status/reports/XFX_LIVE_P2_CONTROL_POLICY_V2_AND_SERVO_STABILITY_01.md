@@ -27,9 +27,9 @@ Start Head: `44e7914e3df7f778c1f0d4d6c127ddbb8048bef4`
 
 ## Verification
 
-- Automated Tests: 156/156 PASS
+- Automated Tests: 159/159 PASS, including stale camera-request and ended-track ownership regressions.
 - Typecheck: PASS
-- Production Build: PASS / 21 modules. The bundled environment lacks `npm.cmd`, so the package's equivalent prebuild/typecheck/Vite steps were executed directly.
+- Production Build: PASS / 22 modules. The bundled environment lacks `npm.cmd`, so the package's equivalent prebuild/typecheck/Vite steps were executed directly.
 - Browser Replay: PASS; READY_LATCHED, ordinary/STOP/HOLD/success 1/1/1/1, synthetic display p50/p95/max 0/3/3 ms, console warning/error 0/0.
 - Counterfactual: 6/6 post-READY actions structurally blocked; 0/8 historical WRONG claimed as proven prevented due V1 telemetry limits; presentation hysteresis reduces 20 transition flickers in offline replay without changing control satisfaction.
 - Provider / Backend / Luna / Raw Upload: 0/0/0/0
@@ -37,6 +37,8 @@ Start Head: `44e7914e3df7f778c1f0d4d6c127ddbb8048bef4`
 ## Remaining gates
 
 OPPO Gate 1: MANUAL_REVIEW_REQUIRED / 3 fresh trials
+
+Gate 1 attempt 1 found a bounded front-switch defect before acceptance sampling: the stopped rear track's asynchronous `ended` event could close the newly active front stream. A request-sequence and stream-ownership fix is implemented and automated PASS; OPPO revalidation remains required.
 
 OPPO Gate 2: NOT_STARTED; only after Gate 1 PASS. Requires >=10 fresh trials and >=30 naturally produced terminal Episodes.
 
