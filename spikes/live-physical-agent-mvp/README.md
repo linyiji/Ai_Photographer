@@ -96,7 +96,7 @@ Until that real-device closed-loop run is completed:
 Status = READY_FOR_MANUAL_DEVICE_TEST
 LIVE-P1 = PASS
 P2 Implementation Gate = PASS
-P2 Recalibration Implementation Gate = PASS / 47 of 47 tests
+P2 Recalibration Implementation Gate = PASS / 48 of 48 tests
 P2 Real Device Gate = MANUAL_REVIEW_REQUIRED
 LIVE-P2 = FAIL
 ```

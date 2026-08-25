@@ -36,6 +36,7 @@ test('reissue only follows terminal and gap',()=>{const out=run('repeated-no-eff
 test('same action retry count is explicit',()=>assert.equal(last('repeated-no-effect-reissue').episode?.reissue_count,1));
 test('READY is blocked before episode terminal',()=>assert.equal(last('ready-blocked-before-terminal').ready,false));
 test('READY follows successful episode and stable window',()=>assert.equal(last('ready-after-success').ready,true));
+test('READY latches trial and blocks post-ready episode contamination until re-arm',()=>{const e=new LocalClosedLoopEngine();e.armTrial(0);const states=[...CLOSED_LOOP_TRAJECTORIES['ready-after-success'],frame(4000,.8,.1),frame(4400,.8,.1),frame(6000,.8,.1,true)];const out=states.map(s=>e.update(s));assert.equal(out.at(-1)?.trial_state,'READY');assert.equal(out.at(-1)?.metrics.ordinary_instruction_count,1);assert.equal(out.at(-1)?.metrics.terminal_episode_count,1);});
 test('time to target starts at first correction',()=>{const o=last('trial-timer-invariant');assert.equal(o.metrics.time_to_target_ms,o.ready_at!-o.first_instruction_at!);});
 test('time-to-target respects observed instruction gaps',()=>{const o=last('trial-timer-invariant');assert.ok(o.metrics.time_to_target_ms!>=CLOSED_LOOP_CONFIG.instruction_gap_ms+CLOSED_LOOP_CONFIG.settled_window_ms);});
 test('success-rate denominator uses terminal outcomes only',()=>{const o=last('correct-gradual-x');assert.equal(o.metrics.correction_success_rate,1);assert.equal(o.metrics.terminal_episode_count,1);});

@@ -50,6 +50,9 @@ export class LocalClosedLoopEngine {
   update(state: StructuredPerceptionState): ClosedLoopSnapshot {
     const now = state.timestamp_ms; const delta = computeDelta(state, this.target); const candidates = rankIssues(state, delta); const best = candidates[0] ?? null; let instruction: InstructionEvent | null = null; this.metrics.local_decisions += 1;
     if (!state.subject.present) { this.runtimeState = 'SEARCHING'; this.readyStableSince = null; this.settled = []; this.trackCandidate(best, now); return this.snapshot(now, state, delta, best, instruction); }
+    // READY closes the armed trial. Further movement is observation-only until an explicit re-ARM,
+    // so post-ready user motion cannot contaminate the accepted episode denominator.
+    if (this.trialState === 'READY') { this.runtimeState = 'READY'; return this.snapshot(now, state, delta, null, instruction); }
     if (this.episode) { this.observeEpisode(now, state, delta); if (this.episode?.terminal_outcome) this.finishEpisode(this.episode.terminal_outcome, now); if (this.episode) return this.snapshot(now, state, delta, this.issueForEpisode(candidates), instruction); }
     const allSatisfied = delta.x.status === 'SATISFIED' && delta.scale.status === 'SATISFIED' && (delta.y.status === 'SATISFIED' || delta.y.status === 'EXEMPT');
     if (allSatisfied) {

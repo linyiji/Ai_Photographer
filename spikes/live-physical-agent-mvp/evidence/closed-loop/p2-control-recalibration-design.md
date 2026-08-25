@@ -27,3 +27,5 @@ Signed Delta is `target-current`; preview mirroring is excluded. Each episode re
 No target tolerance, `>=80%` gate, instruction gap, dominance ratio, or CV threshold was weakened.
 
 READY remains blocked while an episode is non-terminal. HOLD is one-shot and excluded. Repeated local failure remains local recovery; Luna stays OFF.
+
+The first fresh device scalar trace exposed post-READY episode contamination: Episode 1 correctly reached SUCCESS/READY, but later user motion created Episodes 2–8 in the already-complete trial. READY is therefore latched as a trial terminal; no new ordinary Episode may start until explicit re-ARM. The historical trace is retained as diagnostic evidence, not accepted device PASS evidence.
