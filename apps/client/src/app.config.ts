@@ -1,0 +1,1 @@
+export default defineAppConfig({pages:['pages/index/index'],window:{backgroundTextStyle:'light',navigationBarBackgroundColor:'#10131a',navigationBarTitleText:'向风行',navigationBarTextStyle:'white'}})

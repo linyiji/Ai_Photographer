@@ -16,7 +16,8 @@ def test_asgi_app_import_and_health() -> None:
 
     response = asyncio.run(request_health())
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    assert response.json()["status"] == "ok"
+    assert response.json()["runtime"] == "LOCKED_L1"
 
 
 def test_sqlite_utf8_json_round_trip(tmp_path) -> None:
