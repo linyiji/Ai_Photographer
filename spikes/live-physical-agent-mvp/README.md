@@ -93,11 +93,11 @@ Use a trusted HTTPS tunnel without bypassing certificate warnings and complete `
 Until that real-device closed-loop run is completed:
 
 ```text
-Status = READY_FOR_MANUAL_DEVICE_TEST
+Status = FAIL
 LIVE-P1 = PASS
 P2 Implementation Gate = PASS
 P2 Recalibration Implementation Gate = PASS / 48 of 48 tests
-P2 Real Device Gate = MANUAL_REVIEW_REQUIRED
+P2 Real Device Gate = FAIL / 17 terminal Episodes / 17.6% correction success
 LIVE-P2 = FAIL
 ```
 
