@@ -38,17 +38,38 @@ export class H5StillCamera{
  private stream:MediaStream|null=null
  private video:HTMLVideoElement|null=null
  private facingMode:'environment'|'user'='environment'
+ private switching=false
  setFacingMode(value:'environment'|'user'){this.facingMode=value}
- async open(containerId:string):Promise<PlatformResult<{facingMode:string}>>{
+ private async waitForRelease(delayMs:number){await new Promise(resolve=>setTimeout(resolve,delayMs))}
+ private async openWithConstraint(containerId:string,strict:boolean):Promise<PlatformResult<{facingMode:string}>>{
   if(typeof navigator==='undefined'||!navigator.mediaDevices?.getUserMedia)return normalizedFailure('PLATFORM_UNSUPPORTED','UNSUPPORTED','Camera preview is unavailable in this browser')
   try{
-   this.close();this.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:this.facingMode}},audio:false})
+   this.close();this.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:strict?{exact:this.facingMode}:{ideal:this.facingMode}},audio:false})
    const host=document.getElementById(containerId);if(!host)throw new Error('Camera preview host is unavailable')
    const video=document.createElement('video');video.autoplay=true;video.muted=true;video.playsInline=true;video.setAttribute('aria-label','相机实时预览');video.srcObject=this.stream;host.replaceChildren(video);await video.play();this.video=video
-   return {ok:true,code:'OK',supportLevel:'UNVERIFIED_REAL_DEVICE',value:{facingMode:this.facingMode}}
+   const actual=this.stream.getVideoTracks()[0]?.getSettings().facingMode
+   return {ok:true,code:'OK',supportLevel:'UNVERIFIED_REAL_DEVICE',value:{facingMode:actual||this.facingMode}}
   }catch(error){this.close();return cameraFailure(error,'PARTIAL')}
  }
- async switch(containerId:string){this.facingMode=this.facingMode==='environment'?'user':'environment';return this.open(containerId)}
+ async open(containerId:string):Promise<PlatformResult<{facingMode:string}>>{return this.openWithConstraint(containerId,false)}
+ async switch(containerId:string):Promise<PlatformResult<{facingMode:string}>>{
+  if(this.switching)return normalizedFailure('CAMERA_FAILURE','PARTIAL','CAMERA_SWITCH_IN_PROGRESS')
+  const previous=this.facingMode;const next=previous==='environment'?'user':'environment';this.switching=true
+  try{
+   this.close();await this.waitForRelease(300);this.facingMode=next
+   let result=await this.openWithConstraint(containerId,true)
+   if(!result.ok){await this.waitForRelease(450);result=await this.openWithConstraint(containerId,false)}
+   if(result.ok&&result.value){
+    const actual=result.value.facingMode
+    if(actual==='environment'||actual==='user')this.facingMode=actual
+    if(actual!==previous)return result
+    return normalizedFailure('CAMERA_FAILURE','PARTIAL','CAMERA_SWITCH_FAILED_RESTORED')
+   }
+   this.facingMode=previous;await this.waitForRelease(450);const restored=await this.openWithConstraint(containerId,false)
+   if(restored.ok){this.facingMode=previous;return normalizedFailure('CAMERA_FAILURE','PARTIAL','CAMERA_SWITCH_FAILED_RESTORED')}
+   return normalizedFailure('CAMERA_FAILURE','PARTIAL','CAMERA_SWITCH_FAILED_CLOSED')
+  }finally{this.switching=false}
+ }
  async capture():Promise<PlatformResult<LocalCaptureCandidate>>{
   if(!this.video||!this.video.videoWidth||!this.video.videoHeight)return normalizedFailure('CAMERA_FAILURE','PARTIAL','Camera preview is not ready')
   const canvas=document.createElement('canvas');canvas.width=this.video.videoWidth;canvas.height=this.video.videoHeight;canvas.getContext('2d')?.drawImage(this.video,0,0)
