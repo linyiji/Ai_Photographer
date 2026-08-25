@@ -63,6 +63,8 @@ WeChat: PASS
 Docker: MISSING
 ```
 
+Feature evidence commits `aa891f3`, `70f1193`, and `7514f9d` were pushed. The feature branch was strict-fast-forward merged into `develop` and pushed; no merge commit or history rewrite was used.
+
 Python 由 `uv` 管理并通过 fresh/frozen reproduction；`PYTHON_MISSING` 已移除。Docker 仍为 `ENVIRONMENT_GAP`，本任务未安装或使用。M02 使用 SQLite，不锁定生产数据库。
 
 ## Environment L0 Lock

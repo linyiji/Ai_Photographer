@@ -175,6 +175,14 @@
     "provider_calls": 0,
     "raw_live_video_upload": 0,
     "m01_contracts": "PRESERVED"
+    ,"work_branch": "feature/main-fullstack-foundation-m02"
+    ,"start_head": "0dd2e3e5d44db45a45e1515bb36f6d6259e1712d"
+    ,"runtime_commit": "aa891f3240ab57f56cd24d43587ec01acbe4c17d"
+    ,"implementation_commit": "70f11934a231b9d255bec39742428c9dd393fb16"
+    ,"acceptance_commit": "7514f9d1d40c0d8508a67b2a84cc695f64c1056a"
+    ,"remote_feature_branch": "PASS"
+    ,"auto_ff_merge": "PASS"
+    ,"merged_to": "develop"
   },
   "environment_gaps": ["DOCKER_MISSING"],
   "next_required_result": {

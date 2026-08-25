@@ -83,6 +83,7 @@ New Shell Reproducibility: PASS
 - M02 Taro P01–P13 product shell, FastAPI capability seams, SQLite persistence, domain events, asset lineage, deterministic S01 fixture, idempotency, and partial-retake flow
 - S01 real browser network flow reached FINAL; refresh read back revision 11, 3 assets, and 12 events from SQLite
 - H5 and WeChat builds passed; H5 retained a non-blocking entrypoint-size advisory
+- Feature evidence through `7514f9d1d40c0d8508a67b2a84cc695f64c1056a` strict-fast-forward merged and pushed to `develop`
 
 ## M01 Contract Authority
 
