@@ -1,5 +1,5 @@
 from __future__ import annotations
-import json
+import hashlib,json
 from datetime import UTC,datetime
 from uuid import NAMESPACE_URL,uuid4,uuid5
 from .repository import Repository
@@ -25,17 +25,24 @@ class SessionService:
             row=c.execute("SELECT * FROM sessions WHERE session_id=?",(sid,)).fetchone()
             if not row:raise DomainError("SESSION_NOT_FOUND","Session does not exist.",404)
             s=self.repository.decode(row);s["candidates"]=[self.repository.decode(x) for x in c.execute("SELECT * FROM candidates WHERE session_id=? ORDER BY candidate_id",(sid,))];s["assets"]=[self.repository.decode(x) for x in c.execute("SELECT * FROM assets WHERE session_id=? ORDER BY asset_id",(sid,))];s["events"]=[self.repository.decode(x) for x in c.execute("SELECT * FROM events WHERE session_id=? ORDER BY occurred_at",(sid,))];return s
-    def mutate(self,sid,action,payload,key):
+    def mutate(self,sid,action,payload,key,fault=None):
+        request_hash=hashlib.sha256(json.dumps({"action":action,"payload":payload},sort_keys=True,separators=(",",":")).encode()).hexdigest()
         with self.repository.connect() as c:
-            cached=c.execute("SELECT response_json FROM idempotency WHERE session_id=? AND key=?",(sid,key)).fetchone()
-            if cached:return json.loads(cached[0])
+            cached=c.execute("SELECT request_hash,response_json FROM idempotency WHERE session_id=? AND key=?",(sid,key)).fetchone()
+            if cached:
+                if cached[0]!=request_hash:raise DomainError("IDEMPOTENCY_MISMATCH","Idempotency key was already used for a different command.")
+                return json.loads(cached[1])
             row=c.execute("SELECT * FROM sessions WHERE session_id=?",(sid,)).fetchone()
             if not row:raise DomainError("SESSION_NOT_FOUND","Session does not exist.",404)
-            session=self.repository.decode(row);stage,state=session["workflow_stage"],session["state"];self._apply(c,sid,state,action,payload)
+            session=self.repository.decode(row);stage,state=session["workflow_stage"],session["state"]
+            if fault in {"CAPABILITY_TIMEOUT","CAPABILITY_ERROR","CANDIDATE_REJECTED","MISSING_ASSET_REFERENCE","REALITY_PLUS_FAILURE"}:raise DomainError(fault,f"Lab fault: {fault}",504 if fault=="CAPABILITY_TIMEOUT" else 409)
+            if fault=="PERSISTENCE_FAILURE_BEFORE_COMMIT":raise DomainError("PERSISTENCE_FAILURE","Lab persistence failure before mutation.",503)
+            self._apply(c,sid,state,action,payload)
+            if fault=="PERSISTENCE_FAILURE_DURING_TRANSACTION":raise DomainError("PERSISTENCE_FAILURE","Lab persistence failure during transaction.",503)
             if action=="GENERATE_TARGETS":next_stage=stage
             elif (stage,action) in self.transitions:next_stage=self.transitions[(stage,action)]
             else:raise DomainError("INVALID_TRANSITION",f"{action} is not valid from {stage}.")
-            revision,now=int(session["revision"])+1,self.now();c.execute("UPDATE sessions SET workflow_stage=?,revision=?,state_json=?,updated_at=? WHERE session_id=?",(next_stage,revision,json.dumps(state),now,sid));self._event(c,sid,f"{action}_COMMITTED",{"from":stage,"to":next_stage,"revision":revision});result={"session_id":sid,"workflow_stage":next_stage,"revision":revision,"state":state};c.execute("INSERT INTO idempotency VALUES(?,?,?)",(sid,key,json.dumps(result)));return result
+            revision,now=int(session["revision"])+1,self.now();c.execute("UPDATE sessions SET workflow_stage=?,revision=?,state_json=?,updated_at=? WHERE session_id=?",(next_stage,revision,json.dumps(state),now,sid));self._event(c,sid,f"{action}_COMMITTED",{"from":stage,"to":next_stage,"revision":revision});result={"session_id":sid,"workflow_stage":next_stage,"revision":revision,"state":state};c.execute("INSERT INTO idempotency(session_id,key,request_hash,response_json) VALUES(?,?,?,?)",(sid,key,request_hash,json.dumps(result)));return result
     def _apply(self,c,sid,state,action,payload):
         if action=="SELECT_SHOOTING_RELATION":state["shooting_relation"]=payload.get("shooting_relation","FRIEND")
         elif action=="CONFIRM_DEVICE_MODE":state["device_mode"]=payload.get("device_mode","SINGLE")

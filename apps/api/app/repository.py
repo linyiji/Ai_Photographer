@@ -8,12 +8,15 @@ CREATE TABLE IF NOT EXISTS sessions(session_id TEXT PRIMARY KEY,workflow_stage T
 CREATE TABLE IF NOT EXISTS candidates(candidate_id TEXT PRIMARY KEY,session_id TEXT NOT NULL,kind TEXT NOT NULL,disposition TEXT NOT NULL,payload_json TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS events(event_id TEXT PRIMARY KEY,session_id TEXT NOT NULL,event_type TEXT NOT NULL,payload_json TEXT NOT NULL,occurred_at TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS assets(asset_id TEXT PRIMARY KEY,session_id TEXT NOT NULL,kind TEXT NOT NULL,status TEXT NOT NULL,storage_ref TEXT NOT NULL,lineage_json TEXT NOT NULL);
-CREATE TABLE IF NOT EXISTS idempotency(session_id TEXT NOT NULL,key TEXT NOT NULL,response_json TEXT NOT NULL,PRIMARY KEY(session_id,key));"""
+CREATE TABLE IF NOT EXISTS idempotency(session_id TEXT NOT NULL,key TEXT NOT NULL,request_hash TEXT,response_json TEXT NOT NULL,PRIMARY KEY(session_id,key));"""
 
 class Repository:
     def __init__(self, database_path):
         self.database_path=str(database_path); Path(self.database_path).parent.mkdir(parents=True,exist_ok=True)
-        with self.connect() as connection: connection.executescript(SCHEMA)
+        with self.connect() as connection:
+            connection.executescript(SCHEMA)
+            columns={row[1] for row in connection.execute("PRAGMA table_info(idempotency)")}
+            if "request_hash" not in columns:connection.execute("ALTER TABLE idempotency ADD COLUMN request_hash TEXT")
     @contextmanager
     def connect(self):
         connection=sqlite3.connect(self.database_path); connection.row_factory=sqlite3.Row

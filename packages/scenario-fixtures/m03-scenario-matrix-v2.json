@@ -1,0 +1,19 @@
+{
+  "manifest_version":"2.0.0",
+  "source":{"name":"XFX_M03_REPLAY_E2E_LAB","version":"1.0.0"},
+  "defaults":{"fixture":"s01-storm-before-arrival.json","seed":301,"allowed_nondeterminism":["session_id","event_id","replay_id","correlation_id","timestamp"]},
+  "scenarios":[
+    {"scenario_id":"S01_HAPPY_PATH","title":"S01 happy path","purpose":"Golden full flow","actions":"HAPPY","final":"FINAL"},
+    {"scenario_id":"S01_RELOAD_RESUME","title":"Reload resume","purpose":"Readback during flow","actions":"HAPPY","checkpoint":3,"final":"FINAL"},
+    {"scenario_id":"S01_PARTIAL_RETAKE_MICRO","title":"Micro retake","purpose":"M01 preservation","actions":"RETAKE_MICRO","final":"FINAL"},
+    {"scenario_id":"S01_PARTIAL_RETAKE_POSITION","title":"Position retake","purpose":"Position preservation","actions":"RETAKE_POSITION","final":"FINAL"},
+    {"scenario_id":"TARGET_FIRST_ENTRY","title":"Target first entry","purpose":"Declared entry intent then governed flow","entry_mode":"TARGET_FIRST","actions":"HAPPY","final":"FINAL"},
+    {"scenario_id":"DUPLICATE_ACTION_IDEMPOTENCY","title":"Duplicate action","purpose":"Five identical requests","actions":"DUPLICATE","final":"FINAL"},
+    {"scenario_id":"ILLEGAL_TRANSITION_REJECTED","title":"Illegal transition","purpose":"Governed ErrorContract","actions":"HAPPY","fault":{"step":0,"type":"ILLEGAL_TRANSITION"},"controlled_failure":true,"final":"ENTRY"},
+    {"scenario_id":"CAPABILITY_TIMEOUT_RECOVERY","title":"Capability timeout recovery","purpose":"No advance then retry","actions":"HAPPY","fault":{"step":2,"type":"CAPABILITY_TIMEOUT","recover":true},"final":"FINAL"},
+    {"scenario_id":"INVALID_CANDIDATE_REJECTED","title":"Invalid candidate","purpose":"Candidate never accepted","actions":"HAPPY","fault":{"step":4,"type":"INVALID_CANDIDATE"},"controlled_failure":true,"final":"TARGET"},
+    {"scenario_id":"PERSISTENCE_ROLLBACK","title":"Persistence rollback","purpose":"Atomic transaction","actions":"HAPPY","fault":{"step":7,"type":"PERSISTENCE_FAILURE_DURING_TRANSACTION","recover":true},"final":"FINAL"},
+    {"scenario_id":"MISSING_ASSET_REFERENCE","title":"Missing asset","purpose":"Lineage validation","actions":"HAPPY","fault":{"step":9,"type":"MISSING_ASSET_REFERENCE"},"controlled_failure":true,"final":"REALITY_PLUS"},
+    {"scenario_id":"REALITY_PLUS_FAILURE_RECOVERY","title":"Reality+ recovery","purpose":"Accepted capture survives","actions":"HAPPY","fault":{"step":9,"type":"REALITY_PLUS_FAILURE","recover":true},"final":"FINAL"}
+  ]
+}

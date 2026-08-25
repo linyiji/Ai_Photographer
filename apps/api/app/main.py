@@ -14,6 +14,14 @@ DB_PATH=Path(os.environ.get("XFX_DATABASE_PATH",ROOT/"apps"/"api"/".data"/"xfx-m
 service=SessionService(Repository(DB_PATH),ROOT/"packages"/"scenario-fixtures"/"s01-storm-before-arrival.json")
 app=FastAPI(title="XFX M02 API",version="0.2.0")
 app.add_middleware(CORSMiddleware,allow_origins=["*"],allow_methods=["*"],allow_headers=["*"])
+LAB_MODE=os.environ.get("XFX_LAB_MODE")=="1"
+if LAB_MODE and os.environ.get("XFX_ENVIRONMENT","").lower()=="production":raise RuntimeError("XFX Lab mode is forbidden in production")
+if LAB_MODE:
+    from .lab.api import create_lab_router
+    from .lab.engine import ReplayEngine
+    lab_root=Path(os.environ.get("XFX_LAB_ROOT",ROOT/"apps"/"api"/".data"/"lab"))
+    lab_engine=ReplayEngine(lab_root,ROOT/"packages"/"scenario-fixtures"/"s01-storm-before-arrival.json",ROOT/"packages"/"scenario-fixtures"/"m03-scenario-matrix-v2.json")
+    app.include_router(create_lab_router(lab_engine))
 
 class ActionBody(BaseModel):
     action:str
@@ -25,7 +33,8 @@ async def correlation(request:Request,call_next):
 
 @app.exception_handler(DomainError)
 async def domain_error(request:Request,exc:DomainError):
-    return JSONResponse(status_code=exc.status,content={"error":{"code":exc.code,"message":exc.message,"retryable":exc.status>=500,"correlation_id":request.state.correlation_id}})
+    category="STORAGE" if "PERSISTENCE" in exc.code else "WORKFLOW" if "TRANSITION" in exc.code else "VALIDATION" if "CANDIDATE" in exc.code or "IDEMPOTENCY" in exc.code else "INTERNAL"
+    return JSONResponse(status_code=exc.status,content={"error":{"schema_version":"1.0.0","error_code":exc.code,"category":category,"severity":"ERROR","retryable":exc.status>=500,"user_message_key":exc.code.lower(),"developer_context":{},"session_id":request.path_params.get("session_id"),"correlation_id":request.state.correlation_id,"cause":None}})
 
 @app.get("/health")
 def health():return {"status":"ok","runtime":"LOCKED_L1","database":"sqlite"}

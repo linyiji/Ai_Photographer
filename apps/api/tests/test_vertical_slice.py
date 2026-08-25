@@ -30,7 +30,7 @@ async def test_idempotency_and_retake_preservation(client):
 
 @pytest.mark.anyio
 async def test_invalid_transition_uses_error_contract_shape(client):
-    sid=(await client.post("/sessions")).json()["session_id"];response=await act(client,sid,"CREATE_CAPTURE","bad");assert response.status_code==409;assert set(response.json()["error"])=={"code","message","retryable","correlation_id"}
+    sid=(await client.post("/sessions")).json()["session_id"];response=await act(client,sid,"CREATE_CAPTURE","bad");assert response.status_code==409;assert set(response.json()["error"])=={"schema_version","error_code","category","severity","retryable","user_message_key","developer_context","session_id","correlation_id","cause"}
 
 @pytest.mark.anyio
 async def test_m01_workflow_and_capability_seams_are_consumed(client):

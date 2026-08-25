@@ -1,0 +1,16 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://xfx.local/schemas/scenario-manifest-v2.schema.json",
+  "title":"XFX M03 Scenario Manifest V2",
+  "type":"object",
+  "required":["manifest_version","source","scenarios"],
+  "properties":{
+    "manifest_version":{"const":"2.0.0"},
+    "source":{"type":"object","required":["name","version"],"properties":{"name":{"type":"string"},"version":{"type":"string"}}},
+    "scenarios":{"type":"array","minItems":12,"items":{"$ref":"#/$defs/scenario"}}
+  },
+  "$defs":{
+    "action":{"type":"object","required":["action"],"properties":{"action":{"type":"string"},"payload":{"type":"object"},"fault":{"type":"string"}}},
+    "scenario":{"type":"object","required":["scenario_id","title","purpose","actions","final"],"properties":{"scenario_id":{"type":"string"},"title":{"type":"string"},"purpose":{"type":"string"},"actions":{"enum":["HAPPY","RETAKE_MICRO","RETAKE_POSITION","DUPLICATE"]},"final":{"type":"string"},"entry_mode":{"enum":["REALITY_FIRST","TARGET_FIRST"]},"checkpoint":{"type":"integer"},"controlled_failure":{"type":"boolean"},"fault":{"type":"object","required":["step","type"],"properties":{"step":{"type":"integer"},"type":{"type":"string"},"recover":{"type":"boolean"}}}}}
+  }
+}

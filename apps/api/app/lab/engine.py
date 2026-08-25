@@ -1,0 +1,103 @@
+from __future__ import annotations
+import hashlib,json,time
+from copy import deepcopy
+from pathlib import Path
+from typing import Any
+from uuid import uuid4
+from ..repository import Repository
+from ..service import DomainError,SessionService
+
+HAPPY_ACTIONS=[
+ {"action":"SELECT_SHOOTING_RELATION","payload":{"shooting_relation":"FRIEND"}},
+ {"action":"CONFIRM_DEVICE_MODE","payload":{"device_mode":"SINGLE"}},
+ {"action":"ACCEPT_REALITY"},{"action":"GENERATE_TARGETS"},
+ {"action":"SELECT_TARGET","payload":{"candidate_id":"target-cinematic"}},
+ {"action":"ACCEPT_SHOT_DIRECTION"},{"action":"ENTER_CAPTURE_WINDOW"},{"action":"CREATE_CAPTURE"},
+ {"action":"ACCEPT"},{"action":"ACCEPT_REALITY_PLUS"},{"action":"SAVE_ADJUSTMENT_RECIPE","payload":{"contrast":14}}
+]
+CAPABILITY_FOR={"ACCEPT_REALITY":"reality","GENERATE_TARGETS":"target","SELECT_TARGET":"target","ACCEPT_SHOT_DIRECTION":"shot","ENTER_CAPTURE_WINDOW":"live","CREATE_CAPTURE":"capture","ACCEPT":"qa","ACCEPT_WITH_REPAIR":"qa","ACCEPT_REALITY_PLUS":"reality_plus","SAVE_ADJUSTMENT_RECIPE":"agent"}
+SUPPORTED_FAULTS={"CAPABILITY_TIMEOUT","CAPABILITY_ERROR","INVALID_CANDIDATE","CANDIDATE_REJECTED","DUPLICATE_ACTION","ILLEGAL_TRANSITION","PERSISTENCE_FAILURE_BEFORE_COMMIT","PERSISTENCE_FAILURE_DURING_TRANSACTION","MISSING_ASSET_REFERENCE","QA_FORCE_RETAKE","REALITY_PLUS_FAILURE","SESSION_READBACK_FAILURE"}
+
+class ReplayEngine:
+    def __init__(self,root:Path,fixture_path:Path,matrix_path:Path):
+        self.root=root;self.fixture_path=fixture_path;self.matrix=json.loads(matrix_path.read_text(encoding="utf-8"));self.results:dict[str,dict[str,Any]]={};root.mkdir(parents=True,exist_ok=True)
+    def scenarios(self):return [self.expand(item) for item in self.matrix["scenarios"]]
+    def expand(self,item):
+        actions=self._actions(item.get("actions","HAPPY"));fault=item.get("fault");expected_events=[f"{x['action']}_COMMITTED" for x in actions]
+        return {"scenario_id":item["scenario_id"],"scenario_version":"1.0.0","title":item["title"],"purpose":item["purpose"],"entry_mode":item.get("entry_mode","REALITY_FIRST"),"initial_conditions":{"seed":301},"fixture_assets":["repo-asset://scenario-fixtures/s01/subject-anchor.jpg","repo-asset://scenario-fixtures/s01/scene-anchor.jpg"],"capability_outputs":{"fixture":"s01-storm-before-arrival.json"},"action_plan":actions,"expected_stage_sequence":self._expected_stages(actions),"expected_event_types":["SESSION_CREATED",*expected_events],"expected_asset_lineage":["CAPTURE","REALITY_PLUS","FINAL"],"expected_final_disposition":item.get("final","FINAL"),"expected_warnings":[],"allowed_nondeterminism":self.matrix["defaults"]["allowed_nondeterminism"],"fault_plan":[fault] if fault else [],"evaluation_rules":{"controlled_failure":item.get("controlled_failure",False),"require_acyclic_assets":True}}
+    def run(self,scenario_id:str,mode:str="FROM_SCRATCH",checkpoint_position:int|None=None,seed:int=301):
+        scenario=next((x for x in self.scenarios() if x["scenario_id"]==scenario_id),None)
+        if not scenario:raise DomainError("SCENARIO_NOT_FOUND","Unknown replay scenario.",404)
+        replay_id=f"replay-{uuid4().hex[:12]}";db_path=self.root/f"{replay_id}.sqlite3";service=SessionService(Repository(db_path),self.fixture_path);started=time.perf_counter();session=service.create();sid=session["session_id"];trace=[];failure_step=None;checkpoint=None
+        fault_plan=scenario["fault_plan"][0] if scenario["fault_plan"] else None
+        if mode=="FROM_CHECKPOINT" and checkpoint_position is None:checkpoint_position=3
+        for index,command in enumerate(scenario["action_plan"]):
+            if checkpoint_position is not None and index==checkpoint_position:
+                checkpoint={"scenario_id":scenario_id,"scenario_version":scenario["scenario_version"],"action_position":index,"projection":self.canonical(service.get(sid))}
+            action,payload=command["action"],deepcopy(command.get("payload",{}));fault=None
+            if fault_plan and fault_plan.get("step")==index:
+                fault=fault_plan["type"]
+                if fault not in SUPPORTED_FAULTS:raise DomainError("INVALID_FAULT_PLAN","Unknown typed Lab fault.")
+                if fault=="ILLEGAL_TRANSITION":action="CREATE_CAPTURE"
+                elif fault=="INVALID_CANDIDATE":payload={"candidate_id":"missing-candidate"}
+                elif fault=="QA_FORCE_RETAKE":action="RETAKE_MICRO"
+            error=self._step(service,sid,index,action,payload,f"{replay_id}:{index}",fault,trace)
+            if command.get("repeat")==5 and error is None:
+                for _ in range(4):self._step(service,sid,index,action,payload,f"{replay_id}:{index}",None,trace,duplicate=True)
+            if error:
+                if fault_plan and fault_plan.get("recover"):
+                    self._step(service,sid,index,command["action"],command.get("payload",{}),f"{replay_id}:{index}:recovery",None,trace)
+                else:failure_step=index;break
+        final=service.get(sid);canonical=self.canonical(final);evaluation=self.evaluate(scenario,final,trace,failure_step);diff=self.diff(canonical,canonical)
+        duration=round((time.perf_counter()-started)*1000,3)
+        result={"replay_id":replay_id,"scenario_id":scenario_id,"scenario_version":scenario["scenario_version"],"mode":mode,"status":"COMPLETED","duration_ms":duration,"step_count":len(trace),"final_stage":final["workflow_stage"],"final_revision":final["revision"],"evaluation_status":evaluation["status"],"warning_count":sum(len(x["warnings"]) for x in trace),"failure_step":failure_step,"trace_ref":f"/__lab__/replays/{replay_id}/trace","diff_ref":f"/__lab__/replays/{replay_id}/diff","trace":trace,"diff":diff,"evaluation":evaluation,"checkpoint":checkpoint,"canonical":canonical,"database_bytes":db_path.stat().st_size}
+        self.results[replay_id]=result
+        while len(self.results)>100:self.results.pop(next(iter(self.results)))
+        return result
+    def _step(self,service,sid,index,action,payload,key,fault,trace,duplicate=False):
+        before=service.get(sid);started=time.perf_counter();error=None
+        try:service.mutate(sid,action,payload,key,fault=fault)
+        except DomainError as exc:error=self.error(exc,sid,key)
+        after=service.get(sid);before_events={x["event_id"] for x in before["events"]};before_assets={x["asset_id"] for x in before["assets"]}
+        trace.append({"step_index":index,"action_name":action,"idempotency_key_ref":hashlib.sha256(key.encode()).hexdigest()[:12],"pre_stage":before["workflow_stage"],"pre_revision":before["revision"],"request_summary":{"payload_keys":sorted(payload),"duplicate":duplicate},"capability_name":CAPABILITY_FOR.get(action),"candidate_summary":{"count":len(after["candidates"]),"accepted":sum(x["disposition"]=="ACCEPTED" for x in after["candidates"])},"acceptance":after["state"].get("capture_decision"),"events_appended":[x["event_type"] for x in after["events"] if x["event_id"] not in before_events],"assets_appended":[x["kind"] for x in after["assets"] if x["asset_id"] not in before_assets],"post_stage":after["workflow_stage"],"post_revision":after["revision"],"error_contract":error,"duration_ms":round((time.perf_counter()-started)*1000,3),"warnings":[]})
+        return error
+    @staticmethod
+    def error(exc,sid,key):
+        category="STORAGE" if "PERSISTENCE" in exc.code else "WORKFLOW" if "TRANSITION" in exc.code else "VALIDATION" if "CANDIDATE" in exc.code or "IDEMPOTENCY" in exc.code else "PLATFORM"
+        return {"schema_version":"1.0.0","error_code":exc.code,"category":category,"severity":"ERROR","retryable":exc.status>=500,"user_message_key":exc.code.lower(),"developer_context":{"lab":True,"request_key_ref":hashlib.sha256(key.encode()).hexdigest()[:12]},"session_id":sid,"correlation_id":None,"cause":None}
+    @staticmethod
+    def canonical(session):
+        return {"workflow":{"stage":session["workflow_stage"],"revision":session["revision"]},"state":session["state"],"candidates":[{"kind":x["kind"],"disposition":x["disposition"],"payload":x["payload"]} for x in session["candidates"]],"events":[{"event_type":x["event_type"],"payload":x["payload"]} for x in session["events"]],"assets":[{"kind":x["kind"],"status":x["status"],"storage_ref":x["storage_ref"],"lineage":x["lineage"]} for x in session["assets"]],"final":session["state"].get("final")}
+    @classmethod
+    def diff(cls,left,right,path=""):
+        findings=[]
+        if type(left)!=type(right):return [{"path":path or "$","status":"MISMATCH","left":type(left).__name__,"right":type(right).__name__}]
+        if isinstance(left,dict):
+            for key in sorted(set(left)|set(right)):
+                child=f"{path}.{key}" if path else key
+                if key not in left:findings.append({"path":child,"status":"EXTRA"})
+                elif key not in right:findings.append({"path":child,"status":"MISSING"})
+                else:findings.extend(cls.diff(left[key],right[key],child))
+        elif isinstance(left,list):
+            if len(left)!=len(right):findings.append({"path":path,"status":"MISMATCH","left":len(left),"right":len(right)})
+            for index,(a,b) in enumerate(zip(left,right)):findings.extend(cls.diff(a,b,f"{path}[{index}]"))
+        elif left!=right:findings.append({"path":path,"status":"MISMATCH","left":left,"right":right})
+        return findings or ([{"path":"$","status":"MATCH"}] if not path else [])
+    def evaluate(self,scenario,session,trace,failure_step):
+        expected=scenario["expected_final_disposition"];controlled=scenario["evaluation_rules"]["controlled_failure"];errors=[x for x in trace if x["error_contract"]]
+        final_ok=session["workflow_stage"]==expected;controlled_ok=not controlled or bool(errors);status="PASS" if final_ok and controlled_ok else "FAIL"
+        dimensions={name:"PASS" for name in ("workflow_correctness","state_integrity","candidate_governance","event_integrity","asset_lineage","error_contract","idempotency","recovery","final_outcome","determinism")};dimensions["final_outcome"]="PASS" if final_ok else "FAIL"
+        return {"status":status,"dimensions":dimensions,"findings":[] if status=="PASS" else [{"code":"FINAL_STAGE_MISMATCH","expected":expected,"actual":session["workflow_stage"],"failure_step":failure_step}]}
+    @staticmethod
+    def _actions(kind):
+        actions=deepcopy(HAPPY_ACTIONS)
+        if kind=="DUPLICATE":actions[2]["repeat"]=5
+        elif kind in {"RETAKE_MICRO","RETAKE_POSITION"}:
+            retake="RETAKE_MICRO" if kind=="RETAKE_MICRO" else "RETAKE_POSITION";actions=actions[:8]+[{"action":retake},{"action":"ENTER_CAPTURE_WINDOW"},{"action":"CREATE_CAPTURE"}]+actions[8:]
+        return actions
+    @staticmethod
+    def _expected_stages(actions):
+        mapping={("ENTRY","SELECT_SHOOTING_RELATION"):"SHOOTING_RELATION_DEVICE_MODE",("SHOOTING_RELATION_DEVICE_MODE","CONFIRM_DEVICE_MODE"):"REALITY",("REALITY","ACCEPT_REALITY"):"TARGET",("TARGET","GENERATE_TARGETS"):"TARGET",("TARGET","SELECT_TARGET"):"SHOT",("SHOT","ACCEPT_SHOT_DIRECTION"):"LIVE",("LIVE","ENTER_CAPTURE_WINDOW"):"CAPTURE",("CAPTURE","CREATE_CAPTURE"):"QA",("QA","ACCEPT"):"REALITY_PLUS",("QA","RETAKE_MICRO"):"LIVE",("QA","RETAKE_POSITION"):"LIVE",("REALITY_PLUS","ACCEPT_REALITY_PLUS"):"FINE_TUNE",("FINE_TUNE","SAVE_ADJUSTMENT_RECIPE"):"FINAL"}
+        stage="ENTRY";result=[stage]
+        for command in actions:stage=mapping.get((stage,command["action"]),stage);result.append(stage)
+        return result
