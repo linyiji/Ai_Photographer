@@ -606,11 +606,14 @@ if (replayName) {
       return;
     }
     poseMessage.textContent = `SYNTHETIC REPLAY · ${replayName} · NO CAMERA / NO PROVIDER`;
+    closedLoop.armTrial(trajectory[0]?.timestamp_ms ?? 0);
+    scalarTrace.clear();
     trajectory.forEach((state, index) => {
       window.setTimeout(() => {
         latestPerceptionState = state;
         latestRawMeasurement = null;
         latestClosedLoop = closedLoop.update(state);
+        scalarTrace.append(state, latestClosedLoop);
         if (latestClosedLoop.instruction && latestClosedLoop.instruction.action !== 'HOLD') {
           displayedActionCopy = latestClosedLoop.instruction.copy_zh;
           displayedActionUntilMs = state.timestamp_ms + 700;

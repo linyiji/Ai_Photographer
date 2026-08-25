@@ -1,7 +1,7 @@
 # Live Physical Agent Spike Status
 
 ```text
-Task = XFX_LIVE_P1_ACCEPTANCE_AND_P2_LOCAL_CLOSED_LOOP_01
+Task = XFX_LIVE_P2_CONTROL_POLICY_RECALIBRATION_01
 Profile = REALTIME_CAMERA_CV
 Mode = GUIDANCE_CONTROL
 Scope = LIVE-P1 acceptance + LIVE-P2 local closed loop
@@ -18,10 +18,12 @@ LIVE-P1 Final Gate = PASS
 LIVE-P1 = PASS
 P2 Implementation Gate = PASS
 P2 Automated Tests = PASS
+P2 Recalibration Automated Tests = 47/47 PASS
 P2 Typecheck / Build / Browser Replay = PASS / PASS / PASS
-P2 Real Device Gate = FAIL
+P2 Recalibration Implementation Gate = PASS
+P2 Real Device Gate = MANUAL_REVIEW_REQUIRED
 LIVE-P2 = FAIL
-Status = FAIL
+Status = READY_FOR_MANUAL_DEVICE_TEST
 
 Vision Package = @mediapipe/tasks-vision@1.0.1 / EXACT
 Model = Pose Landmarker Lite float16 v1 / LOCAL IGNORED ASSET
