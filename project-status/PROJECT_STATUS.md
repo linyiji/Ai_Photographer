@@ -3,9 +3,9 @@
 **Project Baseline:** V0.6 Complete  
 **Current Product Prototype:** S01 V1.6.1  
 **Current Milestone:** M06 — Real Capability Integration Wave
-**Current Task:** XFX_M06_REAL_CAPABILITY_INTEGRATION_WAVE_01
+**Current Task:** XFX_MAIN_M06_PROVIDER_DEFERRED_AND_FRONTEND_SIMPLIFICATION_01
 
-**Current Task Status:** READY_FOR_PROVIDER_ACCEPTANCE
+**Current Task Status:** PHASE_A_PASS / PHASE_B_PENDING
 
 **Overall Project Status:** IN_PROGRESS
 **Primary Environment:** Windows First
@@ -20,7 +20,7 @@
 | M03 Fast Feedback Lab | PASS | M03_REPLAY_READY = PASS |
 | M04 Platform Adapter Integration Foundation | PASS | M04_PLATFORM_ADAPTER_FOUNDATION = PASS |
 | M05 MVP Golden Flow | PASS | Implementation PASS; Real Device PASS; M05 Final Gate PASS |
-| M06 Real Capability Replacement | VALIDATING | Implementation PASS; Real Provider MANUAL_REVIEW_REQUIRED |
+| M06 Real Capability Replacement | PASS | Infrastructure PASS; Provider DEFERRED_BY_PRODUCT_DECISION |
 | M07 Cross-platform | NOT_STARTED | M07_CROSS_PLATFORM_BASELINE |
 
 ## M05 Real User Golden Flow
@@ -80,6 +80,19 @@ Auto FF Merge: NOT_ATTEMPTED
 Main-owned provider-neutral Gateway, Prompt/Model Registry, execution provenance, Capture QA Candidate validation, fault normalization, M03 AI Lab modes, and controlled evaluation harness are implemented. Fixture metrics are 100% schema-valid/disposition/must-detect with zero invented facts and zero retake false negatives, but they prove harness behavior only. No provider/model/credential configuration existed, so real QA was not run or promoted and this feature is not merged to `develop`.
 
 Admission remains honest: QA is `ADMISSION_READY`; Reality is `BLOCKED_INPUT_CONTRACT`; Target is `BLOCKED_PROVIDER`; Shot is `BLOCKED_INPUT_CONTRACT`; Live, Reality+, and Fine Tune are `BLOCKED_PARALLEL_TRACK`. M01, Workflow, Platform Catalog, normal product UI, main, and protected parallel worktrees remain unchanged.
+
+### M06 Phase-1 Owner Decision
+
+The earlier `READY_FOR_PROVIDER_ACCEPTANCE` evidence remains preserved. For the Phase-1 non-AI complete product, the owner subsequently selected:
+
+```text
+Real Provider: DEFERRED_BY_PRODUCT_DECISION
+M06 Infrastructure Gate: PASS
+QA Selected: FAKE_INTERNAL_ONLY
+QA Provider Infrastructure: READY_FOR_FUTURE_ADMISSION
+Provider Calls: 0
+PUBLIC_PRODUCTION_READY: NO
+```
 
 ## Windows Bootstrap Acceptance
 

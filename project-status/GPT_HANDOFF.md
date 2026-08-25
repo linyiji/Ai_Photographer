@@ -1,9 +1,9 @@
 # GPT / Codex Handoff
 
 **Baseline:** V0.6 Complete  
-**Current Milestone:** M06 — REAL PROVIDER ACCEPTANCE PENDING
+**Current Milestone:** M06 — PROVIDER DEFERRED / FRONTEND SIMPLIFICATION
 
-**Current Task:** XFX_M06_REAL_CAPABILITY_INTEGRATION_WAVE_01 — READY_FOR_PROVIDER_ACCEPTANCE
+**Current Task:** XFX_MAIN_M06_PROVIDER_DEFERRED_AND_FRONTEND_SIMPLIFICATION_01 — PHASE_A_PASS / PHASE_B_PENDING
 
 ## Project Context
 
@@ -100,6 +100,7 @@ New Shell Reproducibility: PASS
 - M06 provider-neutral AI Capability Gateway, versioned Prompt/Model Registry, non-secret execution records, bounded retry/error normalization, Capture QA Candidate adapter, mandatory shadow invariant, 22-case controlled evaluator, and M03 AI Lab modes implemented on `feature/m06-real-capability-wave`
 - M06 fixture QA evaluation PASS: schema 100%, disposition 100%, critical must-detect 100%, invented reality facts 0, retake false negatives 0; Shadow Session mutation 0 and normal Replay provider calls 0
 - No explicit provider/model/credential configuration was present; Real Provider Gate remains MANUAL_REVIEW_REQUIRED, QA remains FAKE_INTERNAL_ONLY, and M06 feature is intentionally not merged to `develop`
+- A later explicit owner decision defers the real provider for the Phase-1 non-AI complete product; M06 infrastructure is accepted, QA remains `FAKE_INTERNAL_ONLY`, and provider calls remain zero
 
 ## M01 Contract Authority
 

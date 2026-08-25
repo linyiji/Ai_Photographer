@@ -6,8 +6,8 @@
   "primary_environment": "windows",
   "overall_status": "IN_PROGRESS",
   "current_milestone": "M06",
-  "current_task": "XFX_M06_REAL_CAPABILITY_INTEGRATION_WAVE_01",
-  "current_task_status": "READY_FOR_PROVIDER_ACCEPTANCE",
+  "current_task": "XFX_MAIN_M06_PROVIDER_DEFERRED_AND_FRONTEND_SIMPLIFICATION_01",
+  "current_task_status": "PHASE_A_PASS_PHASE_B_PENDING",
   "milestones": [
     { "id": "M00", "name": "Project Baseline", "status": "PASS", "gate": "M00_BASELINE_LOCK", "gate_status": "PASS" },
     { "id": "M01", "name": "Global Contracts", "status": "PASS", "gate": "M01_CONTRACT_LOCK", "gate_status": "PASS" },
@@ -15,7 +15,7 @@
     { "id": "M03", "name": "Fast Feedback Lab", "status": "PASS", "gate": "M03_REPLAY_READY", "gate_status": "PASS" },
     { "id": "M04", "name": "Platform Adapter Integration Foundation", "status": "PASS", "gate": "M04_PLATFORM_ADAPTER_FOUNDATION", "gate_status": "PASS" },
     { "id": "M05", "name": "MVP Golden Flow", "status": "PASS", "gate": "M05_MVP_GOLDEN_FLOW", "gate_status": "PASS" },
-    { "id": "M06", "name": "Real Capability Replacement", "status": "VALIDATING", "gate": "CAPABILITY_GATES", "gate_status": "MANUAL_REVIEW_REQUIRED" },
+    { "id": "M06", "name": "Real Capability Replacement", "status": "PASS", "gate": "M06_INFRASTRUCTURE_GATE", "gate_status": "PASS" },
     { "id": "M07", "name": "Cross-platform", "status": "NOT_STARTED", "gate": "M07_CROSS_PLATFORM_BASELINE" }
   ],
   "bootstrap": {
@@ -399,11 +399,24 @@
     "develop_after_merge": "NOT_MERGED",
     "parallel_worktrees": "UNTOUCHED"
   },
-  "next_required_result": {
-    "task_id": "XFX_M06_REAL_PROVIDER_ACCEPTANCE_01",
-    "condition": "EXPLICIT_PROVIDER_MODEL_CREDENTIAL_CONFIG"
+  "m06_phase1_owner_decision": {
+    "task_id": "XFX_MAIN_M06_PROVIDER_DEFERRED_AND_FRONTEND_SIMPLIFICATION_01",
+    "decision": "REAL_AI_PROVIDER_DEFERRED_FOR_PHASE_1_NON_AI_COMPLETE_PRODUCT",
+    "m06_infrastructure_gate": "PASS",
+    "provider_gate": "DEFERRED_BY_PRODUCT_DECISION",
+    "qa_selected": "FAKE_INTERNAL_ONLY",
+    "qa_provider_infra": "READY_FOR_FUTURE_ADMISSION",
+    "real_provider_calls": 0,
+    "m03_default_provider_calls": 0,
+    "public_production_ready": false,
+    "historical_ready_for_provider_acceptance_evidence": "PRESERVED",
+    "m06_accepted_develop_head": "SELF_PENDING_STRICT_FF"
   },
-  "next_recommended_task": "XFX_M06_REAL_PROVIDER_ACCEPTANCE_01",
+  "next_required_result": {
+    "task_id": "XFX_MAIN_M06_PROVIDER_DEFERRED_AND_FRONTEND_SIMPLIFICATION_01",
+    "condition": "FRONTEND_SIMPLIFICATION_PHASE_B"
+  },
+  "next_recommended_task": "XFX_MAIN_M06_PROVIDER_DEFERRED_AND_FRONTEND_SIMPLIFICATION_01",
   "following_main_task": null,
   "live_parallel_track": {
     "status": "LIVE_P0_PASS_EVIDENCE_INGESTED",

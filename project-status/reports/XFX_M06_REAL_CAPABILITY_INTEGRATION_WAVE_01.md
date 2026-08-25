@@ -131,3 +131,18 @@ Parallel Worktrees = UNTOUCHED
 Next Recommended Task = XFX_M06_REAL_PROVIDER_ACCEPTANCE_01
 START NEXT TASK = NO
 ```
+
+## Subsequent owner disposition — Phase-1 provider deferred
+
+The historical `READY_FOR_PROVIDER_ACCEPTANCE` result above is preserved and was not rewritten. A later explicit owner decision in `XFX_MAIN_M06_PROVIDER_DEFERRED_AND_FRONTEND_SIMPLIFICATION_01` changed the Phase-1 product plan, not the recorded technical evidence:
+
+```text
+REAL_AI_PROVIDER = DEFERRED_BY_PRODUCT_DECISION
+M06_INFRASTRUCTURE_GATE = PASS
+QA_SELECTED = FAKE_INTERNAL_ONLY
+QA_PROVIDER_INFRA = READY_FOR_FUTURE_ADMISSION
+REAL_PROVIDER_CALLS = 0
+PUBLIC_PRODUCTION_READY = NO
+```
+
+The provider-neutral infrastructure remains available for a future independently authorized provider admission task.
