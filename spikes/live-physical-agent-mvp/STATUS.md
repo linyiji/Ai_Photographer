@@ -1,11 +1,11 @@
 # Live Physical Agent Spike Status
 
 ```text
-Task = XFX_LIVE_PHYSICAL_AGENT_PERCEPTION_STATE_01
+Task = XFX_LIVE_P1_ACCEPTANCE_AND_P2_LOCAL_CLOSED_LOOP_01
 Profile = REALTIME_CAMERA_CV
-Mode = FRAME_PERCEPTION
-Scope = LIVE-P1 bounded perception/state only
-Task Start Commit = 5b4aba45065dc49d435e4790e807e9a5a4ad2d3c
+Mode = GUIDANCE_CONTROL
+Scope = LIVE-P1 acceptance + LIVE-P2 local closed loop
+Task Start Commit = c439e7877ca64f87b7c5bc32667f5b7cd1e78961
 
 LIVE-P0 = PASS
 Implementation Gate = PASS
@@ -13,9 +13,13 @@ Automated Tests = PASS
 Typecheck = PASS
 Build = PASS
 Browser Smoke = PASS
-Real Device Gate = MANUAL_REVIEW_REQUIRED
-LIVE-P1 Final Gate = NOT_YET_PASS
-Status = READY_FOR_MANUAL_DEVICE_TEST
+Real Device Gate = PASS
+LIVE-P1 Final Gate = PASS
+LIVE-P1 = PASS
+P2 Implementation Gate = IN_PROGRESS
+P2 Real Device Gate = NOT_STARTED
+LIVE-P2 = NOT_YET_PASS
+Status = IN_PROGRESS
 
 Vision Package = @mediapipe/tasks-vision@1.0.1 / EXACT
 Model = Pose Landmarker Lite float16 v1 / LOCAL IGNORED ASSET
@@ -31,6 +35,11 @@ P0 Accepted Device = OPPO K11 / ColorOS 15.0 / Chrome Mobile
 P0 Preview FPS = ~29-30 / PASS
 P0 Late / Drop Estimate = ~220 / 14 / WARNING PRESERVED
 P0 Generic Vite Client Error Events = 2 / WARNING PRESERVED / ROOT_CAUSE_UNCLASSIFIED
+P1 Accepted Device = OPPO K11 / ColorOS 15.0 / Chrome Mobile
+P1 Preview / Vision / State = ~29-30 fps / 8.0 Hz / 6.9 Hz
+P1 Inference p50 / p95 = 68.8 / 97.4 ms
+P1 Subject Ratio = 0.317 / WARNING PRESERVED
+P1 Late / Drop = 918 / 29 / WARNING PRESERVED
 CH-003 = UNCHANGED / IDENTIFIED
 CH-003 Evidence = ADDED_IN_LIVE_SPIKE
 Global Project Status = UNCHANGED
@@ -51,6 +60,10 @@ Challenge Registry = UNCHANGED
 
 Only M01 `FramePerception` observation semantics are mapped. Target, Difference/Delta, Readiness, Priority, Guidance, instruction, and full `CurrentShotState`/`LiveShotRuntime` are not fabricated. See `evidence/perception/m01-contract-mapping.md`.
 
-## Remaining gate and stop
+## P1 real-device result
 
-No phone Camera + CV run occurred. Preview FPS cannot substitute for vision rate/inference latency. LIVE-P1 is not PASS. The next permitted checkpoint is manual P1 device acceptance only; do not begin later semantics.
+OPPO K11 real-device Camera + Pose passed the P1 hard gates, including Worker execution, performance, geometry trends, velocity, stability, bounded loss/reacquisition, and absence of visible freeze/black screen. Detailed text-only evidence is in `evidence/perception/manual-device-test-oppo-k11-p1.md`.
+
+## Active phase
+
+The accelerated composite task is authorized to continue automatically into P2 local closed-loop implementation. Luna, Backend inference, Voice, Agent, Capture, QA, Reality+, and complex Pose remain forbidden.
