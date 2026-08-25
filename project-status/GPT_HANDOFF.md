@@ -3,7 +3,7 @@
 **Baseline:** V0.6 Complete  
 **Current Milestone:** M06 — PROVIDER DEFERRED / FRONTEND SIMPLIFICATION
 
-**Current Task:** XFX_MAIN_M06_PROVIDER_DEFERRED_AND_FRONTEND_SIMPLIFICATION_01 — PHASE_A_PASS / PHASE_B_PENDING
+**Current Task:** XFX_MAIN_M06_PROVIDER_DEFERRED_AND_FRONTEND_SIMPLIFICATION_01 — PASS_WITH_WARNING
 
 ## Project Context
 
@@ -99,8 +99,10 @@ New Shell Reproducibility: PASS
 - M05 feature acceptance head `db8c51f07a81e2b9f06635627c650dc3f21f7dca` strict-fast-forward merged from `46393ce0a37bb9e339933679438ff57f58c1e835` into `develop` and pushed; `main` and protected parallel worktrees remained unchanged
 - M06 provider-neutral AI Capability Gateway, versioned Prompt/Model Registry, non-secret execution records, bounded retry/error normalization, Capture QA Candidate adapter, mandatory shadow invariant, 22-case controlled evaluator, and M03 AI Lab modes implemented on `feature/m06-real-capability-wave`
 - M06 fixture QA evaluation PASS: schema 100%, disposition 100%, critical must-detect 100%, invented reality facts 0, retake false negatives 0; Shadow Session mutation 0 and normal Replay provider calls 0
-- No explicit provider/model/credential configuration was present; Real Provider Gate remains MANUAL_REVIEW_REQUIRED, QA remains FAKE_INTERNAL_ONLY, and M06 feature is intentionally not merged to `develop`
+- No explicit provider/model/credential configuration was present in the original M06 run; its `READY_FOR_PROVIDER_ACCEPTANCE` report remains historical evidence
 - A later explicit owner decision defers the real provider for the Phase-1 non-AI complete product; M06 infrastructure is accepted, QA remains `FAKE_INTERNAL_ONLY`, and provider calls remain zero
+- Frontend interaction is simplified to START/SHOOT/REVIEW/FINAL with persisted preferences, Session-only overrides, Quick Settings, explicit Resume, conditional fallback, preserved local confirmation, and legal backend-action auto advance
+- Simplification validation: Backend 94/94, Frontend 20/20, TypeScript PASS, H5 PASS_WITH_WARNING, WeChat PASS, Desktop E2E PASS, console errors 0, backend invariance PASS
 
 ## M01 Contract Authority
 
@@ -211,11 +213,11 @@ The user operated the phone; no phone behavior was inferred. Server evidence pro
 ```text
 Branch: feature/m06-real-capability-wave
 Start Head: 24b28b9107af2c7c99bd9eb4215f6190e68f241e
-Status: READY_FOR_PROVIDER_ACCEPTANCE
+Status: PASS_PHASE1_PROVIDER_DEFERRED
 Implementation Gate: PASS
-Real Provider Gate: MANUAL_REVIEW_REQUIRED
-QA Promotion Gate: NOT_YET_PASS
-M06 Final Gate: NOT_YET_PASS
+Real Provider Gate: DEFERRED_BY_PRODUCT_DECISION
+QA Promotion Gate: DEFERRED
+M06 Infrastructure Gate: PASS
 Provider / Model / Credential: NOT_CONFIGURED
 Canonical QA: FAKE_INTERNAL_ONLY
 Fixture Shadow: PASS / Session mutation 0
@@ -224,7 +226,7 @@ Real Provider Calls: 0
 Regression: Backend 94 / 94; Frontend 11 / 11; TypeScript PASS; H5 PASS_WITH_WARNING; WeChat PASS
 Browser Real-QA Flow: NOT_RUN
 PUBLIC_PRODUCTION_READY: NO
-Merge: NOT_ATTEMPTED
+Merge: PASS / develop 0b5501eb46d495f934b8fa8ad63c5034b7953050
 ```
 
 Authority: `docs/architecture/73-real-capability-admission-matrix-v1.0.md`, `docs/ai/74-ai-capability-gateway-v1.0.md`, and `docs/ai/75-capture-qa-real-adapter-v1.0.md`. QA may consume only an accepted uploaded CaptureAsset; unconfirmed still, raw video, and frame stream provider paths are blocked. Fixture metrics never substitute for real-model quality. Reality/Shot remain blocked by contract/input gaps, Target by provider absence, and Live/Reality+/Fine Tune by their parallel gates.
@@ -242,7 +244,7 @@ project-status/CHALLENGES.json
 Next Recommended Task:
 
 ```text
-XFX_M06_REAL_PROVIDER_ACCEPTANCE_01
+XFX_LOCAL_FINE_TUNE_INTEGRATION_01
 ```
 
-不要自动执行下一任务。下一步必须先提供显式 Provider、Model/Version、环境 Credential 配置和调用预算。M01 Contract Authority、Frontend Runtime L1 与 M04 保持不变；Live/Fine Tune/AI Visual 未集成，CH-003 保持 `IDENTIFIED / UNCHANGED`。
+不要自动执行下一任务。Real Provider 已按产品决定延期；下一步是受控 Local Fine Tune Integration。M01 Contract Authority、Workflow V1、Platform Catalog 与 Backend Session Authority 保持不变；Live/Fine Tune/AI Visual 并行 worktree 未触碰，CH-003 保持 `IDENTIFIED / UNCHANGED`。

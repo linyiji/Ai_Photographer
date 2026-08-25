@@ -7,7 +7,7 @@
   "overall_status": "IN_PROGRESS",
   "current_milestone": "M06",
   "current_task": "XFX_MAIN_M06_PROVIDER_DEFERRED_AND_FRONTEND_SIMPLIFICATION_01",
-  "current_task_status": "PHASE_A_PASS_PHASE_B_PENDING",
+  "current_task_status": "PASS_WITH_WARNING",
   "milestones": [
     { "id": "M00", "name": "Project Baseline", "status": "PASS", "gate": "M00_BASELINE_LOCK", "gate_status": "PASS" },
     { "id": "M01", "name": "Global Contracts", "status": "PASS", "gate": "M01_CONTRACT_LOCK", "gate_status": "PASS" },
@@ -344,13 +344,13 @@
   },
   "m06_real_capability_wave": {
     "task_id": "XFX_M06_REAL_CAPABILITY_INTEGRATION_WAVE_01",
-    "status": "READY_FOR_PROVIDER_ACCEPTANCE",
+    "status": "PASS_PHASE1_PROVIDER_DEFERRED",
     "work_branch": "feature/m06-real-capability-wave",
     "start_head": "24b28b9107af2c7c99bd9eb4215f6190e68f241e",
     "implementation_gate": "PASS",
-    "real_provider_gate": "MANUAL_REVIEW_REQUIRED",
-    "qa_promotion_gate": "NOT_YET_PASS",
-    "m06_final_gate": "NOT_YET_PASS",
+    "real_provider_gate": "DEFERRED_BY_PRODUCT_DECISION",
+    "qa_promotion_gate": "DEFERRED",
+    "m06_final_gate": "PASS_PHASE1_INFRASTRUCTURE",
     "provider": "NOT_CONFIGURED",
     "model": "NOT_CONFIGURED",
     "credential_source": "NOT_CONFIGURED",
@@ -381,7 +381,7 @@
     "reality_plus_admission": "BLOCKED_PARALLEL_TRACK",
     "fine_tune_admission": "BLOCKED_PARALLEL_TRACK",
     "public_production_ready": false,
-    "auto_ff_merge": "NOT_ATTEMPTED",
+    "auto_ff_merge": "PASS",
     "backend_tests": "94 PASS",
     "frontend_tests": "11 PASS",
     "typescript": "PASS",
@@ -396,7 +396,7 @@
       "SELF"
     ],
     "remote_feature_branch": "PASS",
-    "develop_after_merge": "NOT_MERGED",
+    "develop_after_merge": "0b5501eb46d495f934b8fa8ad63c5034b7953050",
     "parallel_worktrees": "UNTOUCHED"
   },
   "m06_phase1_owner_decision": {
@@ -410,13 +410,43 @@
     "m03_default_provider_calls": 0,
     "public_production_ready": false,
     "historical_ready_for_provider_acceptance_evidence": "PRESERVED",
-    "m06_accepted_develop_head": "SELF_PENDING_STRICT_FF"
+    "m06_accepted_develop_head": "0b5501eb46d495f934b8fa8ad63c5034b7953050"
+  },
+  "frontend_interaction_simplification": {
+    "task_id": "XFX_MAIN_M06_PROVIDER_DEFERRED_AND_FRONTEND_SIMPLIFICATION_01",
+    "status": "PASS_WITH_WARNING",
+    "work_branch": "feature/frontend-interaction-simplification",
+    "start_head": "0b5501eb46d495f934b8fa8ad63c5034b7953050",
+    "user_visible_stages": ["START", "SHOOT", "REVIEW", "FINAL"],
+    "preferences": "PASS",
+    "session_ui_override": "PASS",
+    "quick_settings": "PASS",
+    "low_risk_auto_advance": "PASS",
+    "explicit_resume": "PASS",
+    "conditional_fallback": "PASS",
+    "pre_confirm_uploads": 0,
+    "app_to_camera_decisions": 2,
+    "confirm_to_final_additional_decisions": 0,
+    "backend_invariance": "PASS",
+    "backend_tests": "94 PASS",
+    "frontend_tests": "20 PASS",
+    "typescript": "PASS",
+    "h5_build": "PASS_WITH_WARNING",
+    "wechat_build": "PASS",
+    "desktop_e2e": "PASS",
+    "console_fatal_errors": 0,
+    "provider_calls": 0,
+    "public_production_ready": false,
+    "first_complete_non_ai_product_baseline": "NOT_YET_PASS",
+    "feature_commits": ["095722d", "2867d4f", "SELF"],
+    "simplified_flow_accepted_develop_head": "SELF_AFTER_STRICT_FF",
+    "parallel_worktrees": "UNTOUCHED"
   },
   "next_required_result": {
-    "task_id": "XFX_MAIN_M06_PROVIDER_DEFERRED_AND_FRONTEND_SIMPLIFICATION_01",
-    "condition": "FRONTEND_SIMPLIFICATION_PHASE_B"
+    "task_id": "XFX_LOCAL_FINE_TUNE_INTEGRATION_01",
+    "condition": "LOCAL_FINE_TUNE_INTEGRATION"
   },
-  "next_recommended_task": "XFX_MAIN_M06_PROVIDER_DEFERRED_AND_FRONTEND_SIMPLIFICATION_01",
+  "next_recommended_task": "XFX_LOCAL_FINE_TUNE_INTEGRATION_01",
   "following_main_task": null,
   "live_parallel_track": {
     "status": "LIVE_P0_PASS_EVIDENCE_INGESTED",

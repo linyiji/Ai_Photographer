@@ -5,7 +5,7 @@
 **Current Milestone:** M06 — Real Capability Integration Wave
 **Current Task:** XFX_MAIN_M06_PROVIDER_DEFERRED_AND_FRONTEND_SIMPLIFICATION_01
 
-**Current Task Status:** PHASE_A_PASS / PHASE_B_PENDING
+**Current Task Status:** PASS_WITH_WARNING
 
 **Overall Project Status:** IN_PROGRESS
 **Primary Environment:** Windows First
@@ -58,11 +58,11 @@ Retained acceptance warnings: the existing H5 302 KiB size advisory; reload/fina
 ```text
 Branch: feature/m06-real-capability-wave
 Start Head: 24b28b9107af2c7c99bd9eb4215f6190e68f241e
-Status: READY_FOR_PROVIDER_ACCEPTANCE
+Status: PASS_PHASE1_PROVIDER_DEFERRED
 Implementation Gate: PASS
-Real Provider Gate: MANUAL_REVIEW_REQUIRED
-QA Promotion Gate: NOT_YET_PASS
-M06 Final Gate: NOT_YET_PASS
+Real Provider Gate: DEFERRED_BY_PRODUCT_DECISION
+QA Promotion Gate: DEFERRED
+M06 Infrastructure Gate: PASS
 Provider / Model: NOT_CONFIGURED
 QA Canonical Adapter: FAKE_INTERNAL_ONLY
 QA Fixture Shadow: PASS
@@ -74,10 +74,10 @@ Browser Real-QA Flow: NOT_RUN
 Real Provider Calls: 0
 M03 Deterministic Provider Calls: 0
 PUBLIC_PRODUCTION_READY: NO
-Auto FF Merge: NOT_ATTEMPTED
+Auto FF Merge: PASS / 0b5501eb46d495f934b8fa8ad63c5034b7953050
 ```
 
-Main-owned provider-neutral Gateway, Prompt/Model Registry, execution provenance, Capture QA Candidate validation, fault normalization, M03 AI Lab modes, and controlled evaluation harness are implemented. Fixture metrics are 100% schema-valid/disposition/must-detect with zero invented facts and zero retake false negatives, but they prove harness behavior only. No provider/model/credential configuration existed, so real QA was not run or promoted and this feature is not merged to `develop`.
+Main-owned provider-neutral Gateway, Prompt/Model Registry, execution provenance, Capture QA Candidate validation, fault normalization, M03 AI Lab modes, and controlled evaluation harness are implemented. Fixture metrics are 100% schema-valid/disposition/must-detect with zero invented facts and zero retake false negatives, but they prove harness behavior only. No real QA was run or promoted. After the owner deferred the provider, this infrastructure was strict-fast-forward merged to `develop` at `0b5501eb46d495f934b8fa8ad63c5034b7953050`.
 
 Admission remains honest: QA is `ADMISSION_READY`; Reality is `BLOCKED_INPUT_CONTRACT`; Target is `BLOCKED_PROVIDER`; Shot is `BLOCKED_INPUT_CONTRACT`; Live, Reality+, and Fine Tune are `BLOCKED_PARALLEL_TRACK`. M01, Workflow, Platform Catalog, normal product UI, main, and protected parallel worktrees remain unchanged.
 
@@ -93,6 +93,26 @@ QA Provider Infrastructure: READY_FOR_FUTURE_ADMISSION
 Provider Calls: 0
 PUBLIC_PRODUCTION_READY: NO
 ```
+
+## Frontend Interaction Simplification
+
+```text
+Branch: feature/frontend-interaction-simplification
+M06 Accepted Develop Head: 0b5501eb46d495f934b8fa8ad63c5034b7953050
+Status: PASS_WITH_WARNING
+User-visible Stages: START / SHOOT / REVIEW / FINAL
+Backend Invariance: PASS
+Frontend Tests: 20 / 20 PASS
+Backend Tests: 94 / 94 PASS
+Desktop H5 E2E: PASS
+App-to-Camera Decisions: 2
+Confirm-to-Final Additional Decisions: 0
+Provider Calls: 0
+PUBLIC_PRODUCTION_READY: NO
+FIRST_COMPLETE_NON_AI_PRODUCT_BASELINE: NOT_YET_PASS
+```
+
+The only warning is the existing H5 302 KiB entrypoint advisory. Fine Tune remains a governed unavailable placeholder and is not integrated by this task.
 
 ## Windows Bootstrap Acceptance
 
@@ -332,7 +352,7 @@ Challenges Reopened: NONE
 ## Next Recommended Task
 
 ```text
-XFX_M06_REAL_PROVIDER_ACCEPTANCE_01
+XFX_LOCAL_FINE_TUNE_INTEGRATION_01
 ```
 
-这里只记录下一证据任务；本次不开始真实 Provider Acceptance，不修改 `main`。Live/Fine Tune/AI Visual 保持独立，CH-003 仍为 `IDENTIFIED / UNCHANGED`。
+这里只记录下一任务；本次不开始 Local Fine Tune Integration，不修改 `main`。Live/Fine Tune/AI Visual 并行 worktree 保持独立，CH-003 仍为 `IDENTIFIED / UNCHANGED`。
