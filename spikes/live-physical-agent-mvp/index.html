@@ -19,12 +19,23 @@
         </button>
       </header>
 
-      <section class="camera-stage" aria-label="相机预览">
+      <section id="camera-stage" class="camera-stage" aria-label="相机预览">
         <video id="preview" autoplay muted playsinline aria-label="实时相机预览"></video>
         <div id="empty-state" class="empty-state">
           <span class="empty-state__mark" aria-hidden="true"></span>
           <strong id="empty-title">相机尚未启动</strong>
           <span id="empty-copy">点击下方按钮后才会请求摄像头权限</span>
+        </div>
+
+        <div id="visual-servo-overlay" class="visual-servo-overlay" data-status="LOST" data-theme="DEFAULT" aria-label="Visual Servo Guidance">
+          <div id="visual-grid" class="visual-grid" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div id="acceptable-zone" class="visual-box acceptable-zone" aria-hidden="true"></div>
+          <div id="target-box" class="visual-box target-box" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div id="subject-box" class="visual-box subject-box" aria-hidden="true"><span id="subject-lock-label">人物锁定中</span><i></i><i></i><i></i><i></i></div>
+          <div id="direction-visual" class="direction-visual" aria-hidden="true"><strong id="direction-icon">←</strong><span id="direction-label">往左一点</span></div>
+          <div id="stop-visual" class="stop-visual" aria-hidden="true"><strong>◎</strong><span>好，停一下</span></div>
+          <div id="ready-visual" class="ready-visual" aria-hidden="true"><strong>✓</strong><span>好，就这里</span></div>
+          <div id="tracking-visual" class="tracking-visual">正在寻找人物</div>
         </div>
 
         <div id="hud" class="hud" aria-label="Debug HUD">
@@ -132,6 +143,14 @@
             <label class="target-picker">TARGET
               <select id="target-preset" aria-label="Target preset"></select>
             </label>
+            <label class="target-picker">MODE
+              <select id="guidance-mode" aria-label="Guidance mode">
+                <option value="TEXT_DOMINANT">文字主导</option>
+                <option value="VISUAL_SERVO">纯视觉</option>
+                <option value="VISUAL_PLUS_TEXT" selected>视觉 + 文字</option>
+              </select>
+            </label>
+            <label class="toggle-setting"><input id="guidance-grid" type="checkbox" checked /> 九宫格</label>
             <button id="closed-loop-reset" class="button button--quiet" type="button">重置本机引导</button>
             <button id="closed-loop-arm" class="button" type="button">ARM 新试验</button>
             <button id="closed-loop-trace" class="button button--quiet" type="button">下载标量 Trace</button>
@@ -166,6 +185,10 @@
           <div><dt>GEOMETRY / READY SOURCE</dt><dd id="cl-ready-source">FALSE / —</dd></div>
           <div><dt>PASSIVE CONFIRM REMAINING</dt><dd id="cl-passive">0 ms</dd></div>
           <div><dt>RECOVERY AUTO REMAINING</dt><dd id="cl-recovery">0 ms</dd></div>
+          <div><dt>VISUAL STATUS / MODE</dt><dd id="cl-visual-status">LOST / VISUAL_PLUS_TEXT</dd></div>
+          <div><dt>TRACK LOCK / CONF</dt><dd id="cl-visual-lock">UNLOCKED / 0.000</dd></div>
+          <div><dt>RAW / STABILIZED JITTER</dt><dd id="cl-visual-jitter">0.0000 / 0.0000</dd></div>
+          <div><dt>TARGET ENTRY / EXIT</dt><dd id="cl-visual-entry">0 / 0</dd></div>
           <div><dt>STABLE / DURATION</dt><dd id="cl-stable">FALSE / 0 ms</dd></div>
           <div><dt>ORDINARY / STOP / HOLD / SUCCESS</dt><dd id="cl-counts-a">0 / 0 / 0 / 0</dd></div>
           <div><dt>IMPROVING / NO EFFECT</dt><dd id="cl-counts-b">0 / 0</dd></div>

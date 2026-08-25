@@ -6,6 +6,9 @@ import { ACTION_COPY, CLOSED_LOOP_CONFIG, TARGET_PRESETS } from '../closed-loop/
 import { LocalClosedLoopEngine } from '../closed-loop/engine.js';
 import type { ClosedLoopSnapshot } from '../closed-loop/types.js';
 import { ScalarTraceRecorder } from '../closed-loop/trace.js';
+import { VisualGuidanceProjector } from '../visual-guidance/projector.js';
+import type { NormalizedBox, VisualGuidanceState, VisualServoMode } from '../visual-guidance/types.js';
+import { projectBoxToCover } from '../visual-guidance/viewport.js';
 
 type FacingMode = 'user' | 'environment';
 type PermissionStateLabel = PermissionState | 'not_requested' | 'unsupported' | 'error';
@@ -17,6 +20,7 @@ const requireElement = <T extends HTMLElement>(id: string): T => {
 };
 
 const video = requireElement<HTMLVideoElement>('preview');
+const cameraStage = requireElement<HTMLElement>('camera-stage');
 const emptyState = requireElement<HTMLDivElement>('empty-state');
 const emptyTitle = requireElement<HTMLElement>('empty-title');
 const emptyCopy = requireElement<HTMLElement>('empty-copy');
@@ -52,6 +56,20 @@ const targetPreset = requireElement<HTMLSelectElement>('target-preset');
 const closedLoopReset = requireElement<HTMLButtonElement>('closed-loop-reset');
 const closedLoopArm = requireElement<HTMLButtonElement>('closed-loop-arm');
 const closedLoopTrace = requireElement<HTMLButtonElement>('closed-loop-trace');
+const guidanceMode = requireElement<HTMLSelectElement>('guidance-mode');
+const guidanceGrid = requireElement<HTMLInputElement>('guidance-grid');
+const visualOverlay = requireElement<HTMLElement>('visual-servo-overlay');
+const visualGrid = requireElement<HTMLElement>('visual-grid');
+const acceptableZone = requireElement<HTMLElement>('acceptable-zone');
+const targetBox = requireElement<HTMLElement>('target-box');
+const subjectBox = requireElement<HTMLElement>('subject-box');
+const subjectLockLabel = requireElement<HTMLElement>('subject-lock-label');
+const directionVisual = requireElement<HTMLElement>('direction-visual');
+const directionIcon = requireElement<HTMLElement>('direction-icon');
+const directionLabel = requireElement<HTMLElement>('direction-label');
+const stopVisual = requireElement<HTMLElement>('stop-visual');
+const readyVisual = requireElement<HTMLElement>('ready-visual');
+const trackingVisual = requireElement<HTMLElement>('tracking-visual');
 const closedLoopFields = {
   runtimeState: requireElement<HTMLElement>('cl-runtime-state'), ready: requireElement<HTMLElement>('cl-ready'),
   instruction: requireElement<HTMLElement>('cl-instruction'), target: requireElement<HTMLElement>('cl-target'),
@@ -69,6 +87,8 @@ const closedLoopFields = {
   braking: requireElement<HTMLElement>('cl-braking'), stop: requireElement<HTMLElement>('cl-stop'),
   readySource: requireElement<HTMLElement>('cl-ready-source'), passive: requireElement<HTMLElement>('cl-passive'),
   recovery: requireElement<HTMLElement>('cl-recovery'),
+  visualStatus: requireElement<HTMLElement>('cl-visual-status'), visualLock: requireElement<HTMLElement>('cl-visual-lock'),
+  visualJitter: requireElement<HTMLElement>('cl-visual-jitter'), visualEntry: requireElement<HTMLElement>('cl-visual-entry'),
 };
 const perceptionFields = {
   previewFps: requireElement<HTMLElement>('p-preview-fps'),
@@ -112,6 +132,7 @@ let cameraCount: number | null = null;
 let latestPerceptionState: StructuredPerceptionState | null = null;
 let latestRawMeasurement: PoseMeasurement | null = null;
 let latestClosedLoop: ClosedLoopSnapshot | null = null;
+let latestVisualGuidance: VisualGuidanceState | null = null;
 let displayedActionCopy: string | null = null;
 let displayedActionUntilMs = 0;
 
@@ -124,6 +145,7 @@ const formatMetric = (value: number | null | undefined, digits = 3): string =>
 let currentTarget = TARGET_PRESETS[0];
 const closedLoop = new LocalClosedLoopEngine(currentTarget);
 const scalarTrace = new ScalarTraceRecorder();
+const visualProjector = new VisualGuidanceProjector();
 
 const perceptionRuntime = new PerceptionRuntime({
   onStatus: (status, mode, text) => {
@@ -137,13 +159,15 @@ const perceptionRuntime = new PerceptionRuntime({
     latestPerceptionState = state;
     latestRawMeasurement = rawMeasurement;
     latestClosedLoop = closedLoop.update(state);
-    scalarTrace.append(state, latestClosedLoop);
+    latestVisualGuidance = visualProjector.update(state, latestClosedLoop, rawMeasurement, { mode: guidanceMode.value as VisualServoMode, grid: guidanceGrid.checked, now: performance.now() });
+    scalarTrace.append(state, latestClosedLoop, latestVisualGuidance);
     if (latestClosedLoop.instruction && latestClosedLoop.instruction.action !== 'HOLD') {
       displayedActionCopy = latestClosedLoop.instruction.copy_zh;
       displayedActionUntilMs = state.timestamp_ms + 700;
     }
     renderPerceptionState();
     renderClosedLoop();
+    renderVisualGuidance();
   },
   onError: (text) => {
     poseMessage.textContent = text;
@@ -173,6 +197,31 @@ function updateCoordinateState(): void {
   sensorCoordinate.textContent = 'RAW · NON-MIRRORED';
   previewCoordinate.textContent = mirrored ? 'MIRRORED X-AXIS' : 'NON-MIRRORED';
   facingValue.textContent = activeFacingMode.toUpperCase();
+}
+
+function applyProjectedBox(element: HTMLElement, box: NormalizedBox | null): void {
+  element.classList.toggle('is-visible', Boolean(box));
+  if (!box) return;
+  const rect = cameraStage.getBoundingClientRect();
+  const projected = projectBoxToCover(box, { container_width: rect.width, container_height: rect.height, source_width: video.videoWidth || rect.width, source_height: video.videoHeight || rect.height, mirrored: activeFacingMode === 'user' });
+  element.style.left = `${projected.left}px`; element.style.top = `${projected.top}px`; element.style.width = `${projected.width}px`; element.style.height = `${projected.height}px`;
+}
+
+function renderVisualGuidance(): void {
+  const visual = latestVisualGuidance;
+  visualOverlay.dataset.mode = guidanceMode.value; cameraStage.dataset.guidanceMode = guidanceMode.value;
+  if (!visual) {
+    visualOverlay.dataset.status = 'LOST'; for (const element of [acceptableZone,targetBox,subjectBox,directionVisual,stopVisual,readyVisual]) element.classList.remove('is-visible');
+    visualGrid.classList.toggle('is-visible', guidanceGrid.checked); trackingVisual.textContent = '正在寻找人物'; return;
+  }
+  visualOverlay.dataset.status = visual.visual_status; visualGrid.classList.toggle('is-visible', visual.grid_enabled);
+  const zoneBox: NormalizedBox = { left: visual.acceptable_zone.left, top: visual.acceptable_zone.top, width: visual.acceptable_zone.right-visual.acceptable_zone.left, height: visual.acceptable_zone.bottom-visual.acceptable_zone.top, center_x:(visual.acceptable_zone.left+visual.acceptable_zone.right)/2, center_y:(visual.acceptable_zone.top+visual.acceptable_zone.bottom)/2 };
+  applyProjectedBox(acceptableZone, zoneBox); applyProjectedBox(targetBox, visual.target_box); applyProjectedBox(subjectBox, visual.tracked_subject_box);
+  subjectLockLabel.textContent = visual.tracking_status === 'LOCKED' ? '人物已锁定' : visual.tracking_status === 'HELD' ? '人物暂时遮挡' : '人物锁定中';
+  const direction = visual.direction_hint; const directionPresentation = direction === 'MOVE_LEFT' ? ['←','往左一点'] : direction === 'MOVE_RIGHT' ? ['→','往右一点'] : direction === 'MOVE_CLOSER' ? ['⊕','靠近目标框'] : direction === 'MOVE_FARTHER' ? ['⊖','退入目标框'] : null;
+  directionVisual.classList.toggle('is-visible', Boolean(directionPresentation) && !visual.braking && !visual.ready); if (directionPresentation) { directionIcon.textContent=directionPresentation[0]; directionLabel.textContent=directionPresentation[1]; }
+  stopVisual.classList.toggle('is-visible', visual.braking && !visual.ready); readyVisual.classList.toggle('is-visible', visual.ready);
+  trackingVisual.textContent = visual.tracking_status === 'LOCKED' ? (visual.inside_target ? '已进入目标区域' : visual.near_target ? '接近目标区域' : '人物已锁定') : visual.tracking_status === 'HELD' ? '短暂丢失 · 保持锁定' : visual.tracking_status === 'UNLOCKED' ? '正在寻找人物' : '正在锁定人物';
 }
 
 function renderCapabilities(): void {
@@ -259,6 +308,8 @@ function renderClosedLoop(): void {
     closedLoopFields.braking.textContent = 'FALSE / —'; closedLoopFields.stop.textContent = 'FALSE / 0';
     closedLoopFields.readySource.textContent = 'FALSE / —'; closedLoopFields.passive.textContent = '0 ms';
     closedLoopFields.recovery.textContent = '0 ms';
+    closedLoopFields.visualStatus.textContent = `LOST / ${guidanceMode.value}`; closedLoopFields.visualLock.textContent = 'UNLOCKED / 0.000';
+    closedLoopFields.visualJitter.textContent = '0.0000 / 0.0000'; closedLoopFields.visualEntry.textContent = '0 / 0';
     return;
   }
   const subject = snapshot.current; const metrics = snapshot.metrics;
@@ -292,6 +343,11 @@ function renderClosedLoop(): void {
   closedLoopFields.readySource.textContent = `${String(snapshot.geometry_satisfied).toUpperCase()} / ${snapshot.ready_source ?? '—'}`;
   closedLoopFields.passive.textContent = `${snapshot.passive_confirmation_remaining_ms.toFixed(0)} ms`;
   closedLoopFields.recovery.textContent = `${snapshot.local_recovery_remaining_ms.toFixed(0)} ms`;
+  const visual = latestVisualGuidance;
+  closedLoopFields.visualStatus.textContent = `${visual?.visual_status ?? 'LOST'} / ${visual?.overlay_mode ?? guidanceMode.value}`;
+  closedLoopFields.visualLock.textContent = `${visual?.tracking_status ?? 'UNLOCKED'} / ${(visual?.tracking_confidence ?? 0).toFixed(3)}`;
+  closedLoopFields.visualJitter.textContent = `${(visual?.metrics.raw_box_jitter ?? 0).toFixed(4)} / ${(visual?.metrics.stabilized_box_jitter ?? 0).toFixed(4)}`;
+  closedLoopFields.visualEntry.textContent = `${visual?.metrics.target_box_entry_count ?? 0} / ${visual?.metrics.target_box_exit_count ?? 0}`;
   closedLoopFields.countsA.textContent = `${metrics.ordinary_instruction_count} / ${metrics.stop_cue_count} / ${metrics.hold_count} / ${metrics.successful_corrections}`;
   closedLoopFields.countsB.textContent = `${metrics.improving_count} / ${metrics.no_effect_count}`;
   closedLoopFields.countsC.textContent = `${metrics.wrong_direction_count} / ${metrics.oscillation_count}`;
@@ -452,11 +508,14 @@ function stopCamera(options: { preserveMessage?: boolean } = {}): void {
   latestPerceptionState = null;
   latestRawMeasurement = null;
   latestClosedLoop = null;
+  latestVisualGuidance = null;
+  visualProjector.reset();
   displayedActionCopy = null;
   displayedActionUntilMs = 0;
   renderPerceptionState();
   renderPerceptionTelemetry();
   renderClosedLoop();
+  renderVisualGuidance();
   if (!options.preserveMessage) setMessage('相机会话已停止；所有媒体轨道已释放。');
 }
 
@@ -498,6 +557,7 @@ async function startCamera(facingMode: FacingMode): Promise<void> {
   setMessage(`正在请求${facingMode === 'user' ? '前置' : '后置'}摄像头…`);
   stream?.getTracks().forEach((track) => track.stop());
   perceptionRuntime.resetSession();
+  visualProjector.reset(); latestVisualGuidance = null;
 
   try {
     const nextStream = await navigator.mediaDevices.getUserMedia({
@@ -574,8 +634,12 @@ poseInitButton.addEventListener('click', () => {
 targetPreset.addEventListener('change', () => {
   const selected = TARGET_PRESETS.find((preset) => preset.id === targetPreset.value) ?? TARGET_PRESETS[0];
   currentTarget = selected; closedLoop.setTarget(selected); latestClosedLoop = null;
-  displayedActionCopy = null; displayedActionUntilMs = 0; renderClosedLoop();
+  visualProjector.reset(); latestVisualGuidance = null;
+  displayedActionCopy = null; displayedActionUntilMs = 0; renderClosedLoop(); renderVisualGuidance();
 });
+
+guidanceMode.addEventListener('change',()=>{ if(latestPerceptionState&&latestClosedLoop) latestVisualGuidance=visualProjector.update(latestPerceptionState,latestClosedLoop,latestRawMeasurement,{mode:guidanceMode.value as VisualServoMode,grid:guidanceGrid.checked,now:performance.now()}); renderVisualGuidance(); renderClosedLoop(); });
+guidanceGrid.addEventListener('change',()=>{ if(latestPerceptionState&&latestClosedLoop) latestVisualGuidance=visualProjector.update(latestPerceptionState,latestClosedLoop,latestRawMeasurement,{mode:guidanceMode.value as VisualServoMode,grid:guidanceGrid.checked,now:performance.now()}); renderVisualGuidance(); });
 
 closedLoopReset.addEventListener('click', () => {
   if (latestClosedLoop?.runtime_state === 'LOCAL_RECOVERY_REQUIRED' && closedLoop.resumeAfterLocalRecovery(performance.now())) {
@@ -584,11 +648,11 @@ closedLoopReset.addEventListener('click', () => {
     return;
   }
   closedLoop.reset(); latestClosedLoop = null; displayedActionCopy = null; displayedActionUntilMs = 0;
-  renderClosedLoop();
+  visualProjector.reset(); latestVisualGuidance = null; renderClosedLoop(); renderVisualGuidance();
 });
 closedLoopArm.addEventListener('click', () => {
   closedLoop.armTrial(performance.now()); scalarTrace.clear(); latestClosedLoop = null; displayedActionCopy = null; displayedActionUntilMs = 0;
-  renderClosedLoop(); setMessage('试验已 ARM；请从目标外位置开始，首个普通指令发出时开始计时。');
+  visualProjector.reset(); latestVisualGuidance = null; renderClosedLoop(); renderVisualGuidance(); setMessage('试验已 ARM；请从目标外位置开始，首个普通指令发出时开始计时。');
 });
 closedLoopTrace.addEventListener('click', () => {
   const blob = new Blob([scalarTrace.json()], { type: 'application/json' }); const url = URL.createObjectURL(blob);
@@ -610,6 +674,7 @@ perceptionFields.targetHz.textContent = PERCEPTION_CONFIG.visionTargetHz.toFixed
 renderPerceptionState();
 renderPerceptionTelemetry();
 renderClosedLoop();
+renderVisualGuidance();
 void readPermissionState();
 void refreshCameraInventory();
 
@@ -636,13 +701,15 @@ if (replayName) {
         latestPerceptionState = state;
         latestRawMeasurement = null;
         latestClosedLoop = closedLoop.update(state);
-        scalarTrace.append(state, latestClosedLoop);
+        latestVisualGuidance = visualProjector.update(state, latestClosedLoop, null, { mode: guidanceMode.value as VisualServoMode, grid: guidanceGrid.checked, now: state.timestamp_ms });
+        scalarTrace.append(state, latestClosedLoop, latestVisualGuidance);
         if (latestClosedLoop.instruction && latestClosedLoop.instruction.action !== 'HOLD') {
           displayedActionCopy = latestClosedLoop.instruction.copy_zh;
           displayedActionUntilMs = state.timestamp_ms + 700;
         }
         renderPerceptionState();
         renderClosedLoop();
+        renderVisualGuidance();
       }, index * 600);
     });
   });
