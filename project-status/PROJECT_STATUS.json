@@ -6,7 +6,7 @@
   "primary_environment": "windows",
   "overall_status": "IN_PROGRESS",
   "current_milestone": "M06",
-  "current_task": "XFX_MAIN_M06_PROVIDER_DEFERRED_AND_FRONTEND_SIMPLIFICATION_01",
+  "current_task": "XFX_LOCAL_FINE_TUNE_INTEGRATION_01",
   "current_task_status": "PASS_WITH_WARNING",
   "milestones": [
     { "id": "M00", "name": "Project Baseline", "status": "PASS", "gate": "M00_BASELINE_LOCK", "gate_status": "PASS" },
@@ -442,11 +442,28 @@
     "simplified_flow_accepted_develop_head": "SELF_AFTER_STRICT_FF",
     "parallel_worktrees": "UNTOUCHED"
   },
-  "next_required_result": {
+  "fine_tune_main_integration": {
     "task_id": "XFX_LOCAL_FINE_TUNE_INTEGRATION_01",
-    "condition": "LOCAL_FINE_TUNE_INTEGRATION"
+    "status": "PASS_WITH_WARNING",
+    "source_accepted_head": "9b2f813082d5822cef8c38bfba2b65725e8c5d2d",
+    "main_integration_base_head": "2e7ad9303819b43ade1f5cf5bea6f33fd589c805",
+    "capability": "REAL_DETERMINISTIC_INTERNAL_DEMO",
+    "recipe_persistence": "PASS",
+    "derived_asset_lineage": "PASS",
+    "worker_final": "PASS_WITH_WARNING",
+    "auto_semantic_mask": "NOT_YET_PASS",
+    "backend_tests": "99 PASS",
+    "frontend_tests": "26 PASS",
+    "h5": "PASS_WITH_WARNING",
+    "wechat_build": "PASS",
+    "oppo_main_regression": "UNVERIFIED",
+    "public_production_ready": false
   },
-  "next_recommended_task": "XFX_LOCAL_FINE_TUNE_INTEGRATION_01",
+  "next_required_result": {
+    "task_id": "XFX_FIRST_COMPLETE_NON_AI_PRODUCT_FLOW_ACCEPTANCE_01",
+    "condition": "FIRST_COMPLETE_NON_AI_PRODUCT_FLOW_ACCEPTANCE"
+  },
+  "next_recommended_task": "XFX_FIRST_COMPLETE_NON_AI_PRODUCT_FLOW_ACCEPTANCE_01",
   "following_main_task": null,
   "live_parallel_track": {
     "status": "LIVE_P0_PASS_EVIDENCE_INGESTED",
