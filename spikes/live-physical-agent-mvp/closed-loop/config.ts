@@ -16,6 +16,7 @@ export const CLOSED_LOOP_CONFIG: Readonly<ClosedLoopConfig> = Object.freeze({
   braking_corridor_normalized: 1.5,
   braking_prediction_horizon_ms: 350,
   passive_confirmation_ms: 1200,
+  local_recovery_auto_resume_ms: 1200,
 });
 
 export const ISSUE_WEIGHTS = Object.freeze({

@@ -68,6 +68,7 @@ const closedLoopFields = {
   subtype: requireElement<HTMLElement>('cl-subtype'), rates: requireElement<HTMLElement>('cl-rates'),
   braking: requireElement<HTMLElement>('cl-braking'), stop: requireElement<HTMLElement>('cl-stop'),
   readySource: requireElement<HTMLElement>('cl-ready-source'), passive: requireElement<HTMLElement>('cl-passive'),
+  recovery: requireElement<HTMLElement>('cl-recovery'),
 };
 const perceptionFields = {
   previewFps: requireElement<HTMLElement>('p-preview-fps'),
@@ -257,10 +258,12 @@ function renderClosedLoop(): void {
     closedLoopFields.subtype.textContent = '—'; closedLoopFields.rates.textContent = '— / — / —';
     closedLoopFields.braking.textContent = 'FALSE / —'; closedLoopFields.stop.textContent = 'FALSE / 0';
     closedLoopFields.readySource.textContent = 'FALSE / —'; closedLoopFields.passive.textContent = '0 ms';
+    closedLoopFields.recovery.textContent = '0 ms';
     return;
   }
   const subject = snapshot.current; const metrics = snapshot.metrics;
   closedLoopFields.runtimeState.textContent = `STATE · ${snapshot.runtime_state}`;
+  closedLoopReset.textContent = snapshot.runtime_state === 'LOCAL_RECOVERY_REQUIRED' ? '继续本机引导' : '重置本机引导';
   closedLoopFields.ready.textContent = `READY · ${String(snapshot.ready).toUpperCase()}`;
   const presentation = closedLoopPresentation(snapshot);
   closedLoopFields.instruction.textContent = presentation.text;
@@ -288,6 +291,7 @@ function renderClosedLoop(): void {
   closedLoopFields.stop.textContent = `${String(episode?.stop_cue_issued_at !== null && episode?.stop_cue_issued_at !== undefined).toUpperCase()} / ${metrics.stop_cue_count}`;
   closedLoopFields.readySource.textContent = `${String(snapshot.geometry_satisfied).toUpperCase()} / ${snapshot.ready_source ?? '—'}`;
   closedLoopFields.passive.textContent = `${snapshot.passive_confirmation_remaining_ms.toFixed(0)} ms`;
+  closedLoopFields.recovery.textContent = `${snapshot.local_recovery_remaining_ms.toFixed(0)} ms`;
   closedLoopFields.countsA.textContent = `${metrics.ordinary_instruction_count} / ${metrics.stop_cue_count} / ${metrics.hold_count} / ${metrics.successful_corrections}`;
   closedLoopFields.countsB.textContent = `${metrics.improving_count} / ${metrics.no_effect_count}`;
   closedLoopFields.countsC.textContent = `${metrics.wrong_direction_count} / ${metrics.oscillation_count}`;
@@ -312,7 +316,7 @@ function closedLoopPresentation(snapshot: ClosedLoopSnapshot): { state: string; 
   if (snapshot.runtime_state === 'VERIFYING') return { state: 'P2 LOCAL · VERIFYING', text: '正在确认调整结果' };
   if (snapshot.runtime_state === 'SATISFIED_PENDING_CONFIRMATION') return { state: `P2 LOCAL · PASSIVE CONFIRM ${snapshot.passive_confirmation_remaining_ms.toFixed(0)} ms`, text: '保持不动 · 正在确认' };
   if (snapshot.runtime_state === 'READY') return { state: 'P2 LOCAL · READY', text: ACTION_COPY.HOLD };
-  if (snapshot.runtime_state === 'LOCAL_RECOVERY_REQUIRED') return { state: 'P2 LOCAL · RECOVERY REQUIRED', text: '请回到画面中央后重试' };
+  if (snapshot.runtime_state === 'LOCAL_RECOVERY_REQUIRED') return { state: `P2 LOCAL · AUTO RECOVERY ${snapshot.local_recovery_remaining_ms.toFixed(0)} ms`, text: '连续调整未完成 · 请站稳，系统将自动继续；也可点击“继续本机引导”' };
   if (snapshot.issue?.kind === 'X_POSITION') return { state: `P2 LOCAL · CONFIRM X ${snapshot.issue_age_ms.toFixed(0)}/${CLOSED_LOOP_CONFIG.issue_persistence_ms} ms`, text: '正在确认水平位置' };
   if (snapshot.issue?.kind === 'SCALE') return { state: `P2 LOCAL · CONFIRM SCALE ${snapshot.issue_age_ms.toFixed(0)}/${CLOSED_LOOP_CONFIG.issue_persistence_ms} ms`, text: '正在确认距离' };
   if (snapshot.issue?.kind === 'Y_POSITION') return { state: 'P2 LOCAL · Y DEFERRED', text: '垂直位置仅观测' };
@@ -574,6 +578,11 @@ targetPreset.addEventListener('change', () => {
 });
 
 closedLoopReset.addEventListener('click', () => {
+  if (latestClosedLoop?.runtime_state === 'LOCAL_RECOVERY_REQUIRED' && closedLoop.resumeAfterLocalRecovery(performance.now())) {
+    displayedActionCopy = null; displayedActionUntilMs = 0;
+    setMessage('已继续本机引导；历史 Episode 与标量 Trace 保留，不会重复编号。');
+    return;
+  }
   closedLoop.reset(); latestClosedLoop = null; displayedActionCopy = null; displayedActionUntilMs = 0;
   renderClosedLoop();
 });

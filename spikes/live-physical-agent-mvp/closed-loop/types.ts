@@ -41,6 +41,7 @@ export interface ClosedLoopConfig {
   braking_corridor_normalized: number;
   braking_prediction_horizon_ms: number;
   passive_confirmation_ms: number;
+  local_recovery_auto_resume_ms: number;
 }
 
 export interface DimensionDelta {
@@ -151,6 +152,7 @@ export interface ClosedLoopSnapshot {
   geometry_satisfied: boolean;
   ready_source: ReadySource;
   passive_confirmation_remaining_ms: number;
+  local_recovery_remaining_ms: number;
   near_target_corridor: boolean;
   predicted_delta: number | null;
   metrics: ClosedLoopMetrics;

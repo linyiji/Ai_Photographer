@@ -7,7 +7,7 @@ const run=(name:keyof typeof CLOSED_LOOP_TRAJECTORIES,armed=true)=>{const e=new 
 const last=(name:keyof typeof CLOSED_LOOP_TRAJECTORIES)=>run(name).at(-1)!;
 const terminal=(name:keyof typeof CLOSED_LOOP_TRAJECTORIES)=>[...run(name)].reverse().find(o=>o.episode?.terminal_outcome)?.episode?.terminal_outcome;
 
-test('all 18 required recalibration fixtures exist',()=>assert.equal(Object.keys(CLOSED_LOOP_TRAJECTORIES).length,18));
+test('all recalibration and human-servo fixtures exist',()=>assert.ok(Object.keys(CLOSED_LOOP_TRAJECTORIES).length>=42));
 test('delta is signed target-current',()=>{assert.ok(computeDelta(frame(0,.2,.35),DEFAULT_TARGET).x.delta!>0);assert.ok(computeDelta(frame(0,.8,.35),DEFAULT_TARGET).x.delta!<0);});
 test('deadband and missing values remain explicit',()=>{assert.equal(computeDelta(frame(0,.48,.35),DEFAULT_TARGET).x.status,'SATISFIED');assert.equal(computeDelta(frame(0,null,null),DEFAULT_TARGET).x.status,'MISSING');});
 test('physical X mapping ignores preview mirroring',()=>{assert.equal(actionForIssue('X_POSITION',computeDelta(frame(0,.2,.35),DEFAULT_TARGET)),'MOVE_LEFT');assert.equal(actionForIssue('X_POSITION',computeDelta(frame(0,.8,.35),DEFAULT_TARGET)),'MOVE_RIGHT');});
@@ -48,3 +48,32 @@ test('local recovery occurs after bounded terminal failures',()=>{const config={
 test('scalar trace contains no raw media or landmarks',()=>{const states=CLOSED_LOOP_TRAJECTORIES['correct-gradual-x'];const outputs=replayScalarStates(states);const r=new ScalarTraceRecorder();states.forEach((s,i)=>r.append(s,outputs[i]));const json=r.json();assert.doesNotMatch(json,/landmark|image|video|frame/i);});
 test('scalar replay is deterministic',()=>{const states=CLOSED_LOOP_TRAJECTORIES['correct-gradual-x'];assert.deepEqual(replayScalarStates(states),replayScalarStates(states));});
 test('external hot-path counters remain zero',()=>{const m=last('correct-gradual-x').metrics;assert.deepEqual([m.provider_calls,m.backend_per_frame_calls,m.luna_calls,m.raw_video_upload],[0,0,0,0]);});
+
+test('servo correct move stops inside deadband',()=>assert.equal(terminal('servo-correct-inside-deadband'),'SUCCESS'));
+test('servo halfway stop remains outside axis target',()=>assert.equal(terminal('servo-stops-halfway'),'NO_EFFECT'));
+test('servo overshoot is diagnosed',()=>assert.equal(last('servo-correct-overshoot').episode?.no_effect_subtype,'OVERSHOOT'));
+test('fast overshoot receives one predictive STOP',()=>assert.equal(run('servo-fast-overshoot').filter(o=>o.instruction?.action==='STOP_HERE').length,1));
+test('slow overshoot receives one corridor STOP',()=>assert.equal(run('servo-slow-overshoot').filter(o=>o.instruction?.action==='STOP_HERE').length,1));
+test('servo no motion remains NO_EFFECT',()=>assert.equal(terminal('servo-no-motion'),'NO_EFFECT'));
+test('late motion is retained as diagnostic',()=>assert.equal(last('servo-late-motion').episode?.no_effect_subtype,'LATE_RESPONSE'));
+test('jitter-only remains safe NO_EFFECT',()=>assert.equal(terminal('servo-jitter-only'),'NO_EFFECT'));
+test('true wrong direction remains hard WRONG_DIRECTION',()=>assert.equal(terminal('servo-true-wrong'),'WRONG_DIRECTION'));
+test('intended axis stays latched during coupled movement',()=>{const out=run('servo-axis-coupled');assert.ok(out.filter(o=>o.episode&&!o.episode.terminal_outcome).every(o=>o.episode?.issue==='X_POSITION'));});
+test('enter braking corridor emits STOP then succeeds',()=>{const out=run('servo-stop-success');assert.ok(out.some(o=>o.instruction?.action==='STOP_HERE'));assert.equal(terminal('servo-stop-success'),'SUCCESS');});
+test('STOP is issued only once per episode',()=>assert.equal(run('servo-stop-once').filter(o=>o.instruction?.action==='STOP_HERE').length,1));
+test('STOP does not count as ordinary instruction',()=>{const o=last('servo-stop-not-ordinary');assert.equal(o.metrics.stop_cue_count,1);assert.equal(o.metrics.ordinary_instruction_count,1);});
+test('STOP hysteresis prevents spam',()=>assert.equal(run('servo-stop-hysteresis').filter(o=>o.instruction?.action==='STOP_HERE').length,1));
+test('wrong terminal plus satisfied geometry enters pending confirmation',()=>assert.ok(run('servo-wrong-then-satisfied').some(o=>o.runtime_state==='SATISFIED_PENDING_CONFIRMATION')));
+test('pending confirmation becomes READY without rewriting WRONG',()=>{const o=last('servo-pending-to-ready');assert.equal(o.ready,true);assert.equal(o.ready_source,'PASSIVE_CONFIRMATION');assert.equal(o.metrics.wrong_direction_count,1);});
+test('broken pending confirmation resumes correction',()=>{const out=run('servo-pending-breaks');const pending=out.findIndex(o=>o.runtime_state==='SATISFIED_PENDING_CONFIRMATION');assert.ok(pending>=0);assert.ok(out.slice(pending+1).some(o=>o.runtime_state!=='SATISFIED_PENDING_CONFIRMATION'&&!o.ready));});
+test('SUCCESS retains normal READY causality',()=>assert.equal(last('servo-success-normal-ready').ready_source,'EPISODE_SUCCESS'));
+test('HOLD remains distinct from STOP',()=>{const actions=run('servo-hold-distinct-stop').flatMap(o=>o.instruction?[o.instruction.action]:[]);assert.ok(actions.includes('STOP_HERE'));assert.ok(actions.includes('HOLD'));});
+test('partial progress permits legal same-direction refinement',()=>{const actions=run('servo-partial-refinement').flatMap(o=>o.instruction&&o.instruction.action!=='STOP_HERE'&&o.instruction.action!=='HOLD'?[o.instruction.action]:[]);assert.deepEqual(actions.slice(0,2),['MOVE_LEFT','MOVE_LEFT']);});
+test('READY source telemetry is explicit',()=>assert.equal(last('servo-ready-source').ready_source,'EPISODE_SUCCESS'));
+test('high velocity target crossing does not become true wrong',()=>assert.notEqual(terminal('servo-high-velocity-crossing'),'WRONG_DIRECTION'));
+test('low velocity target crossing does not become true wrong',()=>assert.notEqual(terminal('servo-low-velocity-crossing'),'WRONG_DIRECTION'));
+test('axis issue switches only after active episode terminal',()=>{const out=run('servo-axis-switch-after-terminal');const scaleIndex=out.findIndex(o=>o.instruction?.action==='MOVE_CLOSER');assert.ok(scaleIndex>0);assert.ok(out.slice(0,scaleIndex).filter(o=>o.episode&&!o.episode.terminal_outcome).every(o=>o.episode?.issue==='X_POSITION'));});
+test('local recovery resumes without resetting accepted metrics',()=>{const config={...CLOSED_LOOP_CONFIG,local_failure_limit:1};const e=new LocalClosedLoopEngine(DEFAULT_TARGET,config);e.armTrial(0);const before=CLOSED_LOOP_TRAJECTORIES['no-motion'].map(s=>e.update(s)).at(-1)!;assert.equal(before.runtime_state,'LOCAL_RECOVERY_REQUIRED');assert.equal(e.resumeAfterLocalRecovery(1800),true);const after=[frame(1900,.2,DEFAULT_TARGET.height_ratio),frame(2200,.2,DEFAULT_TARGET.height_ratio)].map(s=>e.update(s)).at(-1)!;assert.equal(after.metrics.terminal_episode_count,1);assert.equal(after.episode?.episode_id,2);});
+test('resume is rejected outside local recovery',()=>assert.equal(new LocalClosedLoopEngine().resumeAfterLocalRecovery(0),false));
+test('stable local recovery resumes automatically after bounded window',()=>{const config={...CLOSED_LOOP_CONFIG,local_failure_limit:1};const e=new LocalClosedLoopEngine(DEFAULT_TARGET,config);e.armTrial(0);CLOSED_LOOP_TRAJECTORIES['no-motion'].forEach(s=>e.update(s));const out=[frame(1800,.2,DEFAULT_TARGET.height_ratio,true),frame(2500,.2,DEFAULT_TARGET.height_ratio,true),frame(3000,.2,DEFAULT_TARGET.height_ratio,true),frame(3300,.2,DEFAULT_TARGET.height_ratio,true)].map(s=>e.update(s));assert.equal(out[0].runtime_state,'LOCAL_RECOVERY_REQUIRED');assert.equal(out[0].local_recovery_remaining_ms,1100);assert.equal(out.at(-1)?.runtime_state,'INSTRUCTING');assert.equal(out.at(-1)?.episode?.episode_id,2);});
+test('motion resets automatic recovery countdown',()=>{const config={...CLOSED_LOOP_CONFIG,local_failure_limit:1};const e=new LocalClosedLoopEngine(DEFAULT_TARGET,config);e.armTrial(0);CLOSED_LOOP_TRAJECTORIES['no-motion'].forEach(s=>e.update(s));const out=[frame(1800,.2,DEFAULT_TARGET.height_ratio,true),frame(2200,.2,DEFAULT_TARGET.height_ratio,false),frame(2900,.2,DEFAULT_TARGET.height_ratio,true),frame(3500,.2,DEFAULT_TARGET.height_ratio,true)].map(s=>e.update(s));assert.equal(out.at(-1)?.runtime_state,'LOCAL_RECOVERY_REQUIRED');assert.equal(out.at(-1)?.local_recovery_remaining_ms,600);});

@@ -40,12 +40,19 @@ export class LocalClosedLoopEngine {
   private candidateKind: IssueKind | null = null; private candidateIssue: IssueCandidate | null = null; private candidateSince = 0; private activeIssueSince = 0;
   private episode: ActionEpisode | null = null; private lastTerminalEpisode: ActionEpisode | null = null; private episodeSequence = 0; private instructionSequence = 0;
   private lastOrdinaryInstructionAt: number | null = null; private readyStableSince: number | null = null; private passiveConfirmationSince: number | null = null; private readySource: ReadySource = null; private verification: VerificationResult = 'NONE';
+  private recoveryStableSince: number | null = null;
   private settled: Observation[] = []; private localFailureStreak = 0; private lastIssueSwitchAt = 0; private lastIssuedAction: DirectionalAction | null = null; private sameActionRetries = 0;
   private metrics = initialMetrics();
   constructor(target: TargetState = DEFAULT_TARGET, private readonly config: ClosedLoopConfig = CLOSED_LOOP_CONFIG) { this.target = target; }
   setTarget(target: TargetState): void { this.target = target; this.reset(); }
   armTrial(now: number): void { this.reset(); this.trialState = 'ARMED'; this.trialArmedAt = now; }
-  reset(): void { this.runtimeState = 'IDLE'; this.trialState = 'DISARMED'; this.trialArmedAt = this.firstInstructionAt = this.readyAt = null; this.candidateKind = null; this.candidateIssue = null; this.candidateSince = this.activeIssueSince = 0; this.episode = this.lastTerminalEpisode = null; this.episodeSequence = this.instructionSequence = 0; this.lastOrdinaryInstructionAt = this.readyStableSince = this.passiveConfirmationSince = null; this.readySource = null; this.verification = 'NONE'; this.settled = []; this.localFailureStreak = this.lastIssueSwitchAt = this.sameActionRetries = 0; this.lastIssuedAction = null; this.metrics = initialMetrics(); }
+  resumeAfterLocalRecovery(now: number): boolean {
+    if (this.runtimeState !== 'LOCAL_RECOVERY_REQUIRED') return false;
+    this.localFailureStreak = 0; this.runtimeState = 'ANALYZING'; this.candidateKind = null; this.candidateIssue = null; this.recoveryStableSince = null;
+    this.candidateSince = this.activeIssueSince = now; this.readyStableSince = this.passiveConfirmationSince = null; this.verification = 'NONE';
+    return true;
+  }
+  reset(): void { this.runtimeState = 'IDLE'; this.trialState = 'DISARMED'; this.trialArmedAt = this.firstInstructionAt = this.readyAt = null; this.candidateKind = null; this.candidateIssue = null; this.candidateSince = this.activeIssueSince = 0; this.episode = this.lastTerminalEpisode = null; this.episodeSequence = this.instructionSequence = 0; this.lastOrdinaryInstructionAt = this.readyStableSince = this.passiveConfirmationSince = this.recoveryStableSince = null; this.readySource = null; this.verification = 'NONE'; this.settled = []; this.localFailureStreak = this.lastIssueSwitchAt = this.sameActionRetries = 0; this.lastIssuedAction = null; this.metrics = initialMetrics(); }
 
   update(state: StructuredPerceptionState): ClosedLoopSnapshot {
     const now = state.timestamp_ms; const delta = computeDelta(state, this.target); const candidates = rankIssues(state, delta); const best = candidates[0] ?? null; let instruction: InstructionEvent | null = null; this.metrics.local_decisions += 1;
@@ -54,6 +61,12 @@ export class LocalClosedLoopEngine {
     // so post-ready user motion cannot contaminate the accepted episode denominator.
     if (this.trialState === 'READY') { this.runtimeState = 'READY'; return this.snapshot(now, state, delta, null, instruction); }
     if (this.episode) { this.observeEpisode(now, state, delta); if (this.episode && !this.episode.terminal_outcome) instruction = this.maybeIssueStop(now, state, delta); if (this.episode?.stop_cue_issued_at !== null && !state.subject.stable && !this.episode.terminal_outcome) this.runtimeState = 'BRAKING'; if (this.episode?.terminal_outcome) this.finishEpisode(this.episode.terminal_outcome, now); if (this.episode) return this.snapshot(now, state, delta, this.issueForEpisode(candidates), instruction); }
+    if (this.runtimeState === 'LOCAL_RECOVERY_REQUIRED') {
+      if (state.subject.stable) this.recoveryStableSince ??= now; else this.recoveryStableSince = null;
+      const recoveryStableMs = this.recoveryStableSince === null ? 0 : now - this.recoveryStableSince;
+      if (recoveryStableMs < this.config.local_recovery_auto_resume_ms) return this.snapshot(now, state, delta, best, instruction);
+      this.resumeAfterLocalRecovery(now);
+    }
     const allSatisfied = delta.x.status === 'SATISFIED' && delta.scale.status === 'SATISFIED' && (delta.y.status === 'SATISFIED' || delta.y.status === 'EXEMPT');
     if (allSatisfied) {
       this.candidateKind = null; this.candidateIssue = null; if (state.subject.stable) this.readyStableSince ??= now; else { this.readyStableSince = null; this.passiveConfirmationSince = null; }
@@ -64,7 +77,7 @@ export class LocalClosedLoopEngine {
       if (duration >= required) { if (this.runtimeState !== 'READY') { this.runtimeState = 'READY'; this.readySource = successfulCause ? 'EPISODE_SUCCESS' : 'PASSIVE_CONFIRMATION'; this.readyAt = now; if (this.trialState === 'RUNNING') { this.trialState = 'READY'; this.metrics.time_to_target_ms = this.firstInstructionAt === null ? null : now - this.firstInstructionAt; } this.instructionSequence += 1; this.metrics.hold_count += 1; instruction = this.event(now, 'HOLD', null); } }
       else this.runtimeState = successfulCause ? 'ANALYZING' : 'SATISFIED_PENDING_CONFIRMATION'; return this.snapshot(now, state, delta, null, instruction);
     }
-    this.readyStableSince = this.passiveConfirmationSince = null; if (this.runtimeState === 'READY' || this.runtimeState === 'SATISFIED_PENDING_CONFIRMATION') this.runtimeState = 'ANALYZING'; if (this.runtimeState === 'LOCAL_RECOVERY_REQUIRED') return this.snapshot(now, state, delta, best, instruction);
+    this.readyStableSince = this.passiveConfirmationSince = null; if (this.runtimeState === 'READY' || this.runtimeState === 'SATISFIED_PENDING_CONFIRMATION') this.runtimeState = 'ANALYZING';
     const selected = this.selectWithHysteresis(best, candidates, now); this.trackCandidate(selected, now);
     if (!selected || !selected.action) { this.runtimeState = 'ANALYZING'; return this.snapshot(now, state, delta, selected, instruction); }
     if (this.candidateKind !== selected.kind || now - this.candidateSince < this.config.issue_persistence_ms) { this.runtimeState = 'ANALYZING'; return this.snapshot(now, state, delta, selected, instruction); }
@@ -130,6 +143,7 @@ export class LocalClosedLoopEngine {
     const predictedDelta = finite(currentDelta) && finite(velocity) ? currentDelta - velocity * (this.config.braking_prediction_horizon_ms / 1000) : null;
     const geometrySatisfied = delta.x.status === 'SATISFIED' && delta.scale.status === 'SATISFIED' && (delta.y.status === 'SATISFIED' || delta.y.status === 'EXEMPT');
     const passiveElapsed = this.passiveConfirmationSince === null ? 0 : now - this.passiveConfirmationSince;
-    return { timestamp_ms: now, target: this.target, current: state.subject, delta, issue, issue_age_ms: issue ? Math.max(0, now - this.activeIssueSince) : 0, active_action: this.episode?.stop_cue_issued_at !== null && this.episode?.stop_cue_issued_at !== undefined ? 'STOP_HERE' : this.episode?.action ?? (this.runtimeState === 'READY' ? 'HOLD' : null), action_age_ms: this.episode ? Math.max(0, now - this.episode.issued_at) : null, instruction, runtime_state: this.runtimeState, waiting_remaining_ms: this.episode ? Math.max(0, this.config.action_response_grace_ms - (now - this.episode.issued_at)) : 0, verification: this.verification, episode: ep ? { ...ep, warning_flags: [...ep.warning_flags] } : null, trial_state: this.trialState, trial_armed_at: this.trialArmedAt, first_instruction_at: this.firstInstructionAt, ready_at: this.readyAt, trial_elapsed_ms: this.firstInstructionAt === null ? null : (this.readyAt ?? now) - this.firstInstructionAt, stable_duration_ms: this.readyStableSince === null ? 0 : Math.max(0, now - this.readyStableSince), ready: this.runtimeState === 'READY', geometry_satisfied: geometrySatisfied, ready_source: this.readySource, passive_confirmation_remaining_ms: this.runtimeState === 'SATISFIED_PENDING_CONFIRMATION' ? Math.max(0, this.config.passive_confirmation_ms - passiveElapsed) : 0, near_target_corridor: finite(currentError) && currentError <= this.config.braking_corridor_normalized, predicted_delta: predictedDelta, metrics: { ...this.metrics } };
+    const recoveryElapsed = this.recoveryStableSince === null ? 0 : now - this.recoveryStableSince;
+    return { timestamp_ms: now, target: this.target, current: state.subject, delta, issue, issue_age_ms: issue ? Math.max(0, now - this.activeIssueSince) : 0, active_action: this.episode?.stop_cue_issued_at !== null && this.episode?.stop_cue_issued_at !== undefined ? 'STOP_HERE' : this.episode?.action ?? (this.runtimeState === 'READY' ? 'HOLD' : null), action_age_ms: this.episode ? Math.max(0, now - this.episode.issued_at) : null, instruction, runtime_state: this.runtimeState, waiting_remaining_ms: this.episode ? Math.max(0, this.config.action_response_grace_ms - (now - this.episode.issued_at)) : 0, verification: this.verification, episode: ep ? { ...ep, warning_flags: [...ep.warning_flags] } : null, trial_state: this.trialState, trial_armed_at: this.trialArmedAt, first_instruction_at: this.firstInstructionAt, ready_at: this.readyAt, trial_elapsed_ms: this.firstInstructionAt === null ? null : (this.readyAt ?? now) - this.firstInstructionAt, stable_duration_ms: this.readyStableSince === null ? 0 : Math.max(0, now - this.readyStableSince), ready: this.runtimeState === 'READY', geometry_satisfied: geometrySatisfied, ready_source: this.readySource, passive_confirmation_remaining_ms: this.runtimeState === 'SATISFIED_PENDING_CONFIRMATION' ? Math.max(0, this.config.passive_confirmation_ms - passiveElapsed) : 0, local_recovery_remaining_ms: this.runtimeState === 'LOCAL_RECOVERY_REQUIRED' ? Math.max(0, this.config.local_recovery_auto_resume_ms - recoveryElapsed) : 0, near_target_corridor: finite(currentError) && currentError <= this.config.braking_corridor_normalized, predicted_delta: predictedDelta, metrics: { ...this.metrics } };
   }
 }

@@ -64,15 +64,15 @@ Replay routes are explicitly synthetic, request no camera, call no provider, and
 - Delta uses `target-current`; normalized error uses tolerance; values inside deadband are satisfied.
 - Priority weights are missing `100`, X `10`, scale `8`, Y `6`. Only one issue/action can be active.
 - Issue persistence is `250 ms` after the first phone UX pass; a competing issue must exceed `1.25x` to switch.
-- Local action library is fixed Chinese copy for `MOVE_LEFT`, `MOVE_RIGHT`, `MOVE_CLOSER`, `MOVE_FARTHER`, and one-shot `HOLD`.
+- Local action library includes `MOVE_LEFT`, `MOVE_RIGHT`, `MOVE_CLOSER`, `MOVE_FARTHER`, non-directional one-shot braking `STOP_HERE`, and final one-shot `HOLD`.
 - Sensor image-right maps to the facing subject's physical left. Front-preview mirroring never enters action calculation.
 - Y is measured but explicitly exempted by the included presets because no validated vertical action exists.
 - Minimum instruction gap is `1200 ms`; WAITING keeps Camera/Vision/Delta live but blocks ordinary instruction emission.
-- Verification classifies SUCCESS, IMPROVING, NO_EFFECT, or WRONG_DIRECTION after the movement stabilizes. Improvement remains silent.
-- READY requires subject present, applicable targets satisfied, and stable for `600 ms`; HOLD is emitted once on entry.
+- Verification classifies SUCCESS, IMPROVING, NO_EFFECT, or WRONG_DIRECTION after movement stabilizes. A 1.5-normalized corridor and conservative 350 ms velocity prediction can issue one `STOP_HERE` without adding an ordinary Episode.
+- READY after Episode SUCCESS uses the existing 600 ms stable window. Geometry after a non-SUCCESS terminal requires 1200 ms passive confirmation and records a distinct source; prior failure counters are not rewritten.
 - The primary instruction/status overlay is centered in the lower-middle camera area. WAITING never retains the previous ordinary action copy; it shows silent movement/verification state instead.
 - Each emitted action remains readable for 700 ms without incrementing or re-emitting it; a local reset control exits fail-safe recovery without restarting Camera/Pose.
-- Repeated local failures stop at `LOCAL_RECOVERY_REQUIRED`; they never escalate to Luna.
+- Repeated local failures enter `LOCAL_RECOVERY_REQUIRED`. Stable input automatically resumes after 1200 ms; “继续本机引导” remains a manual fallback. Both preserve metrics, Trace, and monotonic Episode numbering; recovery never escalates to Luna.
 
 All parameters are spike-local Candidates, not global Authority.
 
@@ -90,14 +90,14 @@ Luna Calls = 0
 
 Use a trusted HTTPS tunnel without bypassing certificate warnings and complete `evidence/closed-loop/manual-device-test-template.md`. Run at least three trials with a fixed phone and one person. Verify one instruction, >=900 ms gap, silence while improving, automatic verification, correct physical direction, no X/Scale ping-pong, one-shot HOLD, and READY only while stable.
 
-Until that real-device closed-loop run is completed:
+Latest complete real-device result:
 
 ```text
-Status = FAIL
+Status = FAIL / COMPLETE POST-FIX DEVICE SAMPLE
 LIVE-P1 = PASS
 P2 Implementation Gate = PASS
-P2 Recalibration Implementation Gate = PASS / 48 of 48 tests
-P2 Real Device Gate = FAIL / 17 terminal Episodes / 17.6% correction success
+P2 Overshoot / READY Implementation Gate = PASS / 76 of 76 tests
+P2 Real Device Gate = FAIL / 54 terminal Episodes / 22.2% correction success
 LIVE-P2 = FAIL
 ```
 
