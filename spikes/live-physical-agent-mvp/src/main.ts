@@ -90,7 +90,7 @@ const closedLoopFields = {
   subtype: requireElement<HTMLElement>('cl-subtype'), rates: requireElement<HTMLElement>('cl-rates'),
   braking: requireElement<HTMLElement>('cl-braking'), stop: requireElement<HTMLElement>('cl-stop'),
   readySource: requireElement<HTMLElement>('cl-ready-source'), passive: requireElement<HTMLElement>('cl-passive'),
-  recovery: requireElement<HTMLElement>('cl-recovery'),
+  recovery: requireElement<HTMLElement>('cl-recovery'), freshness: requireElement<HTMLElement>('cl-freshness'), controlAge: requireElement<HTMLElement>('cl-control-age'),
   visualStatus: requireElement<HTMLElement>('cl-visual-status'), visualLock: requireElement<HTMLElement>('cl-visual-lock'),
   visualJitter: requireElement<HTMLElement>('cl-visual-jitter'), visualEntry: requireElement<HTMLElement>('cl-visual-entry'),
   visualLatency: requireElement<HTMLElement>('cl-visual-latency'), visualTiming: requireElement<HTMLElement>('cl-visual-timing'),
@@ -164,7 +164,7 @@ const perceptionRuntime = new PerceptionRuntime({
   onState: (state, rawMeasurement) => {
     latestPerceptionState = state;
     latestRawMeasurement = rawMeasurement;
-    latestClosedLoop = closedLoop.update(state);
+    latestClosedLoop = closedLoop.update(state, { decision_timestamp_ms: performance.now(), camera_facing: activeFacingMode === 'user' ? 'FRONT' : activeFacingMode === 'environment' ? 'REAR' : 'UNKNOWN', preview_mirror_state: activeFacingMode === 'user' ? 'MIRRORED' : activeFacingMode === 'environment' ? 'NON_MIRRORED' : 'UNKNOWN' });
     latestVisualGuidance = visualProjector.update(state, latestClosedLoop, rawMeasurement, { mode: guidanceMode.value as VisualServoMode, grid: guidanceGrid.checked, now: performance.now() });
     scalarTrace.append(state, latestClosedLoop, latestVisualGuidance, guidanceTheme.value);
     if (latestClosedLoop.instruction && latestClosedLoop.instruction.action !== 'HOLD') {
@@ -224,13 +224,13 @@ function renderVisualGuidance(): void {
   const renderedTheme = renderGuidanceTheme(visual,guidanceTheme.value); const defaultTheme = renderGuidanceTheme(visual,'DEFAULT'); const semanticDiff = renderedTheme.semantic_signature===defaultTheme.semantic_signature?0:1;
   visualOverlay.dataset.theme = renderedTheme.theme.theme_id; visualOverlay.style.setProperty('--guide',renderedTheme.theme.visual_tokens.guide); visualOverlay.style.setProperty('--target',renderedTheme.theme.visual_tokens.target); visualOverlay.style.setProperty('--near',renderedTheme.theme.visual_tokens.near); visualOverlay.style.setProperty('--danger',renderedTheme.theme.visual_tokens.danger); visualOverlay.style.setProperty('--line',renderedTheme.theme.visual_tokens.line_width); visualOverlay.style.setProperty('--corner',renderedTheme.theme.visual_tokens.corner_radius);
   const zoneBox: NormalizedBox = { left: visual.acceptable_zone.left, top: visual.acceptable_zone.top, width: visual.acceptable_zone.right-visual.acceptable_zone.left, height: visual.acceptable_zone.bottom-visual.acceptable_zone.top, center_x:(visual.acceptable_zone.left+visual.acceptable_zone.right)/2, center_y:(visual.acceptable_zone.top+visual.acceptable_zone.bottom)/2 };
-  applyProjectedBox(acceptableZone, zoneBox); applyProjectedBox(targetBox, visual.target_box); applyProjectedBox(subjectBox, visual.tracked_subject_box);
+  applyProjectedBox(acceptableZone, zoneBox); targetBox.classList.remove('is-visible'); applyProjectedBox(subjectBox, visual.tracked_subject_box);
   subjectLockLabel.textContent = visual.tracking_status === 'LOCKED' ? '人物已锁定' : visual.tracking_status === 'HELD' ? '人物暂时遮挡' : '人物锁定中';
-  const direction = visual.direction_hint; const directionPresentation = direction === 'MOVE_LEFT' ? ['←','往左一点'] : direction === 'MOVE_RIGHT' ? ['→','往右一点'] : direction === 'MOVE_CLOSER' ? ['⊕','靠近目标框'] : direction === 'MOVE_FARTHER' ? ['⊖','退入目标框'] : null;
+  const direction = visual.direction_hint; const directionPresentation = direction === 'MOVE_LEFT' ? [visual.display_axis_sign < 0 ? '←' : '→','往左一点'] : direction === 'MOVE_RIGHT' ? [visual.display_axis_sign < 0 ? '←' : '→','往右一点'] : direction === 'MOVE_CLOSER' ? ['⊕','靠近一点'] : direction === 'MOVE_FARTHER' ? ['⊖','退后一点'] : null;
   directionVisual.classList.toggle('is-visible', Boolean(directionPresentation) && !visual.braking && !visual.ready); if (directionPresentation) { directionIcon.textContent=renderedTheme.direction_glyph??directionPresentation[0]; directionLabel.textContent=directionPresentation[1]; }
   stopIcon.textContent=renderedTheme.stop_glyph; readyIcon.textContent=renderedTheme.ready_glyph;
   stopVisual.classList.toggle('is-visible', visual.braking && !visual.ready); readyVisual.classList.toggle('is-visible', visual.ready);
-  trackingVisual.textContent = visual.tracking_status === 'LOCKED' ? (visual.inside_target ? '已进入目标区域' : visual.near_target ? '接近目标区域' : renderedTheme.lock_ornament) : visual.tracking_status === 'HELD' ? '短暂丢失 · 保持锁定' : visual.tracking_status === 'UNLOCKED' ? '正在寻找人物' : '正在锁定人物';
+  trackingVisual.textContent = visual.tracking_status === 'LOCKED' ? (visual.inside_target ? '人物已在目标框内' : visual.near_target ? '接近目标框' : '跟随箭头，把人物移进目标框') : visual.tracking_status === 'HELD' ? '暂时未识别 · 请保持位置' : visual.tracking_status === 'UNLOCKED' ? '请让人物进入画面' : '把人物放进目标框';
   closedLoopFields.theme.textContent=`${renderedTheme.theme.theme_id} / ${semanticDiff}`;
 }
 
@@ -317,7 +317,7 @@ function renderClosedLoop(): void {
     closedLoopFields.subtype.textContent = '—'; closedLoopFields.rates.textContent = '— / — / —';
     closedLoopFields.braking.textContent = 'FALSE / —'; closedLoopFields.stop.textContent = 'FALSE / 0';
     closedLoopFields.readySource.textContent = 'FALSE / —'; closedLoopFields.passive.textContent = '0 ms';
-    closedLoopFields.recovery.textContent = '0 ms';
+    closedLoopFields.recovery.textContent = '0 ms'; closedLoopFields.freshness.textContent = '— / 0'; closedLoopFields.controlAge.textContent = '0 / 0 / 0 ms';
     closedLoopFields.visualStatus.textContent = `LOST / ${guidanceMode.value}`; closedLoopFields.visualLock.textContent = 'UNLOCKED / 0.000';
     closedLoopFields.visualJitter.textContent = '0.0000 / 0.0000'; closedLoopFields.visualEntry.textContent = '0 / 0';
     closedLoopFields.visualLatency.textContent = '0 / 0 ms'; closedLoopFields.visualTiming.textContent = '— / —';
@@ -355,11 +355,13 @@ function renderClosedLoop(): void {
   closedLoopFields.readySource.textContent = `${String(snapshot.geometry_satisfied).toUpperCase()} / ${snapshot.ready_source ?? '—'}`;
   closedLoopFields.passive.textContent = `${snapshot.passive_confirmation_remaining_ms.toFixed(0)} ms`;
   closedLoopFields.recovery.textContent = `${snapshot.local_recovery_remaining_ms.toFixed(0)} ms`;
+  closedLoopFields.freshness.textContent = `${snapshot.control_observation.fresh?'FRESH':snapshot.control_observation.suppression_reason} / ${metrics.stale_suppressed_count}`;
+  closedLoopFields.controlAge.textContent = `${metrics.control_observation_age_ms_p50.toFixed(0)} / ${metrics.control_observation_age_ms_p95.toFixed(0)} / ${metrics.control_observation_age_ms_max.toFixed(0)} ms`;
   const visual = latestVisualGuidance;
   closedLoopFields.visualStatus.textContent = `${visual?.visual_status ?? 'LOST'} / ${visual?.overlay_mode ?? guidanceMode.value}`;
   closedLoopFields.visualLock.textContent = `${visual?.tracking_status ?? 'UNLOCKED'} / ${(visual?.tracking_confidence ?? 0).toFixed(3)}`;
   closedLoopFields.visualJitter.textContent = `${(visual?.metrics.raw_box_jitter ?? 0).toFixed(4)} / ${(visual?.metrics.stabilized_box_jitter ?? 0).toFixed(4)}`;
-  closedLoopFields.visualLatency.textContent = `${(visual?.metrics.visual_projection_latency_ms ?? 0).toFixed(0)} / ${(visual?.projection_age ?? 0).toFixed(0)} ms`;
+  closedLoopFields.visualLatency.textContent = `${(visual?.metrics.visual_projection_latency_ms_p50 ?? 0).toFixed(0)} / ${(visual?.metrics.visual_projection_latency_ms_p95 ?? 0).toFixed(0)} / ${(visual?.metrics.visual_projection_latency_ms_max ?? 0).toFixed(0)} ms`;
   closedLoopFields.visualTiming.textContent = `${visual?.metrics.target_crossing_delay_ms === null || visual?.metrics.target_crossing_delay_ms === undefined ? '—' : `${visual.metrics.target_crossing_delay_ms.toFixed(0)} ms`} / ${visual?.metrics.time_inside_target_before_ready_ms === null || visual?.metrics.time_inside_target_before_ready_ms === undefined ? '—' : `${visual.metrics.time_inside_target_before_ready_ms.toFixed(0)} ms`}`;
   closedLoopFields.visualEntry.textContent = `${visual?.metrics.target_box_entry_count ?? 0} / ${visual?.metrics.target_box_exit_count ?? 0}`;
   closedLoopFields.countsA.textContent = `${metrics.ordinary_instruction_count} / ${metrics.stop_cue_count} / ${metrics.hold_count} / ${metrics.successful_corrections}`;
@@ -387,8 +389,8 @@ function closedLoopPresentation(snapshot: ClosedLoopSnapshot): { state: string; 
   if (snapshot.runtime_state === 'SATISFIED_PENDING_CONFIRMATION') return { state: `P2 LOCAL · PASSIVE CONFIRM ${snapshot.passive_confirmation_remaining_ms.toFixed(0)} ms`, text: '保持不动 · 正在确认' };
   if (snapshot.runtime_state === 'READY') return { state: 'P2 LOCAL · READY', text: ACTION_COPY.HOLD };
   if (snapshot.runtime_state === 'LOCAL_RECOVERY_REQUIRED') return { state: `P2 LOCAL · AUTO RECOVERY ${snapshot.local_recovery_remaining_ms.toFixed(0)} ms`, text: '连续调整未完成 · 请站稳，系统将自动继续；也可点击“继续本机引导”' };
-  if (snapshot.issue?.kind === 'X_POSITION') return { state: `P2 LOCAL · CONFIRM X ${snapshot.issue_age_ms.toFixed(0)}/${CLOSED_LOOP_CONFIG.issue_persistence_ms} ms`, text: '正在确认水平位置' };
-  if (snapshot.issue?.kind === 'SCALE') return { state: `P2 LOCAL · CONFIRM SCALE ${snapshot.issue_age_ms.toFixed(0)}/${CLOSED_LOOP_CONFIG.issue_persistence_ms} ms`, text: '正在确认距离' };
+  if (snapshot.issue?.kind === 'X_POSITION') return { state: `P2 LOCAL · CONFIRM X ${snapshot.issue_age_ms.toFixed(0)}/${CLOSED_LOOP_CONFIG.issue_persistence_ms} ms`, text: '把人物框移进目标框' };
+  if (snapshot.issue?.kind === 'SCALE') return { state: `P2 LOCAL · CONFIRM SCALE ${snapshot.issue_age_ms.toFixed(0)}/${CLOSED_LOOP_CONFIG.issue_persistence_ms} ms`, text: '调整距离，让人物框贴近目标框' };
   if (snapshot.issue?.kind === 'Y_POSITION') return { state: 'P2 LOCAL · Y DEFERRED', text: '垂直位置仅观测' };
   return { state: `P2 LOCAL · ${snapshot.runtime_state}`, text: '保持不动 · 正在分析' };
 }

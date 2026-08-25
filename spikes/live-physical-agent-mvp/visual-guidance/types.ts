@@ -1,4 +1,4 @@
-import type { DirectionalAction, ReadySource } from '../closed-loop/types.js';
+import type { CanonicalAxisSign, DirectionalAction, ReadySource } from '../closed-loop/types.js';
 
 export type VisualServoMode = 'TEXT_DOMINANT' | 'VISUAL_SERVO' | 'VISUAL_PLUS_TEXT';
 export type TrackingStatus = 'UNLOCKED' | 'ACQUIRING' | 'LOCKED' | 'HELD' | 'REACQUIRING';
@@ -30,6 +30,9 @@ export interface VisualGuidanceMetrics {
   stabilized_box_jitter: number;
   jitter_reduction_ratio: number | null;
   visual_projection_latency_ms: number;
+  visual_projection_latency_ms_p50: number;
+  visual_projection_latency_ms_p95: number;
+  visual_projection_latency_ms_max: number;
   target_crossing_delay_ms: number | null;
   time_inside_target_before_ready_ms: number | null;
   target_box_entry_count: number;
@@ -52,6 +55,7 @@ export interface VisualGuidanceState {
   inside_target: boolean;
   measurement_stable: boolean;
   direction_hint: DirectionalAction | null;
+  display_axis_sign: CanonicalAxisSign;
   braking: boolean;
   ready: boolean;
   ready_source: ReadySource;
@@ -60,6 +64,7 @@ export interface VisualGuidanceState {
   grid_enabled: boolean;
   overlay_mode: VisualServoMode;
   metrics: VisualGuidanceMetrics;
+  display_observation: Readonly<{ source_timestamp: number; projected_at: number; latency_ms: number; subject_box: NormalizedBox | null }>;
 }
 
 export interface VisualGuidanceConfig {
@@ -73,4 +78,8 @@ export interface VisualGuidanceConfig {
   measurement_quiet_ms: number;
   measurement_jitter_threshold: number;
   history_limit: number;
+  moving_time_constant_ms: number;
+  quiet_time_constant_ms: number;
+  prediction_horizon_ms: number;
+  presentation_exit_multiplier: number;
 }

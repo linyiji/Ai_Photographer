@@ -13,10 +13,11 @@ export const GUIDANCE_THEMES: Readonly<Record<GuidanceThemeId, GuidanceThemeMeta
   LINE_DOG: Object.freeze({ theme_id:'LINE_DOG',display_name:'线条小狗 · 候选',category:'PLAYFUL_LINE_ART',animation_level:'SUBTLE',availability_candidate:'PREMIUM_CANDIDATE',visual_tokens:Object.freeze({guide:'#fff4cf',target:'#8effc9',near:'#ffc86a',danger:'#ff987f',line_width:'2px',corner_radius:'1.25rem',grid_style:'DOTTED'}) }),
 });
 
-const directionGlyph = (action: DirectionalAction | null, theme: GuidanceThemeId): string | null => {
+const directionGlyph = (action: DirectionalAction | null, displayAxisSign: -1|0|1, theme: GuidanceThemeId): string | null => {
   if (!action) return null;
-  const neutral: Record<DirectionalAction,string>={MOVE_LEFT:'←',MOVE_RIGHT:'→',MOVE_CLOSER:'⊕',MOVE_FARTHER:'⊖'};
-  const dog: Record<DirectionalAction,string>={MOVE_LEFT:'↜',MOVE_RIGHT:'↝',MOVE_CLOSER:'◖◗',MOVE_FARTHER:'◗◖'};
+  const xGlyph = displayAxisSign < 0 ? (theme==='LINE_DOG'?'↜':'←') : (theme==='LINE_DOG'?'↝':'→');
+  const neutral: Record<DirectionalAction,string>={MOVE_LEFT:xGlyph,MOVE_RIGHT:xGlyph,MOVE_CLOSER:'⊕',MOVE_FARTHER:'⊖'};
+  const dog: Record<DirectionalAction,string>={MOVE_LEFT:xGlyph,MOVE_RIGHT:xGlyph,MOVE_CLOSER:'◖◗',MOVE_FARTHER:'◗◖'};
   return (theme==='LINE_DOG'?dog:neutral)[action];
 };
 
@@ -24,5 +25,5 @@ export const guidanceSemanticSignature = (state: VisualGuidanceState): string =>
 
 export function renderGuidanceTheme(state: VisualGuidanceState, requestedTheme: GuidanceThemeId | string): RenderedGuidanceTheme {
   const theme = requestedTheme in GUIDANCE_THEMES ? GUIDANCE_THEMES[requestedTheme as GuidanceThemeId] : GUIDANCE_THEMES.DEFAULT;
-  return { theme,direction_glyph:directionGlyph(state.direction_hint,theme.theme_id),stop_glyph:theme.theme_id==='LINE_DOG'?'◉ ᵔᴥᵔ':'◎',ready_glyph:theme.theme_id==='LINE_DOG'?'✓ ᵔᴥᵔ':'✓',lock_ornament:theme.theme_id==='LINE_DOG'?'⌁ 人物已锁定 ⌁':'人物已锁定',semantic_signature:guidanceSemanticSignature(state) };
+  return { theme,direction_glyph:directionGlyph(state.direction_hint,state.display_axis_sign,theme.theme_id),stop_glyph:theme.theme_id==='LINE_DOG'?'◉ ᵔᴥᵔ':'◎',ready_glyph:theme.theme_id==='LINE_DOG'?'✓ ᵔᴥᵔ':'✓',lock_ornament:theme.theme_id==='LINE_DOG'?'⌁ 人物已锁定 ⌁':'人物已锁定',semantic_signature:guidanceSemanticSignature(state) };
 }

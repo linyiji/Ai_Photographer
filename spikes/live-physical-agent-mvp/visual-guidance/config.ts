@@ -11,4 +11,8 @@ export const VISUAL_GUIDANCE_CONFIG: Readonly<VisualGuidanceConfig> = Object.fre
   measurement_quiet_ms: 350,
   measurement_jitter_threshold: 0.018,
   history_limit: 120,
+  moving_time_constant_ms: 80,
+  quiet_time_constant_ms: 150,
+  prediction_horizon_ms: 70,
+  presentation_exit_multiplier: 1.15,
 });

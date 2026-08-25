@@ -153,7 +153,7 @@
             <label class="target-picker">THEME
               <select id="guidance-theme" aria-label="Guidance theme"></select>
             </label>
-            <label class="toggle-setting"><input id="guidance-grid" type="checkbox" checked /> 九宫格</label>
+            <label class="toggle-setting"><input id="guidance-grid" type="checkbox" /> 九宫格（调试）</label>
             <button id="closed-loop-reset" class="button button--quiet" type="button">重置本机引导</button>
             <button id="closed-loop-arm" class="button" type="button">ARM 新试验</button>
             <button id="closed-loop-trace" class="button button--quiet" type="button">下载标量 Trace</button>
@@ -188,6 +188,8 @@
           <div><dt>GEOMETRY / READY SOURCE</dt><dd id="cl-ready-source">FALSE / —</dd></div>
           <div><dt>PASSIVE CONFIRM REMAINING</dt><dd id="cl-passive">0 ms</dd></div>
           <div><dt>RECOVERY AUTO REMAINING</dt><dd id="cl-recovery">0 ms</dd></div>
+          <div><dt>CONTROL FRESH / SUPPRESSED</dt><dd id="cl-freshness">— / 0</dd></div>
+          <div><dt>CONTROL AGE P50 / P95 / MAX</dt><dd id="cl-control-age">0 / 0 / 0 ms</dd></div>
           <div><dt>VISUAL STATUS / MODE</dt><dd id="cl-visual-status">LOST / VISUAL_PLUS_TEXT</dd></div>
           <div><dt>TRACK LOCK / CONF</dt><dd id="cl-visual-lock">UNLOCKED / 0.000</dd></div>
           <div><dt>RAW / STABILIZED JITTER</dt><dd id="cl-visual-jitter">0.0000 / 0.0000</dd></div>
