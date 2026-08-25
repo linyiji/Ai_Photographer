@@ -2,8 +2,8 @@
 
 **Project Baseline:** V0.6 Complete  
 **Current Product Prototype:** S01 V1.6.1  
-**Current Milestone:** M02 — Full-stack Foundation
-**Current Task:** XFX_MAIN_FULLSTACK_FOUNDATION_AND_M02_01
+**Current Milestone:** M03 — Replay E2E Lab
+**Current Task:** XFX_M03_REPLAY_E2E_LAB_01
 
 **Current Task Status:** PASS
 
@@ -17,7 +17,7 @@
 | M00 Project Baseline | PASS | M00_BASELINE_LOCK = PASS |
 | M01 Global Contracts | PASS | M01_CONTRACT_LOCK = PASS |
 | M02 Application Skeleton | PASS | M02_SKELETON_RUNNABLE = PASS; FULLSTACK_VERTICAL_SLICE = PASS |
-| M03 Fast Feedback Lab | NOT_STARTED | M03_REPLAY_READY |
+| M03 Fast Feedback Lab | PASS | M03_REPLAY_READY = PASS |
 | M04 WeChat Camera/CV Spike | NOT_STARTED | M04_CAMERA_FEASIBILITY |
 | M05 MVP Golden Flow | NOT_STARTED | M05_MVP_GOLDEN_FLOW |
 | M06 Real Capability Replacement | NOT_STARTED | Capability Gates |
@@ -190,7 +190,30 @@ Frontend Runtime L1: LOCKED_L1
 
 ## Challenge Status
 
-`project-status/CHALLENGES.json` 未修改。CH-003 保持 `IDENTIFIED`；M01 仅冻结语言和边界，没有验证 Camera Frame、CV FPS 或设备性能。CH-011 仍为 `SOLUTION_PROPOSED`，因为真实资产迁移和 M03 Manifest 驱动验收尚未发生。
+`project-status/CHALLENGES.json` 未修改。CH-003 保持 `IDENTIFIED`；M03 不验证 Camera Frame、CV FPS 或设备性能。CH-011 仍为 `SOLUTION_PROPOSED`：Manifest 驱动回归实验室已建立，但真实资产迁移尚未发生。
+
+## M03 Replay E2E Lab
+
+```text
+M03_REPLAY_READY: PASS
+Replay modes: FROM_SCRATCH / FROM_CHECKPOINT / FAULT_INJECTED / DRY_EVALUATION
+Scenario Manifest: V2
+Scenario Matrix: 12 / PASS
+Multi-run determinism: PASS
+Unexpected semantic diff: 0
+Checkpoint resumes: 3 / PASS
+Fault injection / transaction rollback / idempotency mismatch: PASS
+Trace / semantic diff / deterministic evaluation: PASS
+Backend tests: 33 PASS
+H5 Replay Lab browser E2E: PASS
+Normal S01 browser regression: PASS
+Lab default disabled: PASS
+Production Lab block: PASS
+H5 entry: 307633 → 307814 bytes
+H5 Lab lazy page chunk: 61412 bytes
+```
+
+Replay 仍调用 M02 的 Session/Workflow/Capability/Persistence 路径；每次运行使用隔离 SQLite。没有 arbitrary SQL/file/code endpoint，没有 Provider 调用或真实媒体。M01、M02、main 与 Live worktree 保持不变，CH-003 仍为 `IDENTIFIED / UNCHANGED`。
 
 ```text
 Challenges Addressed: Windows Bootstrap / repository integrity
@@ -201,7 +224,7 @@ Challenges Reopened: NONE
 ## Next Recommended Task
 
 ```text
-XFX_M03_REPLAY_E2E_LAB_01
+XFX_M04_PLATFORM_ADAPTER_AND_REAL_CAPABILITY_INTEGRATION_FOUNDATION_01
 ```
 
 这里只记录下一主流程任务；本次不开始 M03，不修改 `main`。Live Parallel Track 保持独立，CH-003 仍为 `IDENTIFIED / UNCHANGED`。

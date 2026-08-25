@@ -1,9 +1,9 @@
 # GPT / Codex Handoff
 
 **Baseline:** V0.6 Complete  
-**Current Milestone:** M02 — PASS
+**Current Milestone:** M03 — PASS
 
-**Current Task:** XFX_MAIN_FULLSTACK_FOUNDATION_AND_M02_01 — PASS
+**Current Task:** XFX_M03_REPLAY_E2E_LAB_01 — PASS
 
 ## Project Context
 
@@ -84,6 +84,9 @@ New Shell Reproducibility: PASS
 - S01 real browser network flow reached FINAL; refresh read back revision 11, 3 assets, and 12 events from SQLite
 - H5 and WeChat builds passed; H5 retained a non-blocking entrypoint-size advisory
 - Feature evidence through `7514f9d1d40c0d8508a67b2a84cc695f64c1056a` strict-fast-forward merged and pushed to `develop`
+- M03 Replay/E2E Lab: versioned 12-scenario matrix, governed replay engine, 3 checkpoint resumes, typed fault injection, traces, semantic diff, deterministic evaluation, isolated SQLite, and H5 Dev Lab
+- M03 backend regression: 33 tests PASS; multi-run unexpected semantic diff = 0; normal S01 and Lab browser E2E PASS
+- Lab is disabled by default and blocked in production; its H5 page is isolated in a 61412-byte lazy chunk while entry increased only 181 bytes
 
 ## M01 Contract Authority
 
@@ -166,7 +169,7 @@ project-status/CHALLENGES.json
 Next Recommended Task:
 
 ```text
-XFX_M03_REPLAY_E2E_LAB_01
+XFX_M04_PLATFORM_ADAPTER_AND_REAL_CAPABILITY_INTEGRATION_FOUNDATION_01
 ```
 
 不要自动执行下一任务。M01 Contract Authority 与 Frontend Runtime L1 保持不变。M02 仅使用 deterministic fake capability 与 SQLite development adapter；真实 Camera/CV、AI Provider、Voice、Dual Device、Reality+、生产数据库和 LIVE-P1 均未启动。Live worktree 未被触碰；CH-003 保持 `IDENTIFIED / UNCHANGED`。
