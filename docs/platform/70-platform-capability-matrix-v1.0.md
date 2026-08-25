@@ -6,7 +6,7 @@ This matrix records implementation and acceptance evidence for the locked M01 pl
 
 | Capability | H5 | WeChat | Future Douyin | Evidence | Fallback / next gate |
 |---|---|---|---|---|---|
-| CameraAdapter | UNVERIFIED_REAL_DEVICE | UNVERIFIED_REAL_DEVICE | DEFERRED | Taro single-shot chooser/camera facade compiles; authorized browser file capture path passes | File upload is the accepted M04 path; real device gate is M05+ |
+| CameraAdapter | SUPPORTED_TESTED_SCOPE — OPPO K11 / ColorOS 15.0 / Chrome 138.0.7204.168 | UNVERIFIED_REAL_DEVICE | DEFERRED | M05 trusted-HTTPS user-operated gate: permission timing, rear/front/switch, close/reopen, still capture, local retake, import fallback, orientation, resume, and full flow PASS | Evidence is one tested H5 device/browser only; do not generalize to Android/iOS/WeChat/Douyin |
 | FrameAdapter | UNSUPPORTED | UNSUPPORTED | DEFERRED | No frame stream or CV imported | Future separately accepted Physical Agent adapter |
 | AlbumAdapter | PARTIAL | UNVERIFIED_REAL_DEVICE | DEFERRED | H5 real download passes; no claim of system album save | Show PARTIAL; device album acceptance later |
 | ShareAdapter | PARTIAL | UNVERIFIED_REAL_DEVICE | DEFERRED | Web Share runs when available and returns controlled unsupported otherwise | Final download remains available |
@@ -25,7 +25,7 @@ M03 Lab provides deterministic `H5_FULL`, `H5_NO_SHARE`, `H5_OFFLINE`, `WECHAT_U
 ## Evidence limits
 
 - WeChat compilation is not real-device acceptance.
-- H5 Camera implementation is not a camera-device gate; automated acceptance uses an authorized deterministic image file.
+- H5 Camera real-device acceptance is limited to OPPO K11 / ColorOS 15.0 / Chrome Mobile 138.0.7204.168 under the M05 trusted-HTTPS evidence. It does not prove other H5 devices or embedded mini-program webviews.
 - H5 Album is download-only and remains `PARTIAL`.
 - Reality+ output remains deterministic fake; no provider was called.
 - Live/CV evidence remains isolated in the independent Live worktree and is not imported here.

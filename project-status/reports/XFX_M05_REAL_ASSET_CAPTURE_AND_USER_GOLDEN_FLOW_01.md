@@ -73,22 +73,32 @@ A fresh Internal Demo browser session traversed Home to CAPTURE against real Fas
 
 Reload at QA returned Home with `继续 · 挑选结果`. Completion reached FINAL, loaded the real final content URL, and My Works listed one completed item. Share opened when supported; download remained visible. Console warning/error evidence was empty. A separate Production build displayed the fake-AI block; tapping Start produced no `POST /sessions`.
 
-## Real-device disposition
+## Real-device acceptance and bounded fix
 
-The implementation and automated gates do not prove phone camera behavior. The required checklist and OPPO K11 evidence template exist, but no new M05 device run was supplied or inferred.
+The user operated an OPPO K11 running ColorOS 15.0 and Chrome Mobile 138.0.7204.168 through trusted temporary Cloudflare Quick Tunnels. No phone behavior was inferred from desktop automation. Permission appeared only after `打开相机`; denial retained friendly import fallback; rear/front/switch, close/reopen, portrait/landscape/return, local still, pre-confirm retake, explicit resume, Final, My Works, download, and share/fallback all passed without a visible black screen, crash, stall, or stuck busy state.
+
+The expected start build had a proven mobile test-topology defect: its fixed `http://127.0.0.1:8000` API origin could not reach the workstation backend from a phone HTTPS page. Commit `73c8782bca4600288c18526c7eefcb8f8366091c` added a build-time `XFX_API_BASE` while retaining loopback as the local default. Temporary tunnel hostnames were never committed. Post-fix typecheck, H5, WeChat, frontend, backend, and real-phone checks passed.
+
+Server metadata proves zero upload/revision/asset change for the local retake-before-confirm path. Each confirmed local candidate emitted exactly one multipart upload, one confirmation key, one `CREATE_CAPTURE_COMMITTED`, and one CAPTURE→QA advance. The accepted Session deliberately exercised a later QA micro-retake, so two separately authorized still uploads are retained in runtime metadata with `RETAKE_MICRO_COMMITTED` between them; this is not duplicate confirmation. The final accepted still is JPEG / 66032 bytes / SHA256 `1905cfc50105175de1a0c52c84c49d22959d34e9a5756ccde00982c48ba98cc4`.
 
 ```text
-Status = READY_FOR_MANUAL_DEVICE_TEST
+Status = PASS_WITH_WARNING
 Implementation Gate = PASS
-Real Device Gate = MANUAL_REVIEW_REQUIRED
-M05 Final Gate = NOT_YET_PASS
-INTERNAL_USER_GOLDEN_FLOW_READY = NO
+Real Device Gate = PASS
+M05 Final Gate = PASS
+INTERNAL_USER_GOLDEN_FLOW_READY = YES
 PUBLIC_PRODUCTION_READY = NO
-Auto FF Merge = NOT_ATTEMPTED
-Develop After = 46393ce0a37bb9e339933679438ff57f58c1e835 / UNCHANGED
+Device = OPPO K11 / ColorOS 15.0 / Chrome Mobile 138.0.7204.168
+Camera / switch / shutter latency = <1 second each / user approximate
+Confirm to QA = approximately 2 seconds
+Raw Video Upload = 0
+Frame Stream Upload = 0
+Unconfirmed Still Upload = 0
+Committed Real User Media = 0
+Provider Calls = 0
 ```
 
-The Platform Matrix Camera row is intentionally unchanged until signed real-device evidence passes.
+Warnings are limited to the existing H5 302 KiB size advisory and two timing values that the user did not separately measure. Share passed its governed acceptance but the user did not identify whether the supported Web Share or safe fallback branch executed. The Platform Matrix is promoted only for the tested OPPO K11 H5 scope; WeChat remains `UNVERIFIED_REAL_DEVICE`.
 
 ## Security and scope
 
@@ -111,14 +121,13 @@ PARALLEL WORKTREES = UNTOUCHED
 
 ```text
 6f0a4c3 = feat: build real user capture golden flow
-Documentation/status commit = this report's containing commit
+73c8782 = fix: support trusted mobile acceptance api endpoint
+Device acceptance/status commit = this report's containing commit
 Automation commit = SELF / final feature branch HEAD at push
 Remote feature branch = PASS / origin/feature/m05-real-user-golden-flow
 ```
 
 ## Next task
-
-Only after the M05 real-device and final gates pass:
 
 ```text
 XFX_M06_REAL_CAPABILITY_INTEGRATION_WAVE_01

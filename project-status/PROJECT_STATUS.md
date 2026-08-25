@@ -3,9 +3,9 @@
 **Project Baseline:** V0.6 Complete  
 **Current Product Prototype:** S01 V1.6.1  
 **Current Milestone:** M05 — Real Asset Capture and User Golden Flow
-**Current Task:** XFX_M05_REAL_ASSET_CAPTURE_AND_USER_GOLDEN_FLOW_01
+**Current Task:** XFX_M05_REAL_DEVICE_ACCEPTANCE_AND_CLOSURE_01
 
-**Current Task Status:** READY_FOR_MANUAL_DEVICE_TEST
+**Current Task Status:** PASS
 
 **Overall Project Status:** IN_PROGRESS
 **Primary Environment:** Windows First
@@ -19,7 +19,7 @@
 | M02 Application Skeleton | PASS | M02_SKELETON_RUNNABLE = PASS; FULLSTACK_VERTICAL_SLICE = PASS |
 | M03 Fast Feedback Lab | PASS | M03_REPLAY_READY = PASS |
 | M04 Platform Adapter Integration Foundation | PASS | M04_PLATFORM_ADAPTER_FOUNDATION = PASS |
-| M05 MVP Golden Flow | VALIDATING | Implementation PASS; Real Device MANUAL_REVIEW_REQUIRED |
+| M05 MVP Golden Flow | PASS | Implementation PASS; Real Device PASS; M05 Final Gate PASS |
 | M06 Real Capability Replacement | NOT_STARTED | Capability Gates |
 | M07 Cross-platform | NOT_STARTED | M07_CROSS_PLATFORM_BASELINE |
 
@@ -29,8 +29,9 @@
 Branch: feature/m05-real-user-golden-flow
 Start Head: 46393ce0a37bb9e339933679438ff57f58c1e835
 Implementation Gate: PASS
-Real Device Gate: MANUAL_REVIEW_REQUIRED
-M05 Final Gate: NOT_YET_PASS
+Real Device Gate: PASS
+M05 Final Gate: PASS
+INTERNAL_USER_GOLDEN_FLOW_READY: YES
 Internal Demo: READY_WITH_DISCLOSURE
 PUBLIC_PRODUCTION_READY: NO
 Unconfirmed Still Upload: 0
@@ -45,7 +46,7 @@ Desktop E2E: PASS
 Auto FF Merge: NOT_ATTEMPTED
 ```
 
-Camera is primary and device import remains the controlled fallback. A selected still remains local until `使用这张`; retake before confirmation does not call the server or advance Workflow. Backend session lists drive explicit resume and My Works. Production mode reports `PUBLIC_PRODUCTION_READY = false` and blocks session creation while deterministic fake intelligence remains selected. The real-device checklist is prepared for OPPO K11, but no phone behavior was inferred from desktop automation. Platform Matrix Camera acceptance remains unchanged until signed device evidence exists.
+Camera is primary and device import remains the controlled fallback. The user-operated OPPO K11 / ColorOS 15.0 / Chrome Mobile 138.0.7204.168 trusted-HTTPS gate passed permission timing, rear/front switching, lifecycle, still capture, local retake, confirmation, import, rotation, explicit backend resume, Final, My Works, download, and share/fallback. A selected still remains local until `使用这张`; retake before confirmation does not call the server or advance Workflow. Per-candidate confirmation produced exactly one upload and one workflow commit. The H5 Camera matrix is promoted only for this tested scope; WeChat remains unverified. Production mode remains blocked while deterministic fake intelligence is selected.
 
 ## Windows Bootstrap Acceptance
 
@@ -285,7 +286,7 @@ Challenges Reopened: NONE
 ## Next Recommended Task
 
 ```text
-XFX_M05_REAL_ASSET_CAPTURE_AND_USER_GOLDEN_FLOW_01
+XFX_M06_REAL_CAPABILITY_INTEGRATION_WAVE_01
 ```
 
-这里只记录下一主流程任务；本次不开始 M05，不修改 `main`。Live Parallel Track 保持独立，CH-003 仍为 `IDENTIFIED / UNCHANGED`。
+这里只记录下一主流程任务；本次不开始 M06，不修改 `main`。Live Parallel Track 保持独立，CH-003 仍为 `IDENTIFIED / UNCHANGED`。

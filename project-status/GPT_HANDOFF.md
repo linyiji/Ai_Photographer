@@ -1,9 +1,9 @@
 # GPT / Codex Handoff
 
 **Baseline:** V0.6 Complete  
-**Current Milestone:** M05 — REAL DEVICE VALIDATION PENDING
+**Current Milestone:** M05 — PASS
 
-**Current Task:** XFX_M05_REAL_ASSET_CAPTURE_AND_USER_GOLDEN_FLOW_01 — READY_FOR_MANUAL_DEVICE_TEST
+**Current Task:** XFX_M05_REAL_DEVICE_ACCEPTANCE_AND_CLOSURE_01 — PASS
 
 ## Project Context
 
@@ -93,6 +93,9 @@ New Shell Reproducibility: PASS
 - M04 Lab platform extension: 8 deterministic profiles and 12 adapter scenarios; M03 deterministic Replay remains MATCH
 - M04 validation: 70 backend tests and 5 frontend platform tests PASS; H5 binary browser E2E, refresh/readback, partial retake, Lab E2E, TypeScript, H5 and WeChat builds PASS (H5 retained size warning)
 - M04 feature head `95df89afd1834397d27ab552273d13195eb3901d` strict-fast-forward merged and pushed to `develop`; remote feature evidence retained
+- M05 real user Golden Flow implementation and automated gate: backend 76/76, frontend 11/11, TypeScript, H5/WeChat builds, M05 Replay 12/12, deterministic regressions, Production fake-AI gate, and desktop E2E PASS
+- M05 OPPO K11 / ColorOS 15.0 / Chrome Mobile 138.0.7204.168 user-operated trusted-HTTPS gate PASS: permission timing, rear/front/switch, close/reopen, still/local retake, import, rotation, exactly-once confirmation, explicit backend resume, Final, My Works, download, and share/fallback
+- Mobile acceptance API topology bounded fix `73c8782bca4600288c18526c7eefcb8f8366091c`; ephemeral tunnel origins remained build-only and no real user media was committed
 
 ## M01 Contract Authority
 
@@ -155,7 +158,7 @@ Integration Governance: docs/architecture/71-real-capability-integration-governa
 Platform Catalog Authority: packages/platform/catalog.json / PRESERVED
 Local Storage Adapter: DEVELOPMENT_LOCAL_STORAGE_ADAPTER
 Production Object Storage: NOT_LOCKED
-H5 Camera Real Device: UNVERIFIED_REAL_DEVICE
+H5 Camera Real Device: PASS / TESTED_SCOPE_OPPO_K11_CHROME_138
 WeChat Real Device: UNVERIFIED_REAL_DEVICE
 Fake Live Selected: PASS
 M01 / M02 / M03: PRESERVED
@@ -178,21 +181,23 @@ React 19.2.6: retained negative evidence (FAIL)
 
 ## Known Issues
 
-## M05 Manual Device Handoff
+## M05 Real Device Closure
 
 ```text
 Branch: feature/m05-real-user-golden-flow
-Start Head: 46393ce0a37bb9e339933679438ff57f58c1e835
+Acceptance Start Head: 803cbf563eea2eacb2f0ae15833b4c30db8f73f7
+Device Test Head: 73c8782bca4600288c18526c7eefcb8f8366091c
 Implementation Gate: PASS
-Real Device Gate: MANUAL_REVIEW_REQUIRED
-M05 Final Gate: NOT_YET_PASS
+Real Device Gate: PASS
+M05 Final Gate: PASS
+INTERNAL_USER_GOLDEN_FLOW_READY: YES
 PUBLIC_PRODUCTION_READY: NO
-Device candidate: OPPO K11 / ColorOS 15 / Chrome Mobile (exact version must be recorded)
+Device: OPPO K11 / ColorOS 15.0 / Chrome Mobile 138.0.7204.168
 Checklist: docs/platform/72-h5-camera-and-capture-user-acceptance-v1.0.md
 Evidence: project-status/evidence/m05/h5-real-device-oppo-k11.md
 ```
 
-Automated evidence proves explicit resume, local confirmation before upload, zero upload on retake, one confirmed upload, stable idempotency, backend refresh recovery, My Works, final readback, download/share handling, and Production fake-AI blocking. It does not prove real phone camera permission, preview, front/rear switching, orientation, or lifecycle. The next operator must run the signed device checklist without committing user media. Do not merge to `develop` until that gate passes.
+The user operated the phone; no phone behavior was inferred. Server evidence proves zero unconfirmed upload and exactly one upload/commit per confirmed local candidate. The accepted Session also exercised a governed QA micro-retake, producing a second separately authorized still after `RETAKE_MICRO_COMMITTED`. No raw video/frame stream, provider call, secret, tunnel hostname, or real test photo was committed. H5 Camera acceptance is limited to the named OPPO K11 scope; WeChat remains unverified, production DB/object storage remain unlocked, and `PUBLIC_PRODUCTION_READY` remains false.
 
 以：
 
@@ -204,10 +209,10 @@ project-status/CHALLENGES.json
 
 ## Next Task
 
-Next Recommended Task after M05 Final Gate PASS:
+Next Recommended Task:
 
 ```text
 XFX_M06_REAL_CAPABILITY_INTEGRATION_WAVE_01
 ```
 
-不要自动执行下一任务。M05 尚未最终 PASS；当前只允许真实设备验收。M01 Contract Authority、Frontend Runtime L1 与 M04 保持不变。真实 CV、AI Provider、Voice、Dual Device、Reality+、生产数据库和 Live 集成均未启动。Live/Fine-tune Worktree 未被触碰；CH-003 保持 `IDENTIFIED / UNCHANGED`。
+不要自动执行下一任务。M01 Contract Authority、Frontend Runtime L1 与 M04 保持不变。真实 CV、AI Provider、Voice、Dual Device、Reality+、生产数据库和 Live 集成均未启动。Live/Fine-tune Worktree 未被触碰；CH-003 保持 `IDENTIFIED / UNCHANGED`。
