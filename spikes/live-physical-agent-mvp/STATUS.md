@@ -16,10 +16,12 @@ Browser Smoke = PASS
 Real Device Gate = PASS
 LIVE-P1 Final Gate = PASS
 LIVE-P1 = PASS
-P2 Implementation Gate = IN_PROGRESS
-P2 Real Device Gate = NOT_STARTED
+P2 Implementation Gate = PASS
+P2 Automated Tests = PASS
+P2 Typecheck / Build / Browser Replay = PASS / PASS / PASS
+P2 Real Device Gate = MANUAL_REVIEW_REQUIRED
 LIVE-P2 = NOT_YET_PASS
-Status = IN_PROGRESS
+Status = READY_FOR_MANUAL_DEVICE_TEST
 
 Vision Package = @mediapipe/tasks-vision@1.0.1 / EXACT
 Model = Pose Landmarker Lite float16 v1 / LOCAL IGNORED ASSET
@@ -66,4 +68,4 @@ OPPO K11 real-device Camera + Pose passed the P1 hard gates, including Worker ex
 
 ## Active phase
 
-The accelerated composite task is authorized to continue automatically into P2 local closed-loop implementation. Luna, Backend inference, Voice, Agent, Capture, QA, Reality+, and complex Pose remain forbidden.
+P2 local Target, Delta, Deadband, Priority, Persistence/Hysteresis, action library, WAITING, verification, and READY are implemented and pass deterministic automation. Real-device P2 closed-loop trials remain mandatory, so LIVE-P2 is not PASS. Luna, Backend inference, Voice, Agent, Capture, QA, Reality+, and complex Pose remain forbidden.

@@ -33,6 +33,37 @@ Warnings retained: subject ratio `0.317`, cumulative late/drop `918/29`, 3000 ms
 
 The focused loss test changed counters from `0/0` to `1/1`, made subject/center explicitly absent, reacquired the subject, and produced no giant velocity spike. Raw upload, Backend, and Luna remained zero.
 
-## Phase B / C
+## Phase B — P2 implementation
 
-P2 implementation and acceptance results will be appended by the same governed task. Phase A PASS authorizes automatic continuation; it does not pre-authorize Luna or any forbidden later layer.
+```text
+Target = PASS / 3 configurable presets
+Delta / Deadband = PASS
+Priority = PASS
+Persistence / Hysteresis = PASS
+Local Action Library = PASS
+WAITING / Silence = PASS
+Verification = PASS
+READY / one-shot HOLD = PASS
+Replay Tests = PASS
+P2 Implementation Gate = PASS
+```
+
+The engine is local and deterministic. It chooses one issue/action, applies 300 ms persistence and 1.25x dominance, blocks new ordinary output for 1200 ms, verifies only after stable motion, and enters READY after 600 ms stable satisfaction. Repeated failure stops locally; there is no escalation path.
+
+The action basis is explicit: non-mirrored sensor image-right corresponds to the facing subject's physical left. Front-preview CSS mirroring is excluded from the calculation. Included presets explicitly exempt Y from readiness because no safe vertical action is authorized; strict Y remains measurable and reports deferred action mapping.
+
+All required named replay fixtures exist. Browser replay visibly demonstrated MOVE_LEFT, WAITING silence, SUCCESS, next SCALE instruction after transition, READY, one HOLD event, and zero Provider/Backend/Luna/Upload.
+
+## Phase C — P2 real device
+
+```text
+P2 Real Device Gate = MANUAL_REVIEW_REQUIRED
+LIVE-P2 = NOT_YET_PASS
+Status = READY_FOR_MANUAL_DEVICE_TEST
+```
+
+Three real-phone closed-loop trials remain required. Implementation/build/browser results do not substitute for physical direction, silence, oscillation, correction success, or time-to-target acceptance.
+
+## Governance
+
+CH-003 evidence is added locally; global CH-003 remains `IDENTIFIED / UNCHANGED`. Luna remains OFF. No merge, PR, main/develop write, rebase, or cherry-pick occurred.

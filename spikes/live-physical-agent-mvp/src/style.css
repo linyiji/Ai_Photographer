@@ -179,6 +179,10 @@ h2 { margin: 0; font-size: 1rem; letter-spacing: -0.02em; }
 .perception-grid div { min-width: 0; padding: 0.6rem; border-radius: 0.7rem; background: rgba(5, 10, 11, 0.72); }
 .perception-grid dt { color: #788d88; font-size: 0.54rem; font-weight: 800; letter-spacing: 0.07em; }
 .perception-grid dd { overflow-wrap: anywhere; margin: 0.23rem 0 0; color: #d8e4e0; font: 650 0.62rem/1.35 ui-monospace, SFMono-Regular, Consolas, monospace; }
+.guidance-panel { border-color: rgba(255, 203, 114, 0.28); background: linear-gradient(145deg, rgba(34, 27, 17, 0.95), rgba(17, 20, 21, 0.95)); }
+.target-picker { display: grid; gap: 0.25rem; color: #9e8a68; font: 800 0.55rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: 0.08em; }
+.target-picker select { max-width: 10rem; padding: 0.5rem; border: 1px solid #5c513d; border-radius: 0.55rem; color: #f3e8d1; background: #17130e; }
+.instruction-copy { min-height: 2rem; margin: 0.75rem 0 0; padding: 0.7rem; border-radius: 0.7rem; color: #ffdc9b; background: rgba(255, 190, 70, 0.08); font-size: 1rem; font-weight: 800; text-align: center; }
 
 .control-panel { padding: 0.85rem; }
 .state-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.55rem; }

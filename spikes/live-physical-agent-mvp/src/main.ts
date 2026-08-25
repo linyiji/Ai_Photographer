@@ -2,6 +2,9 @@ import './style.css';
 import { PERCEPTION_CONFIG } from '../perception/config.js';
 import { PerceptionRuntime } from '../perception/runtime.js';
 import type { PoseMeasurement, StructuredPerceptionState } from '../perception/types.js';
+import { ACTION_COPY, CLOSED_LOOP_CONFIG, TARGET_PRESETS } from '../closed-loop/config.js';
+import { LocalClosedLoopEngine } from '../closed-loop/engine.js';
+import type { ClosedLoopSnapshot } from '../closed-loop/types.js';
 
 type FacingMode = 'user' | 'environment';
 type PermissionStateLabel = PermissionState | 'not_requested' | 'unsupported' | 'error';
@@ -41,6 +44,19 @@ const poseInitButton = requireElement<HTMLButtonElement>('pose-init-button');
 const poseMessage = requireElement<HTMLParagraphElement>('pose-message');
 const poseModelStatus = requireElement<HTMLElement>('pose-model-status');
 const executionMode = requireElement<HTMLElement>('execution-mode');
+const closedLoopHud = requireElement<HTMLElement>('closed-loop-hud');
+const targetPreset = requireElement<HTMLSelectElement>('target-preset');
+const closedLoopFields = {
+  runtimeState: requireElement<HTMLElement>('cl-runtime-state'), ready: requireElement<HTMLElement>('cl-ready'),
+  instruction: requireElement<HTMLElement>('cl-instruction'), target: requireElement<HTMLElement>('cl-target'),
+  current: requireElement<HTMLElement>('cl-current'), delta: requireElement<HTMLElement>('cl-delta'),
+  error: requireElement<HTMLElement>('cl-error'), issue: requireElement<HTMLElement>('cl-issue'),
+  issueAge: requireElement<HTMLElement>('cl-issue-age'), action: requireElement<HTMLElement>('cl-action'),
+  waiting: requireElement<HTMLElement>('cl-waiting'), verification: requireElement<HTMLElement>('cl-verification'),
+  stable: requireElement<HTMLElement>('cl-stable'), countsA: requireElement<HTMLElement>('cl-counts-a'),
+  countsB: requireElement<HTMLElement>('cl-counts-b'), countsC: requireElement<HTMLElement>('cl-counts-c'),
+  timeTarget: requireElement<HTMLElement>('cl-time-target'), decisions: requireElement<HTMLElement>('cl-decisions'),
+};
 const perceptionFields = {
   previewFps: requireElement<HTMLElement>('p-preview-fps'),
   targetHz: requireElement<HTMLElement>('p-target-hz'),
@@ -82,12 +98,16 @@ let elapsedTimer: number | null = null;
 let cameraCount: number | null = null;
 let latestPerceptionState: StructuredPerceptionState | null = null;
 let latestRawMeasurement: PoseMeasurement | null = null;
+let latestClosedLoop: ClosedLoopSnapshot | null = null;
 
 const simulatedUnsupported = new URLSearchParams(window.location.search).get('simulateUnsupported') === '1';
 const supportsMediaDevices = !simulatedUnsupported && Boolean(navigator.mediaDevices?.getUserMedia);
 
 const formatMetric = (value: number | null | undefined, digits = 3): string =>
   value === null || value === undefined || !Number.isFinite(value) ? '—' : value.toFixed(digits);
+
+let currentTarget = TARGET_PRESETS[0];
+const closedLoop = new LocalClosedLoopEngine(currentTarget);
 
 const perceptionRuntime = new PerceptionRuntime({
   onStatus: (status, mode, text) => {
@@ -100,7 +120,9 @@ const perceptionRuntime = new PerceptionRuntime({
   onState: (state, rawMeasurement) => {
     latestPerceptionState = state;
     latestRawMeasurement = rawMeasurement;
+    latestClosedLoop = closedLoop.update(state);
     renderPerceptionState();
+    renderClosedLoop();
   },
   onError: (text) => {
     poseMessage.textContent = text;
@@ -192,6 +214,42 @@ function renderPerceptionTelemetry(): void {
   perceptionFields.skippedBusy.textContent = String(telemetry.skipped_busy_frames);
   perceptionFields.subjectRatio.textContent = telemetry.subject_detected_ratio.toFixed(3);
   perceptionFields.memory.textContent = telemetry.memory_mb === null ? 'UNAVAILABLE' : `${telemetry.memory_mb.toFixed(1)} MB`;
+}
+
+function renderClosedLoop(): void {
+  const snapshot = latestClosedLoop;
+  const target = snapshot?.target ?? currentTarget;
+  closedLoopFields.target.textContent = `${formatMetric(target.center_x)} / ${formatMetric(target.center_y)} / ${formatMetric(target.height_ratio)}`;
+  if (!snapshot) {
+    closedLoopFields.runtimeState.textContent = 'STATE · IDLE'; closedLoopFields.ready.textContent = 'READY · FALSE';
+    closedLoopFields.instruction.textContent = '等待本机状态输入';
+    for (const field of [closedLoopFields.current, closedLoopFields.delta, closedLoopFields.error]) field.textContent = '— / — / —';
+    closedLoopFields.issue.textContent = '— / —'; closedLoopFields.issueAge.textContent = '0 ms';
+    closedLoopFields.action.textContent = '— / —'; closedLoopFields.waiting.textContent = `0 / ${CLOSED_LOOP_CONFIG.instruction_gap_ms} ms`;
+    closedLoopFields.verification.textContent = 'NONE'; closedLoopFields.stable.textContent = 'FALSE / 0 ms';
+    closedLoopFields.countsA.textContent = '0 / 0'; closedLoopFields.countsB.textContent = '0 / 0';
+    closedLoopFields.countsC.textContent = '0 / 0'; closedLoopFields.timeTarget.textContent = '—'; closedLoopFields.decisions.textContent = '0';
+    return;
+  }
+  const subject = snapshot.current; const metrics = snapshot.metrics;
+  closedLoopFields.runtimeState.textContent = `STATE · ${snapshot.runtime_state}`;
+  closedLoopFields.ready.textContent = `READY · ${String(snapshot.ready).toUpperCase()}`;
+  closedLoopFields.instruction.textContent = snapshot.instruction?.copy_zh
+    ?? (snapshot.active_action ? `${ACTION_COPY[snapshot.active_action]} · 等待/验证中` : '本机分析中 · 保持安静');
+  closedLoopFields.current.textContent = `${formatMetric(subject.center_x)} / ${formatMetric(subject.center_y)} / ${formatMetric(subject.height_ratio)}`;
+  closedLoopFields.delta.textContent = `${formatMetric(snapshot.delta.x.delta)} / ${formatMetric(snapshot.delta.y.delta)} / ${formatMetric(snapshot.delta.scale.delta)}`;
+  closedLoopFields.error.textContent = `${formatMetric(snapshot.delta.x.normalized_error)} / ${formatMetric(snapshot.delta.y.normalized_error)} / ${formatMetric(snapshot.delta.scale.normalized_error)}`;
+  closedLoopFields.issue.textContent = `${snapshot.issue?.kind ?? 'NONE'} / ${formatMetric(snapshot.issue?.score, 2)}`;
+  closedLoopFields.issueAge.textContent = `${snapshot.issue_age_ms.toFixed(0)} ms`;
+  closedLoopFields.action.textContent = `${snapshot.active_action ?? 'NONE'} / ${snapshot.action_age_ms === null ? '—' : `${snapshot.action_age_ms.toFixed(0)} ms`}`;
+  closedLoopFields.waiting.textContent = `${snapshot.waiting_remaining_ms.toFixed(0)} / ${CLOSED_LOOP_CONFIG.instruction_gap_ms} ms`;
+  closedLoopFields.verification.textContent = snapshot.verification;
+  closedLoopFields.stable.textContent = `${String(subject.stable).toUpperCase()} / ${snapshot.stable_duration_ms.toFixed(0)} ms`;
+  closedLoopFields.countsA.textContent = `${metrics.instruction_count} / ${metrics.successful_corrections}`;
+  closedLoopFields.countsB.textContent = `${metrics.improving_count} / ${metrics.no_effect_count}`;
+  closedLoopFields.countsC.textContent = `${metrics.wrong_direction_count} / ${metrics.oscillation_count}`;
+  closedLoopFields.timeTarget.textContent = metrics.time_to_target_ms === null ? '—' : `${(metrics.time_to_target_ms / 1000).toFixed(1)} s`;
+  closedLoopFields.decisions.textContent = String(metrics.local_decisions);
 }
 
 async function readPermissionState(): Promise<void> {
@@ -319,10 +377,13 @@ function stopCamera(options: { preserveMessage?: boolean } = {}): void {
   dimensionValue.textContent = '—';
   updateCoordinateState();
   perceptionRuntime.resetSession();
+  closedLoop.reset();
   latestPerceptionState = null;
   latestRawMeasurement = null;
+  latestClosedLoop = null;
   renderPerceptionState();
   renderPerceptionTelemetry();
+  renderClosedLoop();
   if (!options.preserveMessage) setMessage('相机会话已停止；所有媒体轨道已释放。');
 }
 
@@ -426,6 +487,7 @@ hudToggle.addEventListener('click', () => {
   hud.hidden = hidden;
   coordinateStrip.hidden = hidden;
   perceptionHud.hidden = hidden;
+  closedLoopHud.hidden = hidden;
   hudToggle.textContent = hidden ? '显示 HUD' : '隐藏 HUD';
   hudToggle.setAttribute('aria-pressed', String(!hidden));
 });
@@ -434,6 +496,11 @@ poseInitButton.addEventListener('click', () => {
   void perceptionRuntime.initialize().catch(() => {
     // Status and the explicit model/runtime error are rendered by the runtime.
   });
+});
+
+targetPreset.addEventListener('change', () => {
+  const selected = TARGET_PRESETS.find((preset) => preset.id === targetPreset.value) ?? TARGET_PRESETS[0];
+  currentTarget = selected; closedLoop.setTarget(selected); latestClosedLoop = null; renderClosedLoop();
 });
 
 window.addEventListener('resize', renderCapabilities);
@@ -445,9 +512,11 @@ window.addEventListener('beforeunload', () => {
 
 renderCapabilities();
 updateCoordinateState();
+for (const preset of TARGET_PRESETS) targetPreset.add(new Option(preset.label, preset.id));
 perceptionFields.targetHz.textContent = PERCEPTION_CONFIG.visionTargetHz.toFixed(1);
 renderPerceptionState();
 renderPerceptionTelemetry();
+renderClosedLoop();
 void readPermissionState();
 void refreshCameraInventory();
 
@@ -456,4 +525,25 @@ if (!supportsMediaDevices) {
   emptyTitle.textContent = '此环境不支持摄像头';
   emptyCopy.textContent = '需要支持 MediaDevices.getUserMedia 的安全浏览器环境';
   setMessage('Camera API 不可用；已展示受控错误路径。', 'error');
+}
+
+const replayName = new URLSearchParams(window.location.search).get('closedLoopReplay');
+if (replayName) {
+  void import('../fixtures/closed-loop/trajectories.js').then(({ CLOSED_LOOP_TRAJECTORIES }) => {
+    const trajectory = CLOSED_LOOP_TRAJECTORIES[replayName as keyof typeof CLOSED_LOOP_TRAJECTORIES];
+    if (!trajectory) {
+      closedLoopFields.instruction.textContent = `未知回放：${replayName}`;
+      return;
+    }
+    poseMessage.textContent = `SYNTHETIC REPLAY · ${replayName} · NO CAMERA / NO PROVIDER`;
+    trajectory.forEach((state, index) => {
+      window.setTimeout(() => {
+        latestPerceptionState = state;
+        latestRawMeasurement = null;
+        latestClosedLoop = closedLoop.update(state);
+        renderPerceptionState();
+        renderClosedLoop();
+      }, index * 600);
+    });
+  });
 }
