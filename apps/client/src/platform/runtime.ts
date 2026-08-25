@@ -101,6 +101,16 @@ export class PlatformAdapterRegistry{
   }catch(error){const message=error instanceof Error?error.message:String(error);return normalizedFailure(message.toLowerCase().includes('network')?'NETWORK_UNAVAILABLE':'STORAGE_FAILURE',this.platform==='WECHAT'?'UNVERIFIED_REAL_DEVICE':'PARTIAL',message)}
  }
 
+ async uploadDerived(sessionId:string,blob:Blob,idempotencyKey:string):Promise<PlatformResult<UploadedAsset>>{
+  if(this.platform!=='H5')return normalizedFailure('PLATFORM_UNSUPPORTED','UNVERIFIED_REAL_DEVICE','Fine Tune binary persistence is not yet device-verified on WeChat')
+  try{
+   const body=new FormData();body.append('file',new File([blob],`fine-tune-${sessionId}.jpg`,{type:'image/jpeg'}))
+   const response=await fetch(`${API_BASE}/sessions/${sessionId}/fine-tune/derived`,{method:'POST',body,headers:{'Idempotency-Key':idempotencyKey}});const data=await response.text()
+   if(response.status!==201)return normalizedFailure(response.status===422?'INVALID_ASSET':'STORAGE_FAILURE','SUPPORTED',data)
+   return {ok:true,code:'OK',supportLevel:'SUPPORTED',value:JSON.parse(data) as UploadedAsset}
+  }catch(error){return normalizedFailure('STORAGE_FAILURE','PARTIAL',error instanceof Error?error.message:String(error))}
+ }
+
  async download(url:string,filename='xiangfengxing-final.jpg'):Promise<PlatformResult>{
   if(this.platform==='WECHAT'){
    try{await Taro.downloadFile({url});return {ok:true,code:'OK',supportLevel:'UNVERIFIED_REAL_DEVICE'}}catch{return normalizedFailure('STORAGE_FAILURE','UNVERIFIED_REAL_DEVICE','WeChat download requires device acceptance')}

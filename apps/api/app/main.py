@@ -1,5 +1,5 @@
 from __future__ import annotations
-import os
+import json,os
 from pathlib import Path
 from uuid import uuid4
 from fastapi import FastAPI,File,Header,Request,UploadFile
@@ -38,6 +38,9 @@ class ActionBody(BaseModel):
     action:str
     payload:dict=Field(default_factory=dict)
 
+class RecipeBody(BaseModel):
+    recipe:dict
+
 @app.middleware("http")
 async def correlation(request:Request,call_next):
     cid=request.headers.get("X-Correlation-ID",str(uuid4()));request.state.correlation_id=cid;response=await call_next(request);response.headers["X-Correlation-ID"]=cid;return response
@@ -69,6 +72,17 @@ def capability_selection(platform:str="H5"):return {"platform":platform.upper(),
 @app.post("/assets/uploads",status_code=201)
 async def upload_asset(file:UploadFile=File(...)):return await asset_storage.store_upload(file)
 
+@app.post("/sessions/{session_id}/fine-tune/derived",status_code=201)
+async def upload_fine_tune_derived(session_id:str,file:UploadFile=File(...),idempotency_key:str=Header(...,alias="Idempotency-Key")):
+    service.get(session_id);cache_key=f"fine-tune-derived:{idempotency_key}"
+    with repository.connect() as connection:
+        cached=connection.execute("SELECT response_json FROM idempotency WHERE session_id=? AND key=?",(session_id,cache_key)).fetchone()
+    if cached:
+        await file.close();return json.loads(cached[0])
+    metadata=await asset_storage.store_upload(file)
+    with repository.connect() as connection:connection.execute("INSERT OR IGNORE INTO idempotency(session_id,key,request_hash,response_json) VALUES(?,?,?,?)",(session_id,cache_key,metadata["sha256"],json.dumps(metadata)))
+    return metadata
+
 @app.get("/assets/{asset_id}")
 def asset_metadata(asset_id:str):return asset_storage.metadata(asset_id)
 
@@ -85,7 +99,8 @@ def final_content(session_id:str):
     if not uploaded_asset_id:raise DomainError("ASSET_NOT_FOUND","This deterministic fixture session has no uploaded binary final.",404)
     path,metadata=asset_storage.content(uploaded_asset_id)
     extension=Path(metadata["original_name"]).suffix.lower()
-    return FileResponse(path,media_type=metadata["mime_type"],filename=f"xiangfengxing-final{extension}",headers={"X-Content-SHA256":metadata["sha256"],"X-XFX-Transformation":"DETERMINISTIC_FAKE_REALITY_PLUS"})
+    transformation=session["state"].get("final",{}).get("transformation","DETERMINISTIC_FAKE_REALITY_PLUS")
+    return FileResponse(path,media_type=metadata["mime_type"],filename=f"xiangfengxing-final{extension}",headers={"X-Content-SHA256":metadata["sha256"],"X-XFX-Transformation":transformation})
 
 @app.post("/sessions",status_code=201)
 def create_session():return service.create()
@@ -98,6 +113,20 @@ def list_sessions(classification:str|None=None):
 
 @app.get("/sessions/{session_id}")
 def get_session(session_id:str):return service.get(session_id)
+
+@app.get("/sessions/{session_id}/fine-tune/source")
+def fine_tune_source(session_id:str):return service.fine_tune_source(session_id)
+
+@app.get("/sessions/{session_id}/fine-tune/source/content")
+def fine_tune_source_content(session_id:str):
+    source=service.fine_tune_source(session_id);path,metadata=asset_storage.content(source["content_asset_id"])
+    return FileResponse(path,media_type=metadata["mime_type"],headers={"X-Content-SHA256":metadata["sha256"],"X-XFX-Source-Asset-ID":source["asset_id"]})
+
+@app.get("/sessions/{session_id}/fine-tune/recipe")
+def fine_tune_recipe(session_id:str):return service.get_recipe(session_id)
+
+@app.post("/sessions/{session_id}/fine-tune/recipes")
+def save_fine_tune_recipe(session_id:str,body:RecipeBody,idempotency_key:str=Header(...,alias="Idempotency-Key")):return service.save_recipe(session_id,body.recipe,idempotency_key)
 
 @app.post("/sessions/{session_id}/actions")
 def action(session_id:str,body:ActionBody,idempotency_key:str=Header(...,alias="Idempotency-Key")):

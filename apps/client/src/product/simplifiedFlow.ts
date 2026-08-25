@@ -40,7 +40,7 @@ export function advanceConfirmedCaptureToFinal(initial:FlowSession,preferences:U
  if(!preferences.auto_processing_enabled)return Promise.resolve({session:initial,status:'READY',actions:[]})
  return guardedAdvance(initial,run,session=>{
   if(session.workflow_stage==='QA')return {action:'ACCEPT'}
-  if(session.workflow_stage==='REALITY_PLUS')return {action:'SKIP_FINE_TUNE'}
+  if(session.workflow_stage==='REALITY_PLUS')return {action:preferences.open_fine_tune_after_processing?'ACCEPT_REALITY_PLUS':'SKIP_FINE_TUNE'}
   return null
  })
 }
