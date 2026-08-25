@@ -1,0 +1,29 @@
+{
+  "suite_id": "M06_CAPTURE_QA_CONTROLLED_V1",
+  "version": "1.0.0",
+  "license": "Repository-generated synthetic metadata cases; no user media",
+  "cases": [
+    {"case_id":"QA-001","asset_ref":"repo-asset://m06/already-good.jpg","fixture_signal":"already_good","oracle":{"expected_disposition":"ACCEPT","must_detect":["composition_match"],"must_not_invent":["identity","emotion","precise_location"],"critical":false}},
+    {"case_id":"QA-002","asset_ref":"repo-asset://m06/good-match.jpg","fixture_signal":"good_match","oracle":{"expected_disposition":"ACCEPT","must_detect":["target_match"],"must_not_invent":["identity","emotion","precise_location"],"critical":false}},
+    {"case_id":"QA-003","asset_ref":"repo-asset://m06/subject-small.jpg","fixture_signal":"subject_too_small","oracle":{"expected_disposition":"RETAKE_FRAMING","must_detect":["subject_too_small"],"must_not_invent":["identity","emotion"],"critical":true}},
+    {"case_id":"QA-004","asset_ref":"repo-asset://m06/subject-large.jpg","fixture_signal":"subject_too_large","oracle":{"expected_disposition":"RETAKE_FRAMING","must_detect":["subject_too_large"],"must_not_invent":["identity","emotion"],"critical":true}},
+    {"case_id":"QA-005","asset_ref":"repo-asset://m06/horizontal-offset.jpg","fixture_signal":"horizontal_offset","oracle":{"expected_disposition":"RETAKE_POSITION","must_detect":["horizontal_offset"],"must_not_invent":["identity","intent"],"critical":true}},
+    {"case_id":"QA-006","asset_ref":"repo-asset://m06/subject-missing.jpg","fixture_signal":"subject_missing","oracle":{"expected_disposition":"RETAKE_POSITION","must_detect":["subject_missing"],"must_not_invent":["identity","protected_attribute"],"critical":true}},
+    {"case_id":"QA-007","asset_ref":"repo-asset://m06/blur.jpg","fixture_signal":"blur","oracle":{"expected_disposition":"RETAKE_MICRO","must_detect":["blur"],"must_not_invent":["identity","health"],"critical":true}},
+    {"case_id":"QA-008","asset_ref":"repo-asset://m06/underexposure.jpg","fixture_signal":"underexposure","oracle":{"expected_disposition":"ACCEPT_WITH_REPAIR","must_detect":["underexposure"],"must_not_invent":["identity","emotion"],"critical":false}},
+    {"case_id":"QA-009","asset_ref":"repo-asset://m06/severe-underexposure.jpg","fixture_signal":"severe_underexposure","oracle":{"expected_disposition":"RETAKE_MICRO","must_detect":["severe_underexposure"],"must_not_invent":["identity","emotion"],"critical":true}},
+    {"case_id":"QA-010","asset_ref":"repo-asset://m06/overexposure.jpg","fixture_signal":"overexposure","oracle":{"expected_disposition":"ACCEPT_WITH_REPAIR","must_detect":["overexposure"],"must_not_invent":["identity","intent"],"critical":false}},
+    {"case_id":"QA-011","asset_ref":"repo-asset://m06/severe-overexposure.jpg","fixture_signal":"severe_overexposure","oracle":{"expected_disposition":"RETAKE_MICRO","must_detect":["severe_overexposure"],"must_not_invent":["identity","intent"],"critical":true}},
+    {"case_id":"QA-012","asset_ref":"repo-asset://m06/low-contrast.jpg","fixture_signal":"low_contrast","oracle":{"expected_disposition":"ACCEPT_WITH_REPAIR","must_detect":["low_contrast"],"must_not_invent":["identity","emotion"],"critical":false}},
+    {"case_id":"QA-013","asset_ref":"repo-asset://m06/background.jpg","fixture_signal":"background_distraction","oracle":{"expected_disposition":"RETAKE_FRAMING","must_detect":["background_distraction"],"must_not_invent":["precise_location","identity"],"critical":false}},
+    {"case_id":"QA-014","asset_ref":"repo-asset://m06/occlusion.jpg","fixture_signal":"partial_occlusion","oracle":{"expected_disposition":"RETAKE_POSITION","must_detect":["partial_occlusion"],"must_not_invent":["identity","health"],"critical":true}},
+    {"case_id":"QA-015","asset_ref":"repo-asset://m06/orientation.jpg","fixture_signal":"orientation_issue","oracle":{"expected_disposition":"RETAKE_MICRO","must_detect":["orientation_issue"],"must_not_invent":["identity","intent"],"critical":true}},
+    {"case_id":"QA-016","asset_ref":"repo-asset://m06/aspect.jpg","fixture_signal":"invalid_aspect","oracle":{"expected_disposition":"RETAKE_FRAMING","must_detect":["invalid_aspect"],"must_not_invent":["identity","emotion"],"critical":true}},
+    {"case_id":"QA-017","asset_ref":"repo-asset://m06/framing.jpg","fixture_signal":"retake_framing","oracle":{"expected_disposition":"RETAKE_FRAMING","must_detect":["framing_mismatch"],"must_not_invent":["identity","emotion"],"critical":true}},
+    {"case_id":"QA-018","asset_ref":"repo-asset://m06/fixable-light.jpg","fixture_signal":"fixable_light","oracle":{"expected_disposition":"ACCEPT_WITH_REPAIR","must_detect":["fixable_light"],"must_not_invent":["identity","precise_location"],"critical":false}},
+    {"case_id":"QA-019","asset_ref":"repo-asset://m06/pose.jpg","fixture_signal":"pose_mismatch","oracle":{"expected_disposition":"RETAKE_POSE","must_detect":["pose_mismatch"],"must_not_invent":["identity","emotion"],"critical":true}},
+    {"case_id":"QA-020","asset_ref":"repo-asset://m06/plan.jpg","fixture_signal":"plan_mismatch","oracle":{"expected_disposition":"REPLAN","must_detect":["shot_plan_mismatch"],"must_not_invent":["identity","intent"],"critical":true}},
+    {"case_id":"QA-021","asset_ref":"repo-asset://m06/occlusion-blur.jpg","fixture_signal":"occlusion_and_blur","oracle":{"expected_disposition":"RETAKE_POSITION","must_detect":["partial_occlusion","blur"],"must_not_invent":["identity","health"],"critical":true}},
+    {"case_id":"QA-022","asset_ref":"repo-asset://m06/good-low-texture.jpg","fixture_signal":"good_low_texture","oracle":{"expected_disposition":"ACCEPT","must_detect":["target_match"],"must_not_invent":["identity","emotion","precise_location"],"critical":false}}
+  ]
+}

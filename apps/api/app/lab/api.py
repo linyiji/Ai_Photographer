@@ -2,7 +2,7 @@ from fastapi import APIRouter,HTTPException
 from .engine import ReplayEngine
 from .models import ReplayRequest
 
-def create_lab_router(engine:ReplayEngine):
+def create_lab_router(engine:ReplayEngine,ai_lab=None):
     router=APIRouter(prefix="/__lab__",tags=["lab"])
     @router.get("/scenarios")
     def scenarios():return engine.scenarios()
@@ -16,6 +16,13 @@ def create_lab_router(engine:ReplayEngine):
     def user_flow_scenarios():return engine.user_flow_scenarios()
     @router.post("/user-flow-scenarios/{scenario_id}/run")
     def run_user_flow_scenario(scenario_id:str):return engine.run_user_flow_scenario(scenario_id)
+    if ai_lab is not None:
+        @router.get("/ai-capability-modes")
+        def ai_capability_modes():return ai_lab.descriptors()
+        @router.post("/ai-capability-modes/{mode}/run")
+        def run_ai_capability_mode(mode:str,fixture_signal:str="already_good"):
+            try:return ai_lab.run(mode,fixture_signal)
+            except ValueError as exc:raise HTTPException(422,str(exc)) from exc
     @router.post("/replays",status_code=201)
     def create(request:ReplayRequest):return engine.run(request.scenario_id,request.mode,request.checkpoint_position,request.seed,request.platform_profile)
     @router.get("/replays/{replay_id}")
