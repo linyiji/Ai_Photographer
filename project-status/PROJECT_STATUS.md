@@ -2,8 +2,8 @@
 
 **Project Baseline:** V0.6 Complete  
 **Current Product Prototype:** S01 V1.6.1  
-**Current Milestone:** M03 — Replay E2E Lab
-**Current Task:** XFX_M03_REPLAY_E2E_LAB_01
+**Current Milestone:** M04 — Platform Adapter Integration Foundation
+**Current Task:** XFX_M04_PLATFORM_ADAPTER_AND_REAL_CAPABILITY_INTEGRATION_FOUNDATION_01
 
 **Current Task Status:** PASS
 
@@ -18,7 +18,7 @@
 | M01 Global Contracts | PASS | M01_CONTRACT_LOCK = PASS |
 | M02 Application Skeleton | PASS | M02_SKELETON_RUNNABLE = PASS; FULLSTACK_VERTICAL_SLICE = PASS |
 | M03 Fast Feedback Lab | PASS | M03_REPLAY_READY = PASS |
-| M04 WeChat Camera/CV Spike | NOT_STARTED | M04_CAMERA_FEASIBILITY |
+| M04 Platform Adapter Integration Foundation | PASS | M04_PLATFORM_ADAPTER_FOUNDATION = PASS |
 | M05 MVP Golden Flow | NOT_STARTED | M05_MVP_GOLDEN_FLOW |
 | M06 Real Capability Replacement | NOT_STARTED | Capability Gates |
 | M07 Cross-platform | NOT_STARTED | M07_CROSS_PLATFORM_BASELINE |
@@ -190,7 +190,7 @@ Frontend Runtime L1: LOCKED_L1
 
 ## Challenge Status
 
-`project-status/CHALLENGES.json` 未修改。CH-003 保持 `IDENTIFIED`；M03 不验证 Camera Frame、CV FPS 或设备性能。CH-011 仍为 `SOLUTION_PROPOSED`：Manifest 驱动回归实验室已建立，但真实资产迁移尚未发生。
+`project-status/CHALLENGES.json` 未修改。CH-003 保持 `IDENTIFIED`；M04 不验证 Camera Frame、CV FPS 或微信真机性能。CH-011 仍为 `SOLUTION_PROPOSED`：受控本地真实资产路径已建立，但 Golden Asset 的完整迁移与生产对象存储均未发生。
 
 ## M03 Replay E2E Lab
 
@@ -217,6 +217,39 @@ Replay 仍调用 M02 的 Session/Workflow/Capability/Persistence 路径；每次
 
 Feature commits `7e3e5a8`, `36c971d`, `a4a36d0` 已推送，并 strict-fast-forward 合入及推送至 `develop`；没有 merge commit、rebase 或历史改写。
 
+## M04 Platform Adapter Integration Foundation
+
+```text
+M04_PLATFORM_ADAPTER_FOUNDATION: PASS
+PlatformAdapterRegistry / availability / provenance: PASS
+Replacement states: FAKE / REAL / EXPERIMENTAL / UNAVAILABLE
+H5 Network: PASS
+H5 Haptic / Share: PASS_WITH_WARNING
+H5 Album: PARTIAL
+WeChat adapter foundation: PASS
+WeChat real device: UNVERIFIED_REAL_DEVICE
+Development local storage: PASS
+Multipart JPEG/PNG/WebP upload: PASS (20 MiB maximum)
+SHA256 metadata / safe download / readback: PASS
+Path traversal / absolute path / UNC / wrong MIME / zero / oversize: BLOCKED
+Real binary Capture path: PASS
+H5 still Camera implementation: PASS
+H5 Camera real device: UNVERIFIED_REAL_DEVICE
+Final download: PASS
+Final share: PASS_WITH_WARNING
+Platform Lab profiles: 8
+Platform scenarios: 12 / PASS
+Backend tests: 70 PASS
+Frontend platform tests: 5 PASS
+M04 binary browser E2E: PASS
+Production Object Storage: NOT_LOCKED
+Production DB: NOT_LOCKED
+```
+
+真实浏览器证据覆盖实际文件选择、HTTP multipart `201`、稳定 `local-asset://` identity、Capture→Reality+→Final lineage、最终下载、Web Share、刷新回读及局部重拍。默认 Lab 关闭；Lab 构建显示平台 Profile/Adapter provenance，`STORAGE_FAILURE` 被确定性分类为 `UNSUPPORTED`，M03 Replay 仍为 `MATCH`。初次 H5 上传暴露 Taro `uploadFile` 对 browser File 的兼容问题，已限定为 H5 `FormData` 修复；多 Session 复验暴露旧全局资产/候选主键冲突，已无损迁移为 Session-scoped composite key 并加入回归。
+
+M01 Contracts、Platform Catalog、M02/M03 行为均保持；Fake Live 继续选中。没有 Provider、真实 Live/CV/Voice/Agent/Reality+、支付、外部 Auth 或生产基础设施。
+
 ```text
 Challenges Addressed: Windows Bootstrap / repository integrity
 Challenges Introduced: NONE
@@ -226,7 +259,7 @@ Challenges Reopened: NONE
 ## Next Recommended Task
 
 ```text
-XFX_M04_PLATFORM_ADAPTER_AND_REAL_CAPABILITY_INTEGRATION_FOUNDATION_01
+XFX_M05_REAL_ASSET_CAPTURE_AND_USER_GOLDEN_FLOW_01
 ```
 
-这里只记录下一主流程任务；本次不开始 M03，不修改 `main`。Live Parallel Track 保持独立，CH-003 仍为 `IDENTIFIED / UNCHANGED`。
+这里只记录下一主流程任务；本次不开始 M05，不修改 `main`。Live Parallel Track 保持独立，CH-003 仍为 `IDENTIFIED / UNCHANGED`。

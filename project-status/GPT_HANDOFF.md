@@ -1,9 +1,9 @@
 # GPT / Codex Handoff
 
 **Baseline:** V0.6 Complete  
-**Current Milestone:** M03 — PASS
+**Current Milestone:** M04 — PASS
 
-**Current Task:** XFX_M03_REPLAY_E2E_LAB_01 — PASS
+**Current Task:** XFX_M04_PLATFORM_ADAPTER_AND_REAL_CAPABILITY_INTEGRATION_FOUNDATION_01 — PASS
 
 ## Project Context
 
@@ -88,6 +88,10 @@ New Shell Reproducibility: PASS
 - M03 backend regression: 33 tests PASS; multi-run unexpected semantic diff = 0; normal S01 and Lab browser E2E PASS
 - Lab is disabled by default and blocked in production; its H5 page is isolated in a 61412-byte lazy chunk while entry increased only 181 bytes
 - M03 feature head `a4a36d0eebf110545cd4d5e1569f24d43dfde129` strict-fast-forward merged and pushed to `develop`
+- M04 governed PlatformAdapterRegistry with H5/WeChat/Test profiles, availability, support levels, provenance, normalized errors, and FAKE/REAL/EXPERIMENTAL/UNAVAILABLE selection
+- Real development binary path: bounded multipart JPEG/PNG/WebP upload, SHA256 metadata, stable local storage ref, safe read/download, real Capture action, Final download/share, and Session-scoped asset lineage
+- M04 Lab platform extension: 8 deterministic profiles and 12 adapter scenarios; M03 deterministic Replay remains MATCH
+- M04 validation: 70 backend tests and 5 frontend platform tests PASS; H5 binary browser E2E, refresh/readback, partial retake, Lab E2E, TypeScript, H5 and WeChat builds PASS (H5 retained size warning)
 
 ## M01 Contract Authority
 
@@ -142,6 +146,22 @@ Merge Closure Action: UNTOUCHED
 
 Live evidence remains an independent experimental track and advanced independently while M02 ran. Future integration must start from then-current `develop`; this task did not update, merge, or rewrite the Live branch.
 
+## M04 Platform Integration Authority
+
+```text
+Platform Matrix: docs/platform/70-platform-capability-matrix-v1.0.md
+Integration Governance: docs/architecture/71-real-capability-integration-governance-v1.0.md
+Platform Catalog Authority: packages/platform/catalog.json / PRESERVED
+Local Storage Adapter: DEVELOPMENT_LOCAL_STORAGE_ADAPTER
+Production Object Storage: NOT_LOCKED
+H5 Camera Real Device: UNVERIFIED_REAL_DEVICE
+WeChat Real Device: UNVERIFIED_REAL_DEVICE
+Fake Live Selected: PASS
+M01 / M02 / M03: PRESERVED
+```
+
+M04 does not accept Live/CV, Voice, Agent, real Reality+, payment, external auth, or production infrastructure. Browser download is not called system-album save. WeChat compilation is not device acceptance. CH-003 remains `IDENTIFIED / UNCHANGED`.
+
 ## Governance Authority
 
 ```text
@@ -170,7 +190,7 @@ project-status/CHALLENGES.json
 Next Recommended Task:
 
 ```text
-XFX_M04_PLATFORM_ADAPTER_AND_REAL_CAPABILITY_INTEGRATION_FOUNDATION_01
+XFX_M05_REAL_ASSET_CAPTURE_AND_USER_GOLDEN_FLOW_01
 ```
 
-不要自动执行下一任务。M01 Contract Authority 与 Frontend Runtime L1 保持不变。M02 仅使用 deterministic fake capability 与 SQLite development adapter；真实 Camera/CV、AI Provider、Voice、Dual Device、Reality+、生产数据库和 LIVE-P1 均未启动。Live worktree 未被触碰；CH-003 保持 `IDENTIFIED / UNCHANGED`。
+不要自动执行下一任务。M01 Contract Authority 与 Frontend Runtime L1 保持不变。M04 只建立 real platform capability hosting foundation；真实 Camera/CV、AI Provider、Voice、Dual Device、Reality+、生产数据库和 Live 集成均未启动。Live worktree 未被触碰；CH-003 保持 `IDENTIFIED / UNCHANGED`。

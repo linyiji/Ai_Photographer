@@ -47,6 +47,12 @@ export class PlatformAdapterRegistry{
    const chosen=await Taro.chooseImage({count:1,sizeType:['original'],sourceType:['camera','album']})
    const filePath=chosen.tempFilePaths[0]
    if(!filePath)return normalizedFailure('USER_CANCELLED','UNVERIFIED_REAL_DEVICE','No image selected')
+   if(this.platform==='H5'&&chosen.tempFiles[0]?.originalFileObj){
+    const file=chosen.tempFiles[0].originalFileObj;const body=new FormData();body.append('file',file,file.name)
+    const response=await fetch(`${API_BASE}/assets/uploads`,{method:'POST',body});const data=await response.text()
+    if(response.status!==201)return normalizedFailure(response.status===422?'INVALID_ASSET':'STORAGE_FAILURE','SUPPORTED',data)
+    return {ok:true,code:'OK',supportLevel:'SUPPORTED',value:JSON.parse(data) as UploadedAsset}
+   }
    const response=await Taro.uploadFile({url:`${API_BASE}/assets/uploads`,filePath,name:'file'})
    if(response.statusCode!==201){return normalizedFailure(response.statusCode===422?'INVALID_ASSET':'STORAGE_FAILURE','SUPPORTED',response.data)}
    return {ok:true,code:'OK',supportLevel:this.platform==='WECHAT'?'UNVERIFIED_REAL_DEVICE':'SUPPORTED',value:JSON.parse(response.data) as UploadedAsset}

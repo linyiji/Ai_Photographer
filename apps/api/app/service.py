@@ -52,7 +52,7 @@ class SessionService:
         elif action=="SELECT_TARGET":
             candidate_id=payload.get("candidate_id","target-cinematic");found=c.execute("SELECT payload_json FROM candidates WHERE session_id=? AND candidate_id=?",(sid,candidate_id)).fetchone()
             if not found:raise DomainError("CANDIDATE_NOT_FOUND","Generate target candidates first.",404)
-            state["selected_target"]=json.loads(found[0]);c.execute("UPDATE candidates SET disposition='ACCEPTED' WHERE candidate_id=?",(candidate_id,))
+            state["selected_target"]=json.loads(found[0]);c.execute("UPDATE candidates SET disposition='ACCEPTED' WHERE session_id=? AND candidate_id=?",(sid,candidate_id))
         elif action=="ACCEPT_SHOT_DIRECTION":state["shot"]=self.capabilities["shot"].execute("plan",state)
         elif action=="ENTER_CAPTURE_WINDOW":
             steps=self.capabilities["live"].execute("advance",state);state["live"]={"step":len(steps),"instruction":steps[-1],"ready":True}

@@ -1,7 +1,7 @@
 import Taro from '@tarojs/taro'
 export type Session={session_id:string;workflow_stage:string;revision:number;state:Record<string,any>;candidates?:Array<any>;assets?:Array<any>;events?:Array<any>}
 export type LabScenario={scenario_id:string;title:string;purpose:string;fault_plan:Array<Record<string,any>>}
-export type ReplayResult={replay_id:string;scenario_id:string;mode:string;status:string;duration_ms:number;final_stage:string;final_revision:number;evaluation_status:string;warning_count:number;trace:Array<any>;diff:Array<any>;evaluation:{status:string;dimensions:Record<string,string>;findings:Array<any>};checkpoint?:Record<string,any>;database_bytes:number}
+export type ReplayResult={replay_id:string;scenario_id:string;mode:string;platform_profile?:string;platform?:string;platform_adapters?:Array<{capability_name:string;adapter_id:string;support_level:string;reason:string}>;status:string;duration_ms:number;final_stage:string;final_revision:number;evaluation_status:string;warning_count:number;trace:Array<any>;diff:Array<any>;evaluation:{status:string;dimensions:Record<string,string>;findings:Array<any>};checkpoint?:Record<string,any>;database_bytes:number}
 export type UploadedAsset={asset_id:string;asset_kind:string;mime_type:string;size_bytes:number;sha256:string;created_at:string;source:string;storage_ref:string;original_name:string}
 // M02 local runtime endpoint; platform-specific configuration can replace this at L2.
 export const API_BASE='http://127.0.0.1:8000'
