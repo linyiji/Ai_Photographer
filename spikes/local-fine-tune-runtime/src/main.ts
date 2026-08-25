@@ -50,7 +50,7 @@ const debugPanel = IS_DEV ? `
       <span>Scheduled/executed/coalesced</span><b id="debug-scheduler">0 / 0 / 0</b><span>Mask</span><b id="debug-mask">—</b>
       <span>Final render/encode</span><b id="debug-final">—</b><span>Memory</span><b id="debug-memory">UNAVAILABLE</b>
     </div>
-    <div class="debug-actions"><button id="run-exif" type="button">Run EXIF 1/6/8</button><button data-final-bench="1920x1080" type="button">Run 1080p final</button><button data-final-bench="4000x3000" type="button">Run 12MP final</button></div>
+    <div class="debug-actions"><button id="run-exif" type="button">Run EXIF 1/6/8</button><button data-load-exif="1" type="button">Load EXIF 1</button><button data-load-exif="6" type="button">Load EXIF 6</button><button data-load-exif="8" type="button">Load EXIF 8</button><button data-final-bench="1920x1080" type="button">Run 1080p final</button><button data-final-bench="4000x3000" type="button">Run 12MP final</button></div>
     <pre id="debug-output">Development-only instrumentation. Minimum 30 updates per path.</pre>
   </details>` : "";
 
@@ -455,6 +455,20 @@ if (IS_DEV) {
     }
     element("#debug-output").textContent = results.join(" · ");
   });
+  document.querySelectorAll<HTMLButtonElement>("[data-load-exif]").forEach((button) => button.addEventListener("click", async () => {
+    const orientation = Number(button.dataset.loadExif) as 1 | 6 | 8;
+    button.disabled = true;
+    try {
+      fullSource = await decodeImageFile(await createAsymmetricExifJpeg(orientation), `exif-${orientation}`);
+      previewLongEdge = selectPreviewLongEdge({ viewportWidth: window.innerWidth, deviceMemory, sourceLongEdge: Math.max(fullSource.width, fullSource.height) });
+      previewSource = downsampleSource(fullSource, previewLongEdge); fullMasks = undefined; refreshPreviewMasks();
+      maskRuntime = new MaskRuntime(new FixtureMaskProvider()); scheduler.switchSource(fullSource.assetId); metrics.reset();
+      neutral = createRecipe({ source_asset_id: fullSource.assetId }); history = new RecipeHistory(neutral); regions = []; activeRegionId = undefined; previewLatencies = []; setScope("ALL");
+      const result = await maskRuntime.request(fullSource); fullMasks = result?.masks; refreshPreviewMasks();
+      element("#source-size").textContent = `${fullSource.width} × ${fullSource.height} · EXIF ${orientation} fixture`;
+      syncControls(); scheduleRender(); status(`EXIF ${orientation} 已按浏览器实际方向载入；可检查蒙版、局部区域与最终导出。`);
+    } finally { button.disabled = false; }
+  }));
   document.querySelectorAll<HTMLButtonElement>("[data-final-bench]").forEach((button) => button.addEventListener("click", async () => {
     const dimensions = (button.dataset.finalBench ?? "1920x1080").split("x").map(Number);
     const width = dimensions[0] ?? 1920; const height = dimensions[1] ?? 1080;
