@@ -1,7 +1,7 @@
 # H5 Camera and Capture User Acceptance V1.0
 
-**Task:** `XFX_M05_REAL_ASSET_CAPTURE_AND_USER_GOLDEN_FLOW_01`  
-**Gate:** Manual real-device acceptance  
+**Task:** `XFX_M05_REAL_ASSET_CAPTURE_AND_USER_GOLDEN_FLOW_01`
+**Gate:** Manual real-device acceptance
 **Current result:** `MANUAL_REVIEW_REQUIRED`
 
 ## Test setup

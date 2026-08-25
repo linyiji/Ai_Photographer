@@ -112,8 +112,8 @@ PARALLEL WORKTREES = UNTOUCHED
 ```text
 6f0a4c3 = feat: build real user capture golden flow
 Documentation/status commit = this report's containing commit
-Automation commit = final feature branch HEAD after validation
-Remote feature branch = REQUIRED BEFORE HANDOFF
+Automation commit = SELF / final feature branch HEAD at push
+Remote feature branch = PASS / origin/feature/m05-real-user-golden-flow
 ```
 
 ## Next task

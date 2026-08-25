@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "XFX_M05_REAL_ASSET_CAPTURE_AND_USER_GOLDEN_FLOW_01",
+  "scenarios": [
+    {"scenario_id":"USER_START_NEW","scenario_version":"1.0.0","surface":"HOME","assertions":["EXPLICIT_NEW_SESSION","BACKEND_TRUTH"]},
+    {"scenario_id":"USER_RESUME_ACTIVE","scenario_version":"1.0.0","surface":"HOME","assertions":["EXPLICIT_RESUME_CHOICE","NO_SILENT_RESUME"]},
+    {"scenario_id":"CAPTURE_IMPORT_CONFIRM","scenario_version":"1.0.0","surface":"CAPTURE","assertions":["LOCAL_PREVIEW","EXPLICIT_CONFIRM","AUTHORIZED_MULTIPART"]},
+    {"scenario_id":"CAPTURE_RETAKE_BEFORE_CONFIRM","scenario_version":"1.0.0","surface":"CAPTURE","assertions":["LOCAL_DISCARD","NO_UPLOAD_BEFORE_CONFIRM","WORKFLOW_UNCHANGED"]},
+    {"scenario_id":"CAMERA_PERMISSION_DENIED_FALLBACK","scenario_version":"1.0.0","surface":"CAPTURE","assertions":["FRIENDLY_PERMISSION_COPY","IMPORT_AVAILABLE"]},
+    {"scenario_id":"CAMERA_UNAVAILABLE_FALLBACK","scenario_version":"1.0.0","surface":"CAPTURE","assertions":["CONTROLLED_UNAVAILABLE","IMPORT_AVAILABLE"]},
+    {"scenario_id":"UPLOAD_OFFLINE_RETRY","scenario_version":"1.0.0","surface":"CAPTURE","assertions":["LOCAL_CANDIDATE_PRESERVED","RETRY_AVAILABLE"]},
+    {"scenario_id":"UPLOAD_DUPLICATE_CONFIRM","scenario_version":"1.0.0","surface":"CAPTURE","assertions":["BUSY_DISABLED","STABLE_IDEMPOTENCY_KEY","ONE_WORKFLOW_COMMIT"]},
+    {"scenario_id":"REFRESH_AFTER_CAPTURE","scenario_version":"1.0.0","surface":"FLOW","assertions":["BACKEND_READBACK","CAPTURE_STAGE_PRESERVED"]},
+    {"scenario_id":"FINAL_WORKS_READBACK","scenario_version":"1.0.0","surface":"WORKS","assertions":["COMPLETED_PROJECTION","FINAL_CONTENT_AVAILABLE"]},
+    {"scenario_id":"PRODUCTION_FAKE_AI_BLOCKED","scenario_version":"1.0.0","surface":"HOME","assertions":["PUBLIC_PRODUCTION_READY_FALSE","FAKE_AI_NOT_MASQUERADING"]},
+    {"scenario_id":"SHARE_UNSUPPORTED_DOWNLOAD_AVAILABLE","scenario_version":"1.0.0","surface":"FINAL","assertions":["FRIENDLY_SHARE_FALLBACK","DOWNLOAD_AVAILABLE"]}
+  ]
+}

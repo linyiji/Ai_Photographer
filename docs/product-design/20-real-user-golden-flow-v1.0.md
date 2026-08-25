@@ -1,7 +1,7 @@
 # Real User Golden Flow V1.0
 
-**Task:** `XFX_M05_REAL_ASSET_CAPTURE_AND_USER_GOLDEN_FLOW_01`  
-**Status:** Implementation Gate PASS / Real Device Gate pending  
+**Task:** `XFX_M05_REAL_ASSET_CAPTURE_AND_USER_GOLDEN_FLOW_01`
+**Status:** Implementation Gate PASS / Real Device Gate pending
 **Authority relationship:** extends the current Golden Flow; it does not replace M01 Workflow V1.
 
 ## Product runtime truth

@@ -1,5 +1,5 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {"module":"commonjs","target":"es2022","outDir":".test-dist","rootDir":"."},
-  "include": ["src/platform/model.ts", "tests/platform-model.test.ts"]
+  "include": ["src/platform/model.ts", "src/product/capturePolicy.ts", "tests/platform-model.test.ts", "tests/m05-product-policy.test.ts"]
 }
