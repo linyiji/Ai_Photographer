@@ -1,0 +1,19 @@
+{
+  "manifest_version": "1.0.0",
+  "authority": "M04_TEST_TOOLING_ONLY",
+  "profiles": ["H5_FULL", "H5_NO_SHARE", "H5_OFFLINE", "WECHAT_UNVERIFIED", "NO_HAPTIC", "NO_ALBUM", "CAMERA_UNAVAILABLE", "STORAGE_FAILURE"],
+  "scenarios": [
+    {"scenario_id":"H5_NETWORK_ONLINE","purpose":"Browser reports an available governed network adapter.","platform":"H5","profile":"H5_FULL","capability_name":"NetworkAdapter","expected_support_level":"SUPPORTED"},
+    {"scenario_id":"H5_NETWORK_OFFLINE","purpose":"Offline is observable without uncontrolled retries.","platform":"H5","profile":"H5_OFFLINE","capability_name":"NetworkAdapter","expected_support_level":"SUPPORTED","expected_error":"NETWORK_UNAVAILABLE"},
+    {"scenario_id":"H5_SHARE_SUPPORTED","purpose":"Web Share is selected as an honest partial browser capability.","platform":"H5","profile":"H5_FULL","capability_name":"ShareAdapter","expected_support_level":"PARTIAL"},
+    {"scenario_id":"H5_SHARE_UNSUPPORTED","purpose":"Missing Web Share returns a governed unsupported result.","platform":"H5","profile":"H5_NO_SHARE","capability_name":"ShareAdapter","expected_support_level":"UNSUPPORTED","expected_error":"UNSUPPORTED"},
+    {"scenario_id":"H5_HAPTIC_UNSUPPORTED","purpose":"Missing vibration is controlled and non-fatal.","platform":"H5","profile":"NO_HAPTIC","capability_name":"HapticAdapter","expected_support_level":"UNSUPPORTED","expected_error":"UNSUPPORTED"},
+    {"scenario_id":"ASSET_UPLOAD_VALID","purpose":"Development storage is a real supported adapter.","platform":"H5","profile":"H5_FULL","capability_name":"StorageAdapter","expected_support_level":"SUPPORTED"},
+    {"scenario_id":"ASSET_UPLOAD_INVALID","purpose":"Invalid binary maps to ErrorContract without storage mutation.","platform":"H5","profile":"H5_FULL","capability_name":"StorageAdapter","expected_support_level":"SUPPORTED","expected_error":"INVALID_ASSET"},
+    {"scenario_id":"STORAGE_FAILURE_ROLLBACK","purpose":"Deterministic storage failure is unavailable and rollback-safe.","platform":"H5","profile":"STORAGE_FAILURE","capability_name":"StorageAdapter","expected_support_level":"UNSUPPORTED","expected_error":"STORAGE_FAILURE"},
+    {"scenario_id":"CAMERA_UNAVAILABLE","purpose":"Camera absence is governed.","platform":"H5","profile":"CAMERA_UNAVAILABLE","capability_name":"CameraAdapter","expected_support_level":"UNSUPPORTED","expected_error":"CAMERA_FAILURE"},
+    {"scenario_id":"WECHAT_UNVERIFIED_CAPABILITY","purpose":"Compilation is not claimed as device acceptance.","platform":"WECHAT","profile":"WECHAT_UNVERIFIED","capability_name":"CameraAdapter","expected_support_level":"UNVERIFIED_REAL_DEVICE"},
+    {"scenario_id":"FINAL_DOWNLOAD_SUCCESS","purpose":"Final download uses the supported development storage boundary.","platform":"H5","profile":"H5_FULL","capability_name":"StorageAdapter","expected_support_level":"SUPPORTED"},
+    {"scenario_id":"ALBUM_PARTIAL_SUPPORT","purpose":"Browser download does not claim system album save.","platform":"H5","profile":"H5_FULL","capability_name":"AlbumAdapter","expected_support_level":"PARTIAL"}
+  ]
+}

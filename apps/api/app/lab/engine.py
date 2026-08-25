@@ -4,6 +4,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
+from ..platform.runtime import PLATFORM_PROFILES,PlatformAdapterRegistry
 from ..repository import Repository
 from ..service import DomainError,SessionService
 
@@ -19,15 +20,29 @@ CAPABILITY_FOR={"ACCEPT_REALITY":"reality","GENERATE_TARGETS":"target","SELECT_T
 SUPPORTED_FAULTS={"CAPABILITY_TIMEOUT","CAPABILITY_ERROR","INVALID_CANDIDATE","CANDIDATE_REJECTED","DUPLICATE_ACTION","ILLEGAL_TRANSITION","PERSISTENCE_FAILURE_BEFORE_COMMIT","PERSISTENCE_FAILURE_DURING_TRANSACTION","MISSING_ASSET_REFERENCE","QA_FORCE_RETAKE","REALITY_PLUS_FAILURE","SESSION_READBACK_FAILURE"}
 
 class ReplayEngine:
-    def __init__(self,root:Path,fixture_path:Path,matrix_path:Path):
+    def __init__(self,root:Path,fixture_path:Path,matrix_path:Path,platform_matrix_path:Path|None=None,platform_catalog_path:Path|None=None):
         self.root=root;self.fixture_path=fixture_path;self.matrix=json.loads(matrix_path.read_text(encoding="utf-8"));self.results:dict[str,dict[str,Any]]={};root.mkdir(parents=True,exist_ok=True)
+        platform_matrix_path=platform_matrix_path or matrix_path.parent/"m04-platform-scenarios-v1.json"
+        platform_catalog_path=platform_catalog_path or matrix_path.parent.parent/"platform"/"catalog.json"
+        self.platform_matrix=json.loads(platform_matrix_path.read_text(encoding="utf-8")) if platform_matrix_path.exists() else {"profiles":[],"scenarios":[]}
+        self.platform_registry=PlatformAdapterRegistry(platform_catalog_path)
     def scenarios(self):return [self.expand(item) for item in self.matrix["scenarios"]]
+    def platform_profiles(self):return [{"profile":name,"overrides":overrides} for name,overrides in PLATFORM_PROFILES.items()]
+    def platform_scenarios(self):return self.platform_matrix["scenarios"]
+    def run_platform_scenario(self,scenario_id):
+        scenario=next((item for item in self.platform_scenarios() if item["scenario_id"]==scenario_id),None)
+        if not scenario:raise DomainError("SCENARIO_NOT_FOUND","Unknown platform scenario.",404)
+        descriptors=self.platform_registry.descriptors(scenario["platform"],scenario["profile"]);descriptor=next(item for item in descriptors if item["capability_name"]==scenario["capability_name"])
+        actual=descriptor["support_level"];expected=scenario["expected_support_level"]
+        return {"scenario_id":scenario_id,"status":"PASS" if actual==expected else "FAIL","platform":scenario["platform"],"profile":scenario["profile"],"capability":descriptor,"expected_support_level":expected,"error_contract":self.platform_registry.normalize_error(scenario["expected_error"]) if scenario.get("expected_error") else None}
     def expand(self,item):
         actions=self._actions(item.get("actions","HAPPY"));fault=item.get("fault");controlled=item.get("controlled_failure",False);successful=actions[:fault["step"]] if fault and controlled else actions;expected_events=[f"{x['action']}_COMMITTED" for x in successful];final=item.get("final","FINAL");assets=["CAPTURE","REALITY_PLUS","FINAL"] if final=="FINAL" else ["CAPTURE"] if final in {"QA","REALITY_PLUS"} else [];accepted=["TARGET","CAPTURE"] if final in {"REALITY_PLUS","FINE_TUNE","FINAL"} else ["TARGET"] if final in {"SHOT","LIVE","CAPTURE","QA"} else []
         return {"scenario_id":item["scenario_id"],"scenario_version":"1.0.0","title":item["title"],"purpose":item["purpose"],"entry_mode":item.get("entry_mode","REALITY_FIRST"),"initial_conditions":{"seed":301},"fixture_assets":["repo-asset://scenario-fixtures/s01/subject-anchor.jpg","repo-asset://scenario-fixtures/s01/scene-anchor.jpg"],"capability_outputs":{"fixture":"s01-storm-before-arrival.json"},"action_plan":actions,"expected_stage_sequence":self._expected_stages(actions),"expected_event_types":["SESSION_CREATED",*expected_events],"expected_asset_lineage":assets,"expected_final_disposition":final,"expected_warnings":[],"allowed_nondeterminism":self.matrix["defaults"]["allowed_nondeterminism"],"fault_plan":[fault] if fault else [],"evaluation_rules":{"controlled_failure":controlled,"require_acyclic_assets":True,"expected_revision":len(successful),"expected_accepted_candidate_kinds":accepted,"expected_final_present":final=="FINAL"}}
-    def run(self,scenario_id:str,mode:str="FROM_SCRATCH",checkpoint_position:int|None=None,seed:int=301):
+    def run(self,scenario_id:str,mode:str="FROM_SCRATCH",checkpoint_position:int|None=None,seed:int=301,platform_profile:str="H5_FULL"):
         scenario=next((x for x in self.scenarios() if x["scenario_id"]==scenario_id),None)
         if not scenario:raise DomainError("SCENARIO_NOT_FOUND","Unknown replay scenario.",404)
+        try:platform_descriptors=self.platform_registry.descriptors("WECHAT" if platform_profile=="WECHAT_UNVERIFIED" else "H5",platform_profile)
+        except ValueError as exc:raise DomainError("INVALID_PLATFORM_PROFILE",str(exc),422) from exc
         replay_id=f"replay-{uuid4().hex[:12]}";db_path=self.root/f"{replay_id}.sqlite3";service=SessionService(Repository(db_path),self.fixture_path);started=time.perf_counter();session=service.create();sid=session["session_id"];trace=[];failure_step=None;checkpoint=None
         fault_plan=scenario["fault_plan"][0] if scenario["fault_plan"] else None
         if mode=="FROM_CHECKPOINT" and checkpoint_position is None:checkpoint_position=3
@@ -49,8 +64,13 @@ class ReplayEngine:
                     self._step(service,sid,index,command["action"],command.get("payload",{}),f"{replay_id}:{index}:recovery",None,trace)
                 else:failure_step=index;break
         final=service.get(sid);canonical=self.canonical(final);actual_projection=self.projection(final);expected_projection=self.expected_projection(scenario);diff=self.diff(actual_projection,expected_projection);evaluation=self.evaluate(scenario,final,trace,failure_step,diff)
+        platform_by_name={item["capability_name"]:item for item in platform_descriptors}
+        for step in trace:
+            platform_capability="StorageAdapter" if step["action_name"]=="CREATE_CAPTURE" else "NetworkAdapter"
+            descriptor=platform_by_name[platform_capability]
+            step["platform"]={"platform":descriptor["platform"],"capability_name":platform_capability,"adapter_id":descriptor["adapter_id"],"support_level":descriptor["support_level"],"result":"CONTROLLED_ERROR" if step["error_contract"] else "PASS"}
         duration=round((time.perf_counter()-started)*1000,3)
-        result={"replay_id":replay_id,"scenario_id":scenario_id,"scenario_version":scenario["scenario_version"],"mode":mode,"status":"COMPLETED","duration_ms":duration,"step_count":len(trace),"final_stage":final["workflow_stage"],"final_revision":final["revision"],"evaluation_status":evaluation["status"],"warning_count":sum(len(x["warnings"]) for x in trace),"failure_step":failure_step,"trace_ref":f"/__lab__/replays/{replay_id}/trace","diff_ref":f"/__lab__/replays/{replay_id}/diff","trace":trace,"diff":diff,"evaluation":evaluation,"checkpoint":checkpoint,"canonical":canonical,"database_bytes":db_path.stat().st_size}
+        result={"replay_id":replay_id,"scenario_id":scenario_id,"scenario_version":scenario["scenario_version"],"mode":mode,"platform_profile":platform_profile,"platform":platform_descriptors[0]["platform"],"platform_adapters":platform_descriptors,"status":"COMPLETED","duration_ms":duration,"step_count":len(trace),"final_stage":final["workflow_stage"],"final_revision":final["revision"],"evaluation_status":evaluation["status"],"warning_count":sum(len(x["warnings"]) for x in trace),"failure_step":failure_step,"trace_ref":f"/__lab__/replays/{replay_id}/trace","diff_ref":f"/__lab__/replays/{replay_id}/diff","trace":trace,"diff":diff,"evaluation":evaluation,"checkpoint":checkpoint,"canonical":canonical,"database_bytes":db_path.stat().st_size}
         self.results[replay_id]=result
         while len(self.results)>100:self.results.pop(next(iter(self.results)))
         return result

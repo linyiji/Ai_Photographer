@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS sessions(session_id TEXT PRIMARY KEY,workflow_stage T
 CREATE TABLE IF NOT EXISTS candidates(candidate_id TEXT PRIMARY KEY,session_id TEXT NOT NULL,kind TEXT NOT NULL,disposition TEXT NOT NULL,payload_json TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS events(event_id TEXT PRIMARY KEY,session_id TEXT NOT NULL,event_type TEXT NOT NULL,payload_json TEXT NOT NULL,occurred_at TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS assets(asset_id TEXT PRIMARY KEY,session_id TEXT NOT NULL,kind TEXT NOT NULL,status TEXT NOT NULL,storage_ref TEXT NOT NULL,lineage_json TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS stored_assets(asset_id TEXT PRIMARY KEY,mime_type TEXT NOT NULL,size_bytes INTEGER NOT NULL,sha256 TEXT NOT NULL,created_at TEXT NOT NULL,source TEXT NOT NULL,storage_ref TEXT NOT NULL,stored_name TEXT NOT NULL,original_name TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS idempotency(session_id TEXT NOT NULL,key TEXT NOT NULL,request_hash TEXT,response_json TEXT NOT NULL,PRIMARY KEY(session_id,key));"""
 
 class Repository:

@@ -9,6 +9,7 @@ class ReplayRequest(BaseModel):
     mode:ReplayMode="FROM_SCRATCH"
     checkpoint_position:int|None=None
     seed:int=301
+    platform_profile:str="H5_FULL"
 
 class TraceStep(BaseModel):
     step_index:int;action_name:str;idempotency_key_ref:str;pre_stage:str;pre_revision:int
