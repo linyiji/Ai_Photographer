@@ -38,6 +38,7 @@ export class H5StillCamera{
  private stream:MediaStream|null=null
  private video:HTMLVideoElement|null=null
  private facingMode:'environment'|'user'='environment'
+ setFacingMode(value:'environment'|'user'){this.facingMode=value}
  async open(containerId:string):Promise<PlatformResult<{facingMode:string}>>{
   if(typeof navigator==='undefined'||!navigator.mediaDevices?.getUserMedia)return normalizedFailure('PLATFORM_UNSUPPORTED','UNSUPPORTED','Camera preview is unavailable in this browser')
   try{
