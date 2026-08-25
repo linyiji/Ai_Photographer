@@ -1,0 +1,22 @@
+{
+  "registry_version": "1.0.0",
+  "prompts": [
+    {
+      "prompt_id": "capture-qa-shadow",
+      "version": "1.0.0",
+      "capability": "QA",
+      "expected_schema": "https://xfx.local/contracts/v1/CandidateEnvelope.schema.json",
+      "reality_rules": [
+        "Report only visible or supplied facts",
+        "Do not infer identity, intent, emotion, location, or protected attributes",
+        "Keep technical QA separate from user taste"
+      ],
+      "safety_rules": [
+        "Never request raw video or frame streams",
+        "Reject unconfirmed assets",
+        "Return one governed technical_result"
+      ],
+      "fallback_behavior": "Controlled invalid-output result; canonical fake QA remains selected"
+    }
+  ]
+}
