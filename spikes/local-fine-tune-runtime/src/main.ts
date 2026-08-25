@@ -48,7 +48,8 @@ const debugPanel = IS_DEV ? `
       <span>Backend</span><b>CANVAS2D_IMAGE_DATA</b><span>Scope</span><b id="debug-scope">ALL</b>
       <span>Input→present</span><b id="debug-present">—</b><span>Render</span><b id="debug-render">—</b>
       <span>Scheduled/executed/coalesced</span><b id="debug-scheduler">0 / 0 / 0</b><span>Mask</span><b id="debug-mask">—</b>
-      <span>Final render/encode</span><b id="debug-final">—</b><span>Memory</span><b id="debug-memory">UNAVAILABLE</b>
+      <span>Final render/encode</span><b id="debug-final">—</b><span>Duplicate exports blocked</span><b id="debug-export-blocked">0</b>
+      <span>Memory</span><b id="debug-memory">UNAVAILABLE</b>
     </div>
     <div class="debug-actions"><button id="run-exif" type="button">Run EXIF 1/6/8</button><button data-load-exif="1" type="button">Load EXIF 1</button><button data-load-exif="6" type="button">Load EXIF 6</button><button data-load-exif="8" type="button">Load EXIF 8</button><button data-final-bench="1920x1080" type="button">Run 1080p final</button><button data-final-bench="4000x3000" type="button">Run 12MP final</button></div>
     <pre id="debug-output">Development-only instrumentation. Minimum 30 updates per path.</pre>
@@ -144,6 +145,7 @@ let maskVisible = false;
 let scheduler = new LatestStateRenderScheduler(fullSource.assetId, (callback) => requestAnimationFrame(() => callback()));
 
 const status = (message: string): void => { element<HTMLDivElement>("#status").textContent = message; };
+const afterNextPaint = (): Promise<void> => new Promise((resolve) => requestAnimationFrame(() => resolve()));
 const currentRecipe = (): AdjustmentRecipe => history.current();
 const previewMasks = () => cachedPreviewMasks;
 const refreshPreviewMasks = (): void => { cachedPreviewMasks = toRendererMasks(fullMasks, previewSource.width, previewSource.height); };
@@ -417,11 +419,14 @@ element("#toggle-mask").addEventListener("click", () => {
 element("#export").addEventListener("click", async () => {
   const button = element<HTMLButtonElement>("#export");
   const result = await exportGuard.run(async () => {
-    button.disabled = true; button.textContent = "正在导出…"; status("正在从不可变全分辨率 Source 渲染与编码…");
+    button.classList.add("busy"); button.setAttribute("aria-disabled", "true"); button.textContent = "正在导出…再次点击可验证阻止";
+    status("正在从不可变全分辨率 Source 渲染与编码…再次点击将被阻止并计数。");
+    await afterNextPaint();
     try { return await renderer.exportJpeg(fullSource, currentRecipe(), toRendererMasks(fullMasks, fullSource.width, fullSource.height)); }
-    finally { button.disabled = false; button.textContent = "完成并导出 JPEG"; }
+    finally { button.classList.remove("busy"); button.removeAttribute("aria-disabled"); button.textContent = "完成并导出 JPEG"; }
   });
-  if (!result) { status("已有导出正在进行，请稍候。"); return; }
+  if (IS_DEV) element("#debug-export-blocked").textContent = String(exportGuard.blocked);
+  if (!result) { status(`重复导出已阻止（累计 ${exportGuard.blocked} 次）；当前导出继续进行。`); return; }
   lastFinalMs = result.renderMs + result.encodeMs; updateMetrics();
   if (IS_DEV) element("#debug-final").textContent = `${result.renderMs.toFixed(0)} / ${result.encodeMs.toFixed(0)}ms`;
   const url = URL.createObjectURL(result.blob); const link = document.createElement("a"); link.href = url; link.download = "xfx-fine-tuned-final.jpg"; link.click();
@@ -503,6 +508,7 @@ declare global {
       masks(): { lifecycle: string; inferenceCount: number; available: boolean };
       mobileMetrics(path: BenchmarkPath): ReturnType<MobileMetrics["summary"]>;
       scheduler(): ReturnType<LatestStateRenderScheduler["counters"]>;
+      exportGuard(): { busy: boolean; blocked: number };
     };
   }
 }
@@ -521,4 +527,5 @@ window.__fineTuneTest = {
   masks: () => ({ lifecycle: maskRuntime.lifecycle, inferenceCount: maskRuntime.inferenceCount, available: Boolean(fullMasks) }),
   mobileMetrics: (path) => metrics.summary(path),
   scheduler: () => scheduler.counters(),
+  exportGuard: () => ({ busy: exportGuard.busy, blocked: exportGuard.blocked }),
 };

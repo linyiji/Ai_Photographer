@@ -63,6 +63,7 @@ input[type="range"] { width: 100%; accent-color: #8fddb0; cursor: ew-resize; }
 .debug-actions button { border: 1px solid rgba(201,231,216,.14); border-radius: 8px; background: rgba(255,255,255,.035); color: inherit; padding: 6px; cursor: pointer; }
 .debug-panel pre { white-space: pre-wrap; overflow-wrap: anywhere; }
 .primary { width: 100%; margin-top: 12px; min-height: 48px; border: 0; border-radius: 13px; color: #0b1b12; background: linear-gradient(135deg, #baf4d0, #78d59e); font-weight: 700; cursor: pointer; }
+.primary.busy { color: #eafff1; background: linear-gradient(135deg, #315f49, #244436); outline: 2px solid rgba(186,244,208,.42); }
 .status { min-height: 38px; margin-top: 12px; padding: 9px 10px; border-radius: 10px; background: rgba(0,0,0,.17); color: #8fa097; font-size: 11px; line-height: 1.45; }
 .metrics { display: grid; grid-template-columns: repeat(4,1fr); gap: 7px; margin-top: 10px; }
 .metric { padding: 8px; border-radius: 9px; background: rgba(255,255,255,.025); }

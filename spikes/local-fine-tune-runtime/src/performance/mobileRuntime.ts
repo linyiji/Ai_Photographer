@@ -85,8 +85,9 @@ export const selectPreviewLongEdge = ({ viewportWidth, deviceMemory, sourceLongE
 
 export class ExportGuard<T> {
   busy = false;
+  blocked = 0;
   async run(operation: () => Promise<T>): Promise<T | undefined> {
-    if (this.busy) return undefined;
+    if (this.busy) { this.blocked += 1; return undefined; }
     this.busy = true;
     try { return await operation(); } finally { this.busy = false; }
   }

@@ -79,7 +79,9 @@ describe("adaptive preview and fallback", () => {
 describe("export, EXIF, mask alignment and compare cancellation", () => {
   it("blocks duplicate export while the first is pending", async () => {
     const guard = new ExportGuard<number>(); let resolve!: (value: number) => void; const pending = new Promise<number>((done) => { resolve = done; });
-    const first = guard.run(() => pending); const duplicate = await guard.run(async () => 2); expect(duplicate).toBeUndefined(); resolve(1); expect(await first).toBe(1); expect(guard.busy).toBe(false);
+    const first = guard.run(() => pending); const duplicate = await guard.run(async () => 2); expect(duplicate).toBeUndefined(); expect(guard.blocked).toBe(1);
+    resolve(1); expect(await first).toBe(1); expect(guard.busy).toBe(false);
+    expect(await guard.run(async () => 3)).toBe(3); expect(guard.blocked).toBe(1);
   });
   it.each([1, 6, 8] as const)("writes and reads EXIF orientation %s", (orientation) => {
     const jpeg = Uint8Array.from([0xff, 0xd8, 0xff, 0xd9]); const result = injectExifOrientation(jpeg, orientation);
