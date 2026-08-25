@@ -1,5 +1,9 @@
 # M01 AdjustmentRecipe Mapping
 
+FT-P1 implements ALL, PERSON, BACKGROUND and LOCAL_REGION with BRIGHTNESS, WARMTH, SATURATION and SOFTNESS. MOOD, SKIN_TONE, SKIN_RETOUCH and BLUR remain deferred. PERSON/BACKGROUND recipes use the unchanged M01 schema and retain `semantic_edit_allowed=false`.
+
+`SemanticMaskSet` is ephemeral renderer/provider integration data, not a persistent M01 contract. Future mask persistence requires `CONTRACT_DESIGN_REQUIRED`.
+
 ```text
 M01_SCHEMA=packages/contracts/schemas/AdjustmentRecipe.schema.json
 M01_STATUS=PRESERVED
