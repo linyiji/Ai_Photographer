@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { createSyntheticFixture } from "../src/fixtures/synthetic";
 import { createDefaultRegion } from "../src/mask/regions";
+import { createMaskFixture } from "../src/mask/fixtures";
 import { createRecipe, setAdjustment } from "../src/recipe/recipe";
 import { Canvas2DFineTuneRenderer } from "../src/renderer/cpuRenderer";
 
@@ -30,5 +31,15 @@ describe("automated pixel visual regression", () => {
     const second = renderer.render(source, recipe, undefined, { mode: "preview" });
     expect(metrics(first.data, second.data)).toEqual({ mae: 0, max: 0 });
     expect(createHash("sha256").update(first.data).digest("hex")).toBe("0d614e1807c312e6a5846f401a94b4317d628ce9ab7b28973e964cda59d578fd");
+  });
+
+  it("matches the locked edge-safe BACKGROUND BLUR output", () => {
+    const source = createSyntheticFixture("busy-background", 64, 48);
+    const mask = createMaskFixture("background-like-mask", 64, 48);
+    let recipe = createRecipe({ recipe_id: "visual-blur", created_at: "2026-08-25T00:00:00.000Z" });
+    recipe = setAdjustment(recipe, "ALL", "WARMTH", 0.17);
+    recipe = setAdjustment(recipe, "BACKGROUND", "BLUR", 0.72);
+    const result = new Canvas2DFineTuneRenderer().render(source, recipe, { background: mask }, { mode: "preview" });
+    expect(createHash("sha256").update(result.data).digest("hex")).toBe("f100f6d8e0c313cbcccf0a542be2a1c4e1eb9ed9f773b72d77f633c80201298a");
   });
 });

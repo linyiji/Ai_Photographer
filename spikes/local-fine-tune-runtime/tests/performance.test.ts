@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createSyntheticFixture } from "../src/fixtures/synthetic";
+import { createMaskFixture } from "../src/mask/fixtures";
 import { createDefaultRegion } from "../src/mask/regions";
 import { createRecipe, setAdjustment } from "../src/recipe/recipe";
 import { Canvas2DFineTuneRenderer } from "../src/renderer/cpuRenderer";
@@ -14,11 +15,12 @@ describe("desktop synthetic render evidence", () => {
     recipe = setAdjustment(recipe, "ALL", "SATURATION", 0.14);
     recipe = setAdjustment(recipe, "ALL", "SOFTNESS", 0.1);
     recipe = setAdjustment(recipe, "LOCAL_REGION", "BRIGHTNESS", 0.2, region);
+    recipe = setAdjustment(recipe, "BACKGROUND", "BLUR", 0.65);
 
     const fixtureA = createSyntheticFixture("busy-background", 1920, 1080);
     const fixtureB = createSyntheticFixture("busy-background", 4000, 3000);
-    const resultA = renderer.render(fixtureA, recipe, undefined, { mode: "final" });
-    const resultB = renderer.render(fixtureB, recipe, undefined, { mode: "final" });
+    const resultA = renderer.render(fixtureA, recipe, { background: createMaskFixture("background-like-mask", 1920, 1080) }, { mode: "final" });
+    const resultB = renderer.render(fixtureB, recipe, { background: createMaskFixture("background-like-mask", 4000, 3000) }, { mode: "final" });
 
     console.info(`FT_P2_PERFORMANCE ${JSON.stringify({
       fixtureA: { resolution: "1920x1080", renderMs: Number(resultA.renderMs.toFixed(1)) },
@@ -28,6 +30,6 @@ describe("desktop synthetic render evidence", () => {
     expect([resultA.width, resultA.height]).toEqual([1920, 1080]);
     expect([resultB.width, resultB.height]).toEqual([4000, 3000]);
     expect(resultA.renderMs).toBeLessThan(10_000);
-    expect(resultB.renderMs).toBeLessThan(15_000);
-  }, 30_000);
+    expect(resultB.renderMs).toBeLessThan(20_000);
+  }, 45_000);
 });

@@ -31,8 +31,18 @@ describe("M01 AdjustmentRecipe mapping", () => {
     expect(validateRecipe(recipe).valid).toBe(true);
   });
 
-  it.each(["MOOD", "SKIN_TONE", "SKIN_RETOUCH", "BLUR"] as const)("rejects deferred P0 parameter %s", (parameter) => {
+  it.each(["MOOD", "SKIN_TONE", "SKIN_RETOUCH"] as const)("rejects deferred advanced parameter %s", (parameter) => {
     expect(() => setAdjustment(fixedRecipe(), "ALL", parameter, 0.4)).toThrow("deferred");
+  });
+
+  it("persists schema-valid BACKGROUND BLUR", () => {
+    const recipe = setAdjustment(fixedRecipe(), "BACKGROUND", "BLUR", 0.4);
+    expect(recipe.adjustments).toEqual([{ scope: "BACKGROUND", parameter: "BLUR", value: 0.4 }]);
+    expect(reloadRecipe(serializeRecipe(recipe))).toEqual(recipe);
+  });
+
+  it.each(["ALL", "PERSON", "LOCAL_REGION"] as const)("rejects BLUR for unsupported %s scope", (scope) => {
+    expect(() => setAdjustment(fixedRecipe(), scope, "BLUR", 0.4)).toThrow("only for BACKGROUND");
   });
 
   it("clamps canonical values to [-1, 1]", () => {
