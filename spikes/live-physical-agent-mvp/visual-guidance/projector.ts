@@ -116,13 +116,16 @@ export class VisualGuidanceProjector {
     const vx = state.subject.velocity_x ?? 0; const vy = state.subject.velocity_y ?? 0; const vs = state.subject.velocity_scale ?? 0;
     const speed = Math.hypot(vx, vy, vs); const moving = speed > this.config.moving_velocity_threshold;
     const elapsed = this.lastProjectionAt === null ? 0 : Math.max(0, now - this.lastProjectionAt); const tau = moving ? this.config.moving_time_constant_ms : this.config.quiet_time_constant_ms;
-    const alpha = this.lastProjectionAt === null ? 1 : clamp(1 - Math.exp(-elapsed / tau), moving ? this.config.moving_ema_alpha : this.config.base_ema_alpha, 0.92);
+    const residual = this.smoothed ? boxDistance(raw,this.smoothed) : 0; const responsiveFloor = moving && residual > this.config.measurement_jitter_threshold ? 0.72 : moving ? this.config.moving_ema_alpha : this.config.base_ema_alpha;
+    const alpha = this.lastProjectionAt === null ? 1 : clamp(1 - Math.exp(-elapsed / tau), responsiveFloor, 0.92);
     const horizon = moving ? this.config.prediction_horizon_ms / 1000 : 0;
     const projectedRaw = boxFromValues(raw.center_x + vx * horizon, raw.center_y + vy * horizon, raw.width, raw.height + vs * horizon);
     if (settledAuthority) this.smoothed = { ...settledAuthority };
     else if (!this.smoothed) this.smoothed = { ...raw };
     else this.smoothed = boxFromValues(ema(this.smoothed.center_x, projectedRaw.center_x, alpha), ema(this.smoothed.center_y, projectedRaw.center_y, alpha), ema(this.smoothed.width, projectedRaw.width, alpha), ema(this.smoothed.height, projectedRaw.height, alpha));
-    this.visualLatencyMs = speed > 0.01 ? boxDistance(raw, this.smoothed) / speed * 1000 : 0; this.pushBounded(this.visualLatencyHistory,this.visualLatencyMs); this.lastProjectionAt = now;
+    // Distance/speed is numerically meaningless near rest. Latency is measured only while
+    // movement exceeds the same semantic threshold used to choose the moving display filter.
+    this.visualLatencyMs = moving ? boxDistance(raw, this.smoothed) / speed * 1000 : 0; this.pushBounded(this.visualLatencyHistory,this.visualLatencyMs); this.lastProjectionAt = now;
     if (this.lastRaw) this.pushBounded(this.rawJitter, boxDistance(raw, this.lastRaw));
     if (this.lastSmoothed) {
       const movement = boxDistance(this.smoothed, this.lastSmoothed); this.pushBounded(this.stabilizedJitter, movement);

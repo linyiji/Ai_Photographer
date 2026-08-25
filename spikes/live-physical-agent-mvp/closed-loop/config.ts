@@ -29,10 +29,10 @@ export const ISSUE_WEIGHTS = Object.freeze({
 });
 
 export const ACTION_COPY: Readonly<Record<LocalAction, string>> = Object.freeze({
-  MOVE_LEFT: '往左一点',
-  MOVE_RIGHT: '往右一点',
-  MOVE_CLOSER: '再靠近一点',
-  MOVE_FARTHER: '稍微退后一点',
+  MOVE_LEFT: '持续往左，看到“停一下”再停',
+  MOVE_RIGHT: '持续往右，看到“停一下”再停',
+  MOVE_CLOSER: '持续靠近，看到“停一下”再停',
+  MOVE_FARTHER: '持续退后，看到“停一下”再停',
   STOP_HERE: '好，停一下',
   HOLD: '好，就这里',
 });

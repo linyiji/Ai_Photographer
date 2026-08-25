@@ -20,14 +20,14 @@ Start Head: `44e7914e3df7f778c1f0d4d6c127ddbb8048bef4`
 - Stale Guidance Suppression: PASS; measurement `<=180 ms`, decision `<=160 ms`, and reacquisition barrier.
 - Axis Commitment: PASS; replan requires terminal plus a newer state version.
 - ControlObservation / DisplayObservation: PASS; independent telemetry and semantics.
-- Display: elapsed-time smoothing with bounded prediction; synthetic nominal max <=350 ms. Device p50/p95/max pending.
+- Display: elapsed-time smoothing with bounded prediction; meaningful-motion latency avoids near-rest distance/speed instability. Post-fix device p50/p95/max pending.
 - Target Visual: one guide frame plus one stabilized subject corner box; text preserved; grid OFF.
 - DEFAULT: PASS; LINE_DOG: IMPLEMENTED_CANDIDATE; semantic diff 0.
 - Target/deadband/success semantics: unchanged.
 
 ## Verification
 
-- Automated Tests: 161/161 PASS, including stale camera-request, ended-track ownership, and DISARMED zero-output regressions.
+- Automated Tests: 162/162 PASS, including stale camera-request, ended-track ownership, DISARMED zero-output, and near-rest display-latency regressions.
 - Typecheck: PASS
 - Production Build: PASS / 22 modules. The bundled environment lacks `npm.cmd`, so the package's equivalent prebuild/typecheck/Vite steps were executed directly.
 - Browser Replay: PASS; READY_LATCHED, ordinary/STOP/HOLD/success 1/1/1/1, synthetic display p50/p95/max 0/3/3 ms, console warning/error 0/0.
@@ -42,9 +42,13 @@ Gate 1 attempt 1 found a bounded front-switch defect before acceptance sampling:
 
 Gate 1 attempt 2 found stale primary copy after Camera readiness and an incomplete DISARMED engine gate. Camera/model/trial states now render separately, and DISARMED cannot emit ordinary guidance or passive READY. OPPO revalidation remains required.
 
+Gate 1 attempt 3 supplied five valid V2 traces with 5 READY trials and 45 terminal Episodes. SUCCESS/NO_EFFECT/WRONG_DIRECTION was 16/23/6, or 35.6%; ordinary actions were 9.0 per trial. Post-READY ordinary actions, direction-sign mismatches, and active-Episode axis switches were all zero. Fresh control age p50/p95/max was 91.6/121.8/235.3 ms; display latency was 91.6/248.1/893.4 ms. Required subjective assertions were not supplied. This pre-fix sample is not Gate 1 PASS and is not eligible for Gate 2.
+
+The bounded response preserves target/deadband/success semantics: action copy now requests continuous movement until STOP, remains readable for 1100 ms, and display latency is calculated only for meaningful motion. V2 rows now include trial state and READY source. Automated verification passes; fresh OPPO revalidation is required.
+
 OPPO Gate 2: NOT_STARTED; only after Gate 1 PASS. Requires >=10 fresh trials and >=30 naturally produced terminal Episodes.
 
-Correction Success remains `>=80%`. No fresh V2 phone result exists yet; LIVE-P2 is therefore not re-evaluated and no PASS is claimed.
+Correction Success remains `>=80%`. Attempt 3 is fresh V2 diagnostic evidence but is pre-fix and non-passing; LIVE-P2 is therefore not re-evaluated and no PASS is claimed.
 
 LIVE-P1: PASS
 

@@ -28,7 +28,7 @@ DEFAULT Theme = PASS
 LINE_DOG = IMPLEMENTED_CANDIDATE
 Theme Semantic Diff = 0
 
-Automated Tests = 161/161 PASS
+Automated Tests = 162/162 PASS
 Typecheck = PASS
 Production Build = PASS / 22 MODULES
 Browser Replay = PASS
@@ -40,6 +40,10 @@ P2 Implementation Gate = PASS
 OPPO Gate 1 = MANUAL_REVIEW_REQUIRED
 OPPO Gate 1 Attempt 1 = FRONT SWITCH DEFECT / BOUNDED FIX IMPLEMENTED / REVALIDATION REQUIRED
 OPPO Gate 1 Attempt 2 = DISARMED/UI STATE DEFECT / BOUNDED FIX IMPLEMENTED / REVALIDATION REQUIRED
+OPPO Gate 1 Attempt 3 = PRE-FIX 5 TRIALS / 45 EPISODES / 35.6% / NOT ACCEPTED
+Attempt 3 Causal Invariants = POST-READY 0 / SIGN MISMATCH 0 / ACTIVE-EPISODE AXIS SWITCH 0
+Attempt 3 Display Latency p50/p95/max = 91.6/248.1/893.4 MS
+Attempt 3 Response = CONTINUATION CUE + 1100 MS READABILITY + MEANINGFUL-MOTION LATENCY / REVALIDATION REQUIRED
 OPPO Gate 2 = NOT_STARTED
 P2 Real Device Gate = MANUAL_REVIEW_REQUIRED
 LIVE-P2 Final Gate = NOT_YET_REEVALUATED
@@ -53,4 +57,4 @@ CH-003 = IDENTIFIED / UNCHANGED
 Main / Develop / Fine Tune / AI Visual = UNTOUCHED
 ```
 
-The accepted 33.9% / 59-Episode sample remains the task's starting baseline, not its V2 acceptance result. Gate 1 requires three fresh OPPO K11 trials. Gate 2 and the unchanged `>=80%` Correction Success decision may begin only after Gate 1 passes. No next task or Luna work starts automatically.
+The accepted 33.9% / 59-Episode sample remains the task's starting baseline, not its V2 acceptance result. Attempt 3 is fresh V2 evidence but is a pre-fix, non-passing diagnostic sample; it cannot satisfy Gate 1 or Gate 2. Gate 2 and the unchanged `>=80%` Correction Success decision may begin only after a post-fix Gate 1 passes. No next task or Luna work starts automatically.

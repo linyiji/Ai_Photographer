@@ -79,7 +79,7 @@ The functional overlay now uses one clear target frame, one stabilized subject c
 - Verification classifies SUCCESS, IMPROVING, NO_EFFECT, or WRONG_DIRECTION after movement stabilizes. A 1.5-normalized corridor and conservative 350 ms velocity prediction can issue one `STOP_HERE` without adding an ordinary Episode.
 - READY after Episode SUCCESS uses the existing 600 ms stable window. Geometry after a non-SUCCESS terminal requires 1200 ms passive confirmation and records a distinct source; prior failure counters are not rewritten.
 - The primary instruction/status overlay is centered in the lower-middle camera area. WAITING never retains the previous ordinary action copy; it shows silent movement/verification state instead.
-- Each emitted action remains readable for 700 ms without incrementing or re-emitting it; a local reset control exits fail-safe recovery without restarting Camera/Pose.
+- Each emitted action remains readable for 1100 ms without incrementing or re-emitting it; a local reset control exits fail-safe recovery without restarting Camera/Pose.
 - Repeated local failures enter `LOCAL_RECOVERY_REQUIRED`. Stable input automatically resumes after 1200 ms; “继续本机引导” remains a manual fallback. Both preserve metrics, Trace, and monotonic Episode numbering; recovery never escalates to Luna.
 
 All parameters are spike-local Candidates, not global Authority.
@@ -104,7 +104,7 @@ Current Control Policy V2 state:
 Status = READY_FOR_MANUAL_DEVICE_TEST
 LIVE-P1 = PASS
 P2 Implementation Gate = PASS
-Automated Gate = PASS / 161 of 161 tests
+Automated Gate = PASS / 162 of 162 tests
 Browser Replay = PASS
 P2 Real Device Gate = MANUAL_REVIEW_REQUIRED
 LIVE-P2 Final Gate = NOT_YET_REEVALUATED

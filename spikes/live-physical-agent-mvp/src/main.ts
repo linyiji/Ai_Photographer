@@ -175,7 +175,7 @@ const perceptionRuntime = new PerceptionRuntime({
     scalarTrace.append(state, latestClosedLoop, latestVisualGuidance, guidanceTheme.value);
     if (latestClosedLoop.instruction && latestClosedLoop.instruction.action !== 'HOLD') {
       displayedActionCopy = latestClosedLoop.instruction.copy_zh;
-      displayedActionUntilMs = state.timestamp_ms + 700;
+      displayedActionUntilMs = state.timestamp_ms + 1100;
     }
     renderPerceptionState();
     renderClosedLoop();
@@ -232,7 +232,7 @@ function renderVisualGuidance(): void {
   const zoneBox: NormalizedBox = { left: visual.acceptable_zone.left, top: visual.acceptable_zone.top, width: visual.acceptable_zone.right-visual.acceptable_zone.left, height: visual.acceptable_zone.bottom-visual.acceptable_zone.top, center_x:(visual.acceptable_zone.left+visual.acceptable_zone.right)/2, center_y:(visual.acceptable_zone.top+visual.acceptable_zone.bottom)/2 };
   applyProjectedBox(acceptableZone, zoneBox); targetBox.classList.remove('is-visible'); applyProjectedBox(subjectBox, visual.tracked_subject_box);
   subjectLockLabel.textContent = visual.tracking_status === 'LOCKED' ? '人物已锁定' : visual.tracking_status === 'HELD' ? '人物暂时遮挡' : '人物锁定中';
-  const direction = visual.direction_hint; const directionPresentation = direction === 'MOVE_LEFT' ? [visual.display_axis_sign < 0 ? '←' : '→','往左一点'] : direction === 'MOVE_RIGHT' ? [visual.display_axis_sign < 0 ? '←' : '→','往右一点'] : direction === 'MOVE_CLOSER' ? ['⊕','靠近一点'] : direction === 'MOVE_FARTHER' ? ['⊖','退后一点'] : null;
+  const direction = visual.direction_hint; const directionPresentation = direction === 'MOVE_LEFT' ? [visual.display_axis_sign < 0 ? '←' : '→','持续往左 · 看到“停一下”再停'] : direction === 'MOVE_RIGHT' ? [visual.display_axis_sign < 0 ? '←' : '→','持续往右 · 看到“停一下”再停'] : direction === 'MOVE_CLOSER' ? ['⊕','持续靠近 · 看到“停一下”再停'] : direction === 'MOVE_FARTHER' ? ['⊖','持续退后 · 看到“停一下”再停'] : null;
   directionVisual.classList.toggle('is-visible', Boolean(directionPresentation) && !visual.braking && !visual.ready); if (directionPresentation) { directionIcon.textContent=renderedTheme.direction_glyph??directionPresentation[0]; directionLabel.textContent=directionPresentation[1]; }
   stopIcon.textContent=renderedTheme.stop_glyph; readyIcon.textContent=renderedTheme.ready_glyph;
   stopVisual.classList.toggle('is-visible', visual.braking && !visual.ready); readyVisual.classList.toggle('is-visible', visual.ready);
@@ -747,7 +747,7 @@ if (replayName) {
         scalarTrace.append(state, latestClosedLoop, latestVisualGuidance, guidanceTheme.value);
         if (latestClosedLoop.instruction && latestClosedLoop.instruction.action !== 'HOLD') {
           displayedActionCopy = latestClosedLoop.instruction.copy_zh;
-          displayedActionUntilMs = state.timestamp_ms + 700;
+          displayedActionUntilMs = state.timestamp_ms + 1100;
         }
         renderPerceptionState();
         renderClosedLoop();
