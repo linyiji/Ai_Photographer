@@ -1,9 +1,9 @@
 # GPT / Codex Handoff
 
 **Baseline:** V0.6 Complete  
-**Current Milestone:** M04 — PASS
+**Current Milestone:** M05 — REAL DEVICE VALIDATION PENDING
 
-**Current Task:** XFX_M04_PLATFORM_ADAPTER_AND_REAL_CAPABILITY_INTEGRATION_FOUNDATION_01 — PASS
+**Current Task:** XFX_M05_REAL_ASSET_CAPTURE_AND_USER_GOLDEN_FLOW_01 — READY_FOR_MANUAL_DEVICE_TEST
 
 ## Project Context
 
@@ -178,6 +178,22 @@ React 19.2.6: retained negative evidence (FAIL)
 
 ## Known Issues
 
+## M05 Manual Device Handoff
+
+```text
+Branch: feature/m05-real-user-golden-flow
+Start Head: 46393ce0a37bb9e339933679438ff57f58c1e835
+Implementation Gate: PASS
+Real Device Gate: MANUAL_REVIEW_REQUIRED
+M05 Final Gate: NOT_YET_PASS
+PUBLIC_PRODUCTION_READY: NO
+Device candidate: OPPO K11 / ColorOS 15 / Chrome Mobile (exact version must be recorded)
+Checklist: docs/platform/72-h5-camera-and-capture-user-acceptance-v1.0.md
+Evidence: project-status/evidence/m05/h5-real-device-oppo-k11.md
+```
+
+Automated evidence proves explicit resume, local confirmation before upload, zero upload on retake, one confirmed upload, stable idempotency, backend refresh recovery, My Works, final readback, download/share handling, and Production fake-AI blocking. It does not prove real phone camera permission, preview, front/rear switching, orientation, or lifecycle. The next operator must run the signed device checklist without committing user media. Do not merge to `develop` until that gate passes.
+
 以：
 
 ```text
@@ -188,10 +204,10 @@ project-status/CHALLENGES.json
 
 ## Next Task
 
-Next Recommended Task:
+Next Recommended Task after M05 Final Gate PASS:
 
 ```text
-XFX_M05_REAL_ASSET_CAPTURE_AND_USER_GOLDEN_FLOW_01
+XFX_M06_REAL_CAPABILITY_INTEGRATION_WAVE_01
 ```
 
-不要自动执行下一任务。M01 Contract Authority 与 Frontend Runtime L1 保持不变。M04 只建立 real platform capability hosting foundation；真实 Camera/CV、AI Provider、Voice、Dual Device、Reality+、生产数据库和 Live 集成均未启动。Live worktree 未被触碰；CH-003 保持 `IDENTIFIED / UNCHANGED`。
+不要自动执行下一任务。M05 尚未最终 PASS；当前只允许真实设备验收。M01 Contract Authority、Frontend Runtime L1 与 M04 保持不变。真实 CV、AI Provider、Voice、Dual Device、Reality+、生产数据库和 Live 集成均未启动。Live/Fine-tune Worktree 未被触碰；CH-003 保持 `IDENTIFIED / UNCHANGED`。

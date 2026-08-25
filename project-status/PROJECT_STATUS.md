@@ -2,10 +2,10 @@
 
 **Project Baseline:** V0.6 Complete  
 **Current Product Prototype:** S01 V1.6.1  
-**Current Milestone:** M04 — Platform Adapter Integration Foundation
-**Current Task:** XFX_M04_PLATFORM_ADAPTER_AND_REAL_CAPABILITY_INTEGRATION_FOUNDATION_01
+**Current Milestone:** M05 — Real Asset Capture and User Golden Flow
+**Current Task:** XFX_M05_REAL_ASSET_CAPTURE_AND_USER_GOLDEN_FLOW_01
 
-**Current Task Status:** PASS
+**Current Task Status:** READY_FOR_MANUAL_DEVICE_TEST
 
 **Overall Project Status:** IN_PROGRESS
 **Primary Environment:** Windows First
@@ -19,9 +19,33 @@
 | M02 Application Skeleton | PASS | M02_SKELETON_RUNNABLE = PASS; FULLSTACK_VERTICAL_SLICE = PASS |
 | M03 Fast Feedback Lab | PASS | M03_REPLAY_READY = PASS |
 | M04 Platform Adapter Integration Foundation | PASS | M04_PLATFORM_ADAPTER_FOUNDATION = PASS |
-| M05 MVP Golden Flow | NOT_STARTED | M05_MVP_GOLDEN_FLOW |
+| M05 MVP Golden Flow | VALIDATING | Implementation PASS; Real Device MANUAL_REVIEW_REQUIRED |
 | M06 Real Capability Replacement | NOT_STARTED | Capability Gates |
 | M07 Cross-platform | NOT_STARTED | M07_CROSS_PLATFORM_BASELINE |
+
+## M05 Real User Golden Flow
+
+```text
+Branch: feature/m05-real-user-golden-flow
+Start Head: 46393ce0a37bb9e339933679438ff57f58c1e835
+Implementation Gate: PASS
+Real Device Gate: MANUAL_REVIEW_REQUIRED
+M05 Final Gate: NOT_YET_PASS
+Internal Demo: READY_WITH_DISCLOSURE
+PUBLIC_PRODUCTION_READY: NO
+Unconfirmed Still Upload: 0
+Raw Video Upload: 0
+M05 Replay Scenarios: 12 / 12 PASS
+Backend Tests: 76 / 76 PASS
+Frontend Tests: 11 / 11 PASS
+TypeScript: PASS
+H5 Build: PASS_WITH_WARNING
+WeChat Build: PASS
+Desktop E2E: PASS
+Auto FF Merge: NOT_ATTEMPTED
+```
+
+Camera is primary and device import remains the controlled fallback. A selected still remains local until `使用这张`; retake before confirmation does not call the server or advance Workflow. Backend session lists drive explicit resume and My Works. Production mode reports `PUBLIC_PRODUCTION_READY = false` and blocks session creation while deterministic fake intelligence remains selected. The real-device checklist is prepared for OPPO K11, but no phone behavior was inferred from desktop automation. Platform Matrix Camera acceptance remains unchanged until signed device evidence exists.
 
 ## Windows Bootstrap Acceptance
 
