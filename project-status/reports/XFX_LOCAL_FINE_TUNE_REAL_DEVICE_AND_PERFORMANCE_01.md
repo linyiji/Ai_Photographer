@@ -1,96 +1,79 @@
-# XFX_LOCAL_FINE_TUNE_REAL_DEVICE_AND_PERFORMANCE_01
+# XFX_LOCAL_FINE_TUNE_FT_P2_REAL_DEVICE_ACCEPTANCE_AND_CLOSURE_01
 
 ```text
-Status: READY_FOR_MANUAL_DEVICE_TEST
-Start Head: 4ea34e2e36bec4a6f5b8ab181eb51e85b3336110
-Device: OPPO K11 / actual OS pending / actual Chrome pending
-Renderer Before: CANVAS2D_IMAGE_DATA
-Renderer After: CANVAS2D_IMAGE_DATA
-Reference Backend: CANVAS2D_IMAGE_DATA
-Preview Resolution: adaptive 512 / 640 / 768 long edge; phone-width proxy 512×288
-Optimization: latest-state scheduler; stale-source invalidation; cached preview masks; cached immutable SOFTNESS blur; pre-clamped local geometry; adaptive preview; duplicate-export guard
+Status: PASS_WITH_WARNING
+Start Head: dee3c9645388d3efee09a7783b649cb8a37330f9
+Device: OPPO K11
+OS: ColorOS 15.0
+Chrome: Chrome Mobile 138.0.0.0
+Viewport: not separately captured (evidence limitation)
+Preview: 512x288 from 1920x1080 Source
+Renderer: CANVAS2D_IMAGE_DATA; Worker/OffscreenCanvas final export
 
-ALL: device count/p50/p95/max=pending manual
-SEMANTIC: device count/p50/p95/max=pending manual
-LOCAL: device count/p50/p95/max=pending manual
-COMBINED: device count/p50/p95/max=pending manual
+ALL: count=42 p50=44.4ms p95=79.3ms max=120.6ms
+SEMANTIC: count=300 p50=29.0ms p95=84.3ms max=96.8ms
+LOCAL: count=227 p50=26.4ms p95=79.1ms max=94.6ms
+COMBINED: count=189 p50=50.3ms p95=109.2ms max=126.1ms
+Repeated >300ms Stalls: 0 post-fix
+Persistent >500ms Stalls: 0 post-fix
 
-Desktop mobile-viewport proxy (390×844, not device evidence):
-ALL count=35 p50=33.6ms p95=53.3ms max=68.8ms
-SEMANTIC count=30 p50=11.6ms p95=24.8ms max=26.6ms
-LOCAL count=32 p50=13.7ms p95=27.8ms max=32.0ms
-COMBINED count=36 p50=54.6ms p95=63.8ms max=74.7ms
+Touch Drag: PASS
+Touch Resize: PASS
+Max Regions: 3 / PASS; fourth blocked
+PERSON: PASS
+BACKGROUND: PASS
+Mask Cache: PASS
+Per-slider Mask Inference: 0
+Source Switch: PASS
+Cross-source Mask Reuse: 0
+Recipe Save/Reload: PASS
+Undo/Redo/Reset: PASS
+Compare Touch: PASS
+EXIF 1/6/8: PASS
+Orientation Final: PASS
 
-PERSON=PASS (implementation/browser proxy)
-BACKGROUND=PASS (implementation/browser proxy)
-LOCAL_REGION_TOUCH=MANUAL_REVIEW_REQUIRED
-MAX_LOCAL_REGIONS=3/PASS (automated/browser proxy)
-Mask Cache=PASS
-Per-slider Mask Inference=0
-Source Switch Invalidation=PASS
-Cross-source Mask Reuse=0
+1080p representative device JPEG: render=333ms encode=84ms total=417ms
+4000x3000 Local: render=2174.2ms encode=311.2ms total=2485.4ms
+4000x3000 Combined: render=3929.4ms encode=243.5ms total=4172.9ms
+Pre-fix 4000x3000 Combined: render=11489.1ms encode=380.3ms; main UI freeze reproduced
+Final Dimensions: PRESERVED
+Duplicate Export: BLOCKED (counter observed at 5)
 
-Orientation EXIF1=PASS desktop / pending OPPO
-Orientation EXIF6=PASS desktop / pending OPPO
-Orientation EXIF8=PASS desktop / pending OPPO
-Orientation Final=NOT_FULLY_TESTED
+10-minute Stability: PASS post-fix
+Crash/OOM/Blank Canvas: 0 observed
+Progressive Slowdown: NONE post-fix
+Memory API: 40.1-87.5MB observed
+Thermal: WARM pre-fix; qualitative/no throttling symptom post-fix
+Console Fatal Errors: 0 observed
+Slider Network Calls: 0 observed
+Third-party Image Upload: 0
+Cloud Image Provider: 0
+Generative AI: 0
+AUTO_SEMANTIC_MASK: NOT_YET_PASS
 
-1080p Neutral Final Render=88.6ms; Encode=89.0ms
-1080p Global Final Render=380.6ms; Encode=70.6ms
-1080p Semantic Final Render=736.6ms; Encode=66.6ms
-1080p Combined Final Render=818.1ms; Encode=60.7ms
-High-res Source=4000×3000
-High-res Local Final Render=877.3ms; Encode=277.2ms
-High-res Combined Final Render=5976.2ms; Encode=287.8ms (desktop Chromium; >3s warning, <8s fail boundary)
-High-res automated combined CPU render=7888.6ms isolated / 21698.3ms under parallel CPU contention (non-device diagnostic)
-Final Dimensions=PRESERVED
-
-Recipe Save/Reload Device=MANUAL_REVIEW_REQUIRED (browser proxy PASS)
-Undo=MANUAL_REVIEW_REQUIRED (automated/browser proxy PASS)
-Redo=MANUAL_REVIEW_REQUIRED (automated/browser proxy PASS)
-Compare Touch=MANUAL_REVIEW_REQUIRED (cancel regression PASS)
-10-minute Stability=MANUAL_REVIEW_REQUIRED
-Crash=pending device
-OOM=pending device
-Blank Canvas=pending device
-Thermal=pending device
-
-Console Errors=0 desktop browser
-Slider Network Calls=0 implementation/browser
-Third-party Image Upload=0
-Cloud Provider Calls=0
-Generative AI=0
-AUTO_SEMANTIC_MASK=NOT_YET_PASS
-
-Automated Tests=131/131 PASS
-Fresh npm Reproduction=PASS
-FT-P0 Regression=PASS
-FT-P1 Regression=PASS
-Pixel/Visual Regression=PASS
-Cross-backend Consistency=NOT_APPLICABLE
-M01=PRESERVED
-
-Implementation Gate=PASS
-Real Device Gate=MANUAL_REVIEW_REQUIRED
-FINE_TUNE_INTEGRATION_READINESS=NOT_READY
-FT-P2=NOT_YET_PASS
-
-Commits: 27f61eb (runtime/perf), 5779aee (tests), report-containing documentation commit
-Remote Fine Tune Branch=PASS (verified at final push)
-Main=UNTOUCHED
-Live=UNTOUCHED
-AI Visual=UNTOUCHED/NOT_PRESENT
-Fine Tune Worktree=CLEAN (verified after push)
+Automated Tests: 131/131 PASS
+FT-P0 Regression: PASS
+FT-P1 Regression: PASS
+M01: PRESERVED
+Bounded Fix Required: YES
+Fix Commits: 68f5fc9, 2ca2ecc
+Implementation Gate: PASS
+Real Device Gate: PASS_WITH_WARNING
+FT-P2: PASS_WITH_WARNING
+FINE_TUNE_INTEGRATION_READINESS: READY_FOR_INTEGRATION_DESIGN
+Main: UNTOUCHED
+Live: UNTOUCHED
+AI Visual: UNTOUCHED / NOT_PRESENT
 ```
 
-## Evidence boundary
+## Disposition
 
-No controllable physical OPPO K11 was available. Desktop Chromium and a 390×844 viewport were used only to validate instrumentation, functional browser behavior and proxy performance. They are not represented as phone, thermal, touch or stability evidence.
+The actual device reproduced a duplicate-export observability defect, COMBINED p95 212.3 ms and an 11.87 s 12MP main-thread freeze. The bounded fixes exposed/count duplicate blocks, precompiled adjustment weights and moved final rendering/encoding into a Worker. Post-fix COMBINED fell to p95 109.2 ms and 12MP Combined to 4.17 s while scrolling remained responsive.
 
-The implementation is ready for the owner to run `spikes/local-fine-tune-runtime/evidence/manual-device/ft-p2-oppo-k11.md`. Until that sheet is completed, FT-P2 and integration readiness cannot pass.
+The gate is `PASS_WITH_WARNING`, not PASS, because COMBINED misses the ideal p50/p95 targets and thermal evidence is qualitative. It remains within the accepted warning range with no post-fix severe stall, crash, OOM, blank canvas or slowdown.
 
-No automatic semantic model was admitted. No M01 schema or Main global project status was modified.
+No automatic semantic model, cloud provider, generative edit, M01 change, Main/Live/AI Visual mutation, rebase or merge occurred. Integration readiness means only that a separate design task may be authored; raw Spike merge is not authorized.
 
-## Next candidate
+Evidence: `spikes/local-fine-tune-runtime/evidence/manual-device/ft-p2-oppo-k11.md`.
 
-After real-device closure only: `XFX_LOCAL_FINE_TUNE_INTEGRATION_READINESS_AND_ADVANCED_POLISH_01`. Do not start automatically.
+Next recommended task: `XFX_LOCAL_FINE_TUNE_INTEGRATION_READINESS_AND_ADVANCED_POLISH_01`. Do not start automatically.

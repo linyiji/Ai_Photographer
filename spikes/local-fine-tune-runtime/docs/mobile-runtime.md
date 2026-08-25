@@ -6,4 +6,4 @@ The development-only device panel reports user agent, source/preview dimensions,
 
 Adaptive preview is deterministic: 512px long edge for viewport ≤520px or ≤4GB reported memory, 640px default, 768px for wide/high-memory desktop, never above source size. Final export always reads immutable full-resolution Source.
 
-SOFTNESS semantics are unchanged; its separable blur buffer is cached by immutable Source identity. Canvas2D remains the only admitted/reference backend. Worker, OffscreenCanvas and WebGL2 were not justified by post-optimization proxy evidence.
+SOFTNESS semantics are unchanged; its separable blur buffer is cached by immutable Source identity. Reproduced OPPO 12MP main-thread freeze justified a dedicated final-export Worker with OffscreenCanvas JPEG encoding. Adjustment values are precompiled by scope/region so weights are not redundantly recomputed per parameter. Canvas2D/ImageData remains the admitted deterministic reference; WebGL2 was not required. Worker failure has a Canvas2D main-thread fallback.

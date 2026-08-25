@@ -1,21 +1,16 @@
 # FT-P2 optimization decision
 
-Pre-optimization 640×360 desktop preview:
+Desktop proxy optimization first established latest-state scheduling, source invalidation, 512 px phone preview, immutable SOFTNESS caching and pre-clamped geometry. It did not justify a new backend before device evidence.
 
-- ALL: 33, p50 90.1ms, p95 148.3ms, max 272.5ms
-- SEMANTIC: 30, p50 44.7ms, p95 56.0ms, max 110.6ms
-- LOCAL: 32, p50 85.8ms, p95 140.3ms, max 194.5ms
-- COMBINED + SOFTNESS: 34, p50 216.9ms, p95 288.3ms, max 457.0ms
+The OPPO K11 then reproduced two failures: COMBINED p95 212.3 ms and 12MP Combined render/encode 11489.1/380.3 ms with a frozen UI. Root cause was repeated scope/parameter weight evaluation per pixel plus synchronous fixture, render and JPEG work on the main thread.
 
-SOFTNESS recomputed invariant blur and LOCAL repeatedly clamped invariant geometry. Fixes cache blur by immutable Source, pre-clamp geometry per render, and select 512px preview for phone-width/low-memory environments.
+The bounded fix:
 
-Post-optimization 390×844 Chromium viewport, 512×288 preview (desktop proxy, not phone evidence):
+1. compiles adjustments by ALL/PERSON/BACKGROUND and local region so each semantic/local weight is evaluated once per pixel;
+2. retains the exact Canvas2D/ImageData renderer and pixel semantics;
+3. runs full-resolution fixture generation, mask preparation, rendering and JPEG encoding in a dedicated Worker using OffscreenCanvas, with deterministic Canvas2D fallback;
+4. keeps Source immutable by transferring copies, and keeps duplicate-export protection.
 
-- ALL: 35, p50 33.6ms, p95 53.3ms, max 68.8ms
-- SEMANTIC: 30, p50 11.6ms, p95 24.8ms, max 26.6ms
-- LOCAL: 32, p50 13.7ms, p95 27.8ms, max 32.0ms
-- COMBINED: 36, p50 54.6ms, p95 63.8ms, max 74.7ms
+Existing locked pixel hashes and all 131 tests remained unchanged. Device results after the fix: SEMANTIC 29.0/84.3 ms, LOCAL 26.4/79.1 ms and COMBINED 50.3/109.2 ms p50/p95; 12MP Local 2485.4 ms; 12MP Combined 4172.9 ms with a scrollable UI.
 
-Canvas2D remains reference/only backend. Worker/WebGL2/dirty-region rewrites were not justified. Scheduler tests prove final-state-wins and cross-source invalidation.
-
-Desktop Chromium full-resolution evidence: 4000×3000 LOCAL render/encode 877.3/277.2ms; 4000×3000 COMBINED with semantic masks and SOFTNESS 5976.2/287.8ms. The combined case is stable and below the 8s fail threshold but exceeds the 3s candidate target, so a warning remains for device confirmation.
+WebGL2 was not required. Canvas2D remains the deterministic reference and admitted renderer; Worker/OffscreenCanvas changes execution placement, not image semantics.
