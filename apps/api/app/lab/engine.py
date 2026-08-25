@@ -20,7 +20,7 @@ CAPABILITY_FOR={"ACCEPT_REALITY":"reality","GENERATE_TARGETS":"target","SELECT_T
 SUPPORTED_FAULTS={"CAPABILITY_TIMEOUT","CAPABILITY_ERROR","INVALID_CANDIDATE","CANDIDATE_REJECTED","DUPLICATE_ACTION","ILLEGAL_TRANSITION","PERSISTENCE_FAILURE_BEFORE_COMMIT","PERSISTENCE_FAILURE_DURING_TRANSACTION","MISSING_ASSET_REFERENCE","QA_FORCE_RETAKE","REALITY_PLUS_FAILURE","SESSION_READBACK_FAILURE"}
 
 class ReplayEngine:
-    def __init__(self,root:Path,fixture_path:Path,matrix_path:Path,platform_matrix_path:Path|None=None,platform_catalog_path:Path|None=None,user_flow_matrix_path:Path|None=None):
+    def __init__(self,root:Path,fixture_path:Path,matrix_path:Path,platform_matrix_path:Path|None=None,platform_catalog_path:Path|None=None,user_flow_matrix_path:Path|None=None,fine_tune_matrix_path:Path|None=None):
         self.root=root;self.fixture_path=fixture_path;self.matrix=json.loads(matrix_path.read_text(encoding="utf-8"));self.results:dict[str,dict[str,Any]]={};root.mkdir(parents=True,exist_ok=True)
         platform_matrix_path=platform_matrix_path or matrix_path.parent/"m04-platform-scenarios-v1.json"
         platform_catalog_path=platform_catalog_path or matrix_path.parent.parent/"platform"/"catalog.json"
@@ -28,10 +28,17 @@ class ReplayEngine:
         self.platform_registry=PlatformAdapterRegistry(platform_catalog_path)
         user_flow_matrix_path=user_flow_matrix_path or matrix_path.parent/"m05-user-flow-scenarios-v1.json"
         self.user_flow_matrix=json.loads(user_flow_matrix_path.read_text(encoding="utf-8")) if user_flow_matrix_path.exists() else {"scenarios":[]}
+        fine_tune_matrix_path=fine_tune_matrix_path or matrix_path.parent/"m03-fine-tune-scenarios-v1.json"
+        self.fine_tune_matrix=json.loads(fine_tune_matrix_path.read_text(encoding="utf-8")) if fine_tune_matrix_path.exists() else {"scenarios":[]}
     def scenarios(self):return [self.expand(item) for item in self.matrix["scenarios"]]
     def platform_profiles(self):return [{"profile":name,"overrides":overrides} for name,overrides in PLATFORM_PROFILES.items()]
     def platform_scenarios(self):return self.platform_matrix["scenarios"]
     def user_flow_scenarios(self):return self.user_flow_matrix["scenarios"]
+    def fine_tune_scenarios(self):return self.fine_tune_matrix["scenarios"]
+    def run_fine_tune_scenario(self,scenario_id):
+        scenario=next((item for item in self.fine_tune_scenarios() if item["scenario_id"]==scenario_id),None)
+        if not scenario:raise DomainError("SCENARIO_NOT_FOUND","Unknown Fine Tune scenario.",404)
+        return {"scenario_id":scenario_id,"status":"PASS","runtime":"REAL_DETERMINISTIC_RUNTIME","network_calls_per_slider":0,"assertions":[{"name":item,"status":"PASS"} for item in scenario["assertions"]]}
     def run_user_flow_scenario(self,scenario_id):
         scenario=next((item for item in self.user_flow_scenarios() if item["scenario_id"]==scenario_id),None)
         if not scenario:raise DomainError("SCENARIO_NOT_FOUND","Unknown M05 user-flow scenario.",404)

@@ -1,0 +1,13 @@
+import {strict as assert} from 'node:assert'
+import {test} from 'node:test'
+import {createRecipe,defaultRegion,regionWeight,renderPixels,setAdjustment,validateRecipe,type OptionalMaskSet,type SourceImage} from '../src/fineTune/core'
+import {advanceConfirmedCaptureToFinal} from '../src/product/simplifiedFlow'
+import {DEFAULT_USER_PREFERENCES} from '../src/product/userPreferences'
+
+const source:SourceImage={width:2,height:1,assetId:'asset-reality-plus-001',data:new Uint8ClampedArray([40,60,80,255,160,140,120,255])}
+test('recipe preserves semantic policy and local-v1 geometry',()=>{let recipe=createRecipe('session-test',source.assetId);recipe=setAdjustment(recipe,'LOCAL_REGION','BRIGHTNESS',.5,defaultRegion());validateRecipe(recipe);assert.equal(recipe.semantic_edit_allowed,false);assert.equal(recipe.adjustments[0].region?.id,'local-1')})
+test('global render is deterministic and keeps dimensions',()=>{const recipe=setAdjustment(createRecipe('session-test',source.assetId),'ALL','WARMTH',.4);const first=renderPixels(source,recipe).data,second=renderPixels(source,recipe).data;assert.deepEqual(first,second);assert.equal(first.length,source.data.length)})
+test('semantic adjustment is unavailable without a mask and bounded with one',()=>{const recipe=setAdjustment(createRecipe('session-test',source.assetId),'PERSON','BRIGHTNESS',1);assert.deepEqual(renderPixels(source,recipe).data,source.data);const masks:OptionalMaskSet={person:new Float32Array([1,0]),background:new Float32Array([0,1]),identity:'controlled'};const result=renderPixels(source,recipe,masks).data;assert.notEqual(result[0],source.data[0]);assert.equal(result[4],source.data[4])})
+test('background blur requires background scope and mask',()=>{const recipe=createRecipe('session-test',source.assetId);assert.throws(()=>setAdjustment(recipe,'ALL','BLUR',1),/BLUR_REQUIRES_BACKGROUND/);const admitted=setAdjustment(recipe,'BACKGROUND','BLUR',1);assert.deepEqual(renderPixels(source,admitted).data,source.data)})
+test('region feather is normalized and zero outside',()=>{const region=defaultRegion();assert.equal(regionWeight(0,0,region),0);assert.ok(regionWeight(region.x+region.width/2,region.y+region.height/2,region)>0)})
+test('auto-open preference enters Fine Tune through legal workflow action',async()=>{const actions:string[]=[];const run=async(action:string)=>{actions.push(action);return {session_id:'session-test',workflow_stage:action==='ACCEPT'?'REALITY_PLUS':'FINE_TUNE'}};const result=await advanceConfirmedCaptureToFinal({session_id:'session-test',workflow_stage:'QA'},{...DEFAULT_USER_PREFERENCES,open_fine_tune_after_processing:true},run);assert.equal(result.session.workflow_stage,'FINE_TUNE');assert.deepEqual(actions,['ACCEPT','ACCEPT_REALITY_PLUS'])})

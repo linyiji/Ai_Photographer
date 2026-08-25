@@ -16,6 +16,10 @@ def create_lab_router(engine:ReplayEngine,ai_lab=None):
     def user_flow_scenarios():return engine.user_flow_scenarios()
     @router.post("/user-flow-scenarios/{scenario_id}/run")
     def run_user_flow_scenario(scenario_id:str):return engine.run_user_flow_scenario(scenario_id)
+    @router.get("/fine-tune-scenarios")
+    def fine_tune_scenarios():return engine.fine_tune_scenarios()
+    @router.post("/fine-tune-scenarios/{scenario_id}/run")
+    def run_fine_tune_scenario(scenario_id:str):return engine.run_fine_tune_scenario(scenario_id)
     if ai_lab is not None:
         @router.get("/ai-capability-modes")
         def ai_capability_modes():return ai_lab.descriptors()
