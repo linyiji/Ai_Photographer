@@ -1,7 +1,8 @@
 import {Button,Text,View} from '@tarojs/components'
 import Taro,{useLoad} from '@tarojs/taro'
 import {useMemo,useState} from 'react'
-import {api,Session} from '../../api/client'
+import {api,Session,UploadedAsset} from '../../api/client'
+import {platformRegistry} from '../../platform/runtime'
 import {sessionStorage} from '../../platform/sessionStorage'
 import './index.css'
 
@@ -20,11 +21,22 @@ const labels:Record<string,{id:string;eyebrow:string;title:string;copy:string}>=
 }
 
 export default function Index(){
- const [session,setSession]=useState<Session|null>(null);const [busy,setBusy]=useState(false);const [error,setError]=useState('');const [targetFirst,setTargetFirst]=useState(false)
+ const [session,setSession]=useState<Session|null>(null);const [busy,setBusy]=useState(false);const [error,setError]=useState('');const [targetFirst,setTargetFirst]=useState(false);const [uploaded,setUploaded]=useState<UploadedAsset|null>(null);const [platformStatus,setPlatformStatus]=useState('')
  const restore=async()=>{const id=await sessionStorage.read();if(id)setSession(await api.get(id))}
  useLoad(()=>{restore().catch(()=>sessionStorage.clear())})
  const run=async(action:string,payload:Record<string,any>={})=>{if(!session)return;setBusy(true);setError('');try{setSession(await api.action(session.session_id,action,payload))}catch(e){setError(e instanceof Error?e.message:'请求失败')}finally{setBusy(false)}}
  const start=async()=>{setBusy(true);setError('');try{const value=await api.create();await sessionStorage.write(value.session_id);setSession(value)}catch(e){setError(e instanceof Error?e.message:'无法开始')}finally{setBusy(false)}}
+ const captureReal=async()=>{
+  if(!session)return
+  setBusy(true);setError('');setPlatformStatus('正在通过受控平台边界选择并上传图片…')
+  try{
+   const network=await platformRegistry.networkStatus();if(!network.ok)throw new Error(`${network.code} · ${network.message||'网络不可用'}`)
+   const result=await platformRegistry.captureAndUpload();if(!result.ok||!result.value)throw new Error(`${result.code} · ${result.message||'图片未被接受'}`)
+   setUploaded(result.value);setSession(await api.action(session.session_id,'CREATE_CAPTURE',{uploaded_asset_id:result.value.asset_id}));setPlatformStatus(`REAL · ${result.value.mime_type} · ${result.value.size_bytes} bytes · SHA256 ${result.value.sha256.slice(0,12)}…`);await platformRegistry.haptic('CAPTURE')
+  }catch(e){setError(e instanceof Error?e.message:'真实图片接入失败');setPlatformStatus('')}finally{setBusy(false)}
+ }
+ const finalDownload=async()=>{if(!session)return;const result=await platformRegistry.download(api.finalDownloadUrl(session.session_id));setPlatformStatus(result.ok?'真实下载已触发 · Album 仍标记 PARTIAL':`${result.code} · ${result.message||'下载失败'}`)}
+ const finalShare=async()=>{if(!session)return;const result=await platformRegistry.share(api.finalDownloadUrl(session.session_id));setPlatformStatus(result.ok?'ShareAdapter 已完成':'ShareAdapter 受控结果 · '+result.code)}
  const stage=session?.workflow_stage||'ENTRY';const meta=labels[stage];const targetCandidates=session?.candidates?.filter(x=>x.kind==='TARGET')||[]
  const actions=useMemo(()=>{
   if(!session)return [{label:'Reality First · 开始',fn:start},{label:'Target First · 先描述想要的画面',fn:()=>setTargetFirst(true)}]
@@ -35,11 +47,11 @@ export default function Index(){
   if(stage==='TARGET')return targetCandidates.map(x=>({label:`选择 · ${x.payload.title}`,fn:()=>run('SELECT_TARGET',{candidate_id:x.candidate_id})}))
   if(stage==='SHOT')return [{label:'接受 Shot Blueprint',fn:()=>run('ACCEPT_SHOT_DIRECTION')}]
   if(stage==='LIVE')return [{label:'我已就位 · 进入拍摄窗口',fn:()=>run('ENTER_CAPTURE_WINDOW')}]
-  if(stage==='CAPTURE')return [{label:'拍摄',fn:()=>run('CREATE_CAPTURE')}]
+  if(stage==='CAPTURE')return [{label:'选择真实照片并拍摄',fn:captureReal}]
   if(stage==='QA')return [{label:'接受照片',fn:()=>run('ACCEPT')},{label:'局部重拍',fn:()=>run('RETAKE_MICRO')}]
   if(stage==='REALITY_PLUS')return [{label:'接受轻度风暴纵深',fn:()=>run('ACCEPT_REALITY_PLUS')},{label:'跳过细调并完成',fn:()=>run('SKIP_FINE_TUNE')}]
   if(stage==='FINE_TUNE')return [{label:'保存配方并完成',fn:()=>run('SAVE_ADJUSTMENT_RECIPE',{contrast:14})}]
-  if(stage==='FINAL')return [{label:'开始新的拍摄',fn:start}]
+  if(stage==='FINAL')return [{label:'下载最终照片',fn:finalDownload},{label:'分享最终照片',fn:finalShare},{label:'开始新的拍摄',fn:start}]
   return []
  },[session,stage,targetCandidates.length])
  if(targetFirst&&!session)return <View className='shell'><Text className='marker'>P02 · TARGET FIRST</Text><Text className='hero'>先说出你想要的画面</Text><Text className='copy'>“风暴到来前，一个人坚定地站在河岸。” 此意图将在会话建立后进入候选生成，不越过 Reality Fact Lock。</Text><Button className='primary' onClick={()=>{setTargetFirst(false);start()}}>保存意图并建立会话</Button><Button className='secondary' onClick={()=>setTargetFirst(false)}>返回</Button></View>
@@ -48,7 +60,8 @@ export default function Index(){
   <View className='visual'><Text className='marker'>{meta.id} · {meta.eyebrow}</Text><Text className='hero'>{meta.title}</Text><Text className='copy'>{meta.copy}</Text></View>
   {session&&<View className='evidence'><Text className='evidenceTitle'>BACKEND AUTHORITY</Text><Text>Stage · {stage}</Text><Text>Assets · {session.assets?.length||0}</Text><Text>Events · {session.events?.length||0}</Text></View>}
   {error&&<View className='error'><Text>{error}</Text><Text className='retry' onClick={()=>session&&api.get(session.session_id).then(setSession)}>重新读取会话</Text></View>}
+  {platformStatus&&<View className='platformEvidence'><Text className='evidenceTitle'>PLATFORM ADAPTER</Text><Text>{platformStatus}</Text></View>}
   <View className='actions'>{actions.map((item,index)=><Button key={`${item.label}-${index}`} disabled={busy} className={index===0?'primary':'secondary'} onClick={item.fn}>{busy&&index===0?'处理中…':item.label}</Button>)}</View>
-  {stage==='FINAL'&&<View className='final'><Text>FINAL · repo-asset://scenario-fixtures/s01/final-001.jpg</Text><Text>原始 Capture、Reality+ 与 Adjustment Recipe lineage 可回读。</Text></View>}
+  {stage==='FINAL'&&<View className='final'><Text>FINAL · {session?.state?.final?.source_upload_asset_id?'local-asset://'+session.state.final.source_upload_asset_id:'repo-asset://scenario-fixtures/s01/final-001.jpg'}</Text><Text>Uploaded Binary → CaptureAsset → RealityPlusAsset → MyFinalPhoto lineage 可回读。</Text><Text>AlbumAdapter · PARTIAL（浏览器下载，不宣称已保存到系统相册）</Text><Text>ShareAdapter · 运行时检测，不伪造成功</Text></View>}
  </View>
 }

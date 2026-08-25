@@ -57,15 +57,29 @@ class SessionService:
         elif action=="ENTER_CAPTURE_WINDOW":
             steps=self.capabilities["live"].execute("advance",state);state["live"]={"step":len(steps),"instruction":steps[-1],"ready":True}
         elif action=="CREATE_CAPTURE":
-            capture={"asset_id":"asset-capture-001",**self.capabilities["capture"].execute("capture",state)};state["capture"]=capture;self._asset(c,sid,"asset-capture-001","CAPTURE",capture["storage_ref"],{"scenario_id":self.fixture["scenario_id"]});self._candidate(c,sid,"capture-candidate-001","CAPTURE","PROPOSED",capture)
+            uploaded_asset_id=payload.get("uploaded_asset_id")
+            if uploaded_asset_id:
+                stored=c.execute("SELECT asset_id,mime_type,size_bytes,sha256,source,storage_ref FROM stored_assets WHERE asset_id=?",(uploaded_asset_id,)).fetchone()
+                if not stored:raise DomainError("INVALID_ASSET","Uploaded asset does not exist or is not accepted.",422)
+                capture={"asset_id":"asset-capture-001","capture_mode":"STATIC_MANUAL","storage_ref":stored["storage_ref"],"uploaded_asset_id":stored["asset_id"],"mime_type":stored["mime_type"],"size_bytes":stored["size_bytes"],"checksum":{"algorithm":"SHA256","value":stored["sha256"]},"source":stored["source"]}
+                lineage={"source_asset_id":stored["asset_id"],"source":"AUTHORIZED_MULTIPART_UPLOAD"}
+            else:
+                capture={"asset_id":"asset-capture-001",**self.capabilities["capture"].execute("capture",state)}
+                lineage={"scenario_id":self.fixture["scenario_id"]}
+            state["capture"]=capture;self._asset(c,sid,"asset-capture-001","CAPTURE",capture["storage_ref"],lineage);self._candidate(c,sid,"capture-candidate-001","CAPTURE","PROPOSED",capture)
         elif action in {"ACCEPT","ACCEPT_WITH_REPAIR"}:state["evaluation"]={**self.capabilities["qa"].execute("evaluate",state),"decision":action};state["capture_decision"]=action;c.execute("UPDATE candidates SET disposition='ACCEPTED' WHERE session_id=? AND kind='CAPTURE'",(sid,))
         elif action.startswith("RETAKE_") or action=="REPLAN":state["retake_plan"]={"decision":action,"preserved":self._preserved(action)}
         elif action=="ACCEPT_REALITY_PLUS":
             item={"asset_id":"asset-reality-plus-001",**self.capabilities["reality_plus"].execute("enhance",state)};state["reality_plus"]=item;self._asset(c,sid,item["asset_id"],"REALITY_PLUS",item["storage_ref"],{"source_asset_id":"asset-capture-001"})
-        elif action=="SKIP_FINE_TUNE":state["final"]=self.fixture["final"]
-        elif action=="SAVE_ADJUSTMENT_RECIPE":state["adjustment_recipe"]={**self.fixture["recipe"],**payload};state["final"]=self.fixture["final"];self._asset(c,sid,"asset-final-001","FINAL",self.fixture["final"]["storage_ref"],{"source_asset_id":"asset-reality-plus-001"})
+        elif action=="SKIP_FINE_TUNE":state["final"]=self._final_projection(state)
+        elif action=="SAVE_ADJUSTMENT_RECIPE":state["adjustment_recipe"]={**self.fixture["recipe"],**payload};state["final"]=self._final_projection(state);self._asset(c,sid,"asset-final-001","FINAL",self.fixture["final"]["storage_ref"],{"source_asset_id":"asset-reality-plus-001"})
     @staticmethod
     def _preserved(action):return {"RETAKE_MICRO":["REALITY","TARGET","SHOT","CAMERA_POSITION","SUBJECT_POSITION","FRAMING","MAJOR_POSE"],"RETAKE_POSE":["REALITY","TARGET","SHOT","CAMERA_POSITION","SUBJECT_POSITION","FRAMING"],"RETAKE_FRAMING":["REALITY","TARGET","SHOT","SUBJECT_POSITION"],"RETAKE_POSITION":["REALITY","TARGET","SHOT","CAMERA_POSITION"],"REPLAN":["REALITY","TARGET"]}[action]
+    def _final_projection(self,state):
+        final=dict(self.fixture["final"])
+        uploaded_asset_id=state.get("capture",{}).get("uploaded_asset_id")
+        if uploaded_asset_id:final["source_upload_asset_id"]=uploaded_asset_id
+        return final
     def _candidate(self,c,sid,cid,kind,disposition,payload):c.execute("INSERT OR REPLACE INTO candidates VALUES(?,?,?,?,?)",(cid,sid,kind,disposition,json.dumps(payload)))
     def _asset(self,c,sid,aid,kind,ref,lineage):c.execute("INSERT OR REPLACE INTO assets VALUES(?,?,?,?,?,?)",(aid,sid,kind,"AVAILABLE",ref,json.dumps(lineage)))
     def _event(self,c,sid,event_type,payload):c.execute("INSERT OR IGNORE INTO events VALUES(?,?,?,?,?)",(str(uuid5(NAMESPACE_URL,f"{sid}:{event_type}:{json.dumps(payload,sort_keys=True)}")),sid,event_type,json.dumps(payload),self.now()))
