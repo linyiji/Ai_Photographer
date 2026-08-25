@@ -1,9 +1,10 @@
 import { ACTION_COPY, CLOSED_LOOP_CONFIG, DEFAULT_TARGET, ISSUE_WEIGHTS } from './config.js';
 import type { StructuredPerceptionState } from '../perception/types.js';
-import type { ActionEpisode, ClosedLoopConfig, ClosedLoopMetrics, ClosedLoopSnapshot, DeltaState, DimensionDelta, DirectionalAction, InstructionEvent, IssueCandidate, IssueKind, LocalAction, NoEffectSubtype, ReadySource, RuntimeState, TargetState, TerminalOutcome, TrialState, VerificationResult } from './types.js';
+import type { ActionEpisode, CameraFacing, CanonicalAxisSign, ClosedLoopConfig, ClosedLoopMetrics, ClosedLoopSnapshot, ControlEpoch, ControlObservation, ControlUpdateContext, DeltaState, DimensionDelta, DirectionalAction, InstructionEvent, IssueCandidate, IssueKind, LocalAction, NoEffectSubtype, PreviewMirrorState, ReadySource, RuntimeState, TargetState, TerminalOutcome, TrialState, VerificationResult } from './types.js';
 
 const finite = (v: number | null | undefined): v is number => typeof v === 'number' && Number.isFinite(v);
 const median = (values: number[]): number => { const s = [...values].sort((a, b) => a - b); const m = Math.floor(s.length / 2); return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+const percentile = (values: number[], q: number): number => { if (!values.length) return 0; const sorted = [...values].sort((a,b)=>a-b); return sorted[Math.min(sorted.length-1,Math.max(0,Math.ceil(sorted.length*q)-1))]; };
 const dimension = (target: number, current: number | null | undefined, tolerance: number, exempt = false): DimensionDelta => {
   if (exempt) return { delta: null, normalized_error: null, status: 'EXEMPT' };
   if (!finite(current)) return { delta: null, normalized_error: null, status: 'MISSING' };
@@ -23,6 +24,12 @@ export function actionForIssue(kind: IssueKind, delta: DeltaState): LocalAction 
   return null;
 }
 
+export function canonicalDirectionTransform(action: DirectionalAction, _cameraFacing: CameraFacing, mirror: PreviewMirrorState): { canonical_axis_sign: CanonicalAxisSign; display_axis_sign: CanonicalAxisSign } {
+  const canonical: CanonicalAxisSign = action === 'MOVE_LEFT' || action === 'MOVE_CLOSER' ? 1 : -1;
+  const display = (action === 'MOVE_LEFT' || action === 'MOVE_RIGHT') && mirror === 'MIRRORED' ? -canonical : canonical;
+  return { canonical_axis_sign: canonical, display_axis_sign: display as CanonicalAxisSign };
+}
+
 export function rankIssues(state: StructuredPerceptionState, delta: DeltaState): IssueCandidate[] {
   if (!state.subject.present) return [{ kind: 'SUBJECT_MISSING', score: ISSUE_WEIGHTS.SUBJECT_MISSING, normalized_error: 1, action: null, action_mapping: 'NONE' }];
   const result: IssueCandidate[] = [];
@@ -31,36 +38,46 @@ export function rankIssues(state: StructuredPerceptionState, delta: DeltaState):
   return result.sort((a, b) => b.score - a.score || a.kind.localeCompare(b.kind));
 }
 
-const initialMetrics = (): ClosedLoopMetrics => ({ instruction_count: 0, ordinary_instruction_count: 0, hold_count: 0, stop_cue_count: 0, episode_count: 0, terminal_episode_count: 0, successful_corrections: 0, improving_count: 0, no_effect_count: 0, wrong_direction_count: 0, oscillation_count: 0, local_decisions: 0, time_to_target_ms: null, correction_success_rate: null, action_compliance_count: 0, action_compliance_rate: null, axis_completion_count: 0, axis_completion_rate: null, recovery_count: 0, luna_calls: 0, backend_per_frame_calls: 0, provider_calls: 0, raw_video_upload: 0 });
+const initialMetrics = (): ClosedLoopMetrics => ({ instruction_count: 0, ordinary_instruction_count: 0, hold_count: 0, stop_cue_count: 0, episode_count: 0, terminal_episode_count: 0, successful_corrections: 0, improving_count: 0, no_effect_count: 0, wrong_direction_count: 0, oscillation_count: 0, local_decisions: 0, time_to_target_ms: null, correction_success_rate: null, action_compliance_count: 0, action_compliance_rate: null, axis_completion_count: 0, axis_completion_rate: null, recovery_count: 0, stale_suppressed_count: 0, post_terminal_suppressed_count: 0, control_observation_age_ms_p50: 0, control_observation_age_ms_p95: 0, control_observation_age_ms_max: 0, luna_calls: 0, backend_per_frame_calls: 0, provider_calls: 0, raw_video_upload: 0 });
 interface Observation { timestamp: number; signed: number; error: number }
 
 export class LocalClosedLoopEngine {
   private target: TargetState; private runtimeState: RuntimeState = 'IDLE'; private trialState: TrialState = 'DISARMED';
+  private trialSequence = 0;
   private trialArmedAt: number | null = null; private firstInstructionAt: number | null = null; private readyAt: number | null = null;
   private candidateKind: IssueKind | null = null; private candidateIssue: IssueCandidate | null = null; private candidateSince = 0; private activeIssueSince = 0;
   private episode: ActionEpisode | null = null; private lastTerminalEpisode: ActionEpisode | null = null; private episodeSequence = 0; private instructionSequence = 0;
+  private epochSequence = 0; private lastTerminalStateVersion: number | null = null; private lastSuppressedStateVersion: number | null = null; private previousReacquisitionCount = 0;
+  private controlObservation: ControlObservation = { state_version: 0, measurement_timestamp: 0, measurement_age_ms: 0, guidance_decision_age_ms: 0, fresh: true, suppression_reason: 'NONE' };
+  private controlAgeHistory: number[] = [];
   private lastOrdinaryInstructionAt: number | null = null; private readyStableSince: number | null = null; private passiveConfirmationSince: number | null = null; private readySource: ReadySource = null; private verification: VerificationResult = 'NONE';
   private recoveryStableSince: number | null = null;
   private settled: Observation[] = []; private localFailureStreak = 0; private lastIssueSwitchAt = 0; private lastIssuedAction: DirectionalAction | null = null; private sameActionRetries = 0;
   private metrics = initialMetrics();
   constructor(target: TargetState = DEFAULT_TARGET, private readonly config: ClosedLoopConfig = CLOSED_LOOP_CONFIG) { this.target = target; }
   setTarget(target: TargetState): void { this.target = target; this.reset(); }
-  armTrial(now: number): void { this.reset(); this.trialState = 'ARMED'; this.trialArmedAt = now; }
+  armTrial(now: number): void {
+    this.runtimeState = 'ANALYZING'; this.trialState = 'ARMED'; this.trialSequence += 1; this.trialArmedAt = now;
+    this.firstInstructionAt = this.readyAt = null; this.candidateKind = null; this.candidateIssue = null;
+    this.candidateSince = this.activeIssueSince = now; this.episode = this.lastTerminalEpisode = null;
+    this.lastOrdinaryInstructionAt = this.readyStableSince = this.passiveConfirmationSince = this.recoveryStableSince = null;
+    this.readySource = null; this.verification = 'NONE'; this.settled = []; this.localFailureStreak = 0; this.lastIssuedAction = null; this.sameActionRetries = 0; this.lastTerminalStateVersion = this.lastSuppressedStateVersion = null;
+  }
   resumeAfterLocalRecovery(now: number): boolean {
     if (this.runtimeState !== 'LOCAL_RECOVERY_REQUIRED') return false;
     this.localFailureStreak = 0; this.runtimeState = 'ANALYZING'; this.candidateKind = null; this.candidateIssue = null; this.recoveryStableSince = null;
     this.candidateSince = this.activeIssueSince = now; this.readyStableSince = this.passiveConfirmationSince = null; this.verification = 'NONE';
     return true;
   }
-  reset(): void { this.runtimeState = 'IDLE'; this.trialState = 'DISARMED'; this.trialArmedAt = this.firstInstructionAt = this.readyAt = null; this.candidateKind = null; this.candidateIssue = null; this.candidateSince = this.activeIssueSince = 0; this.episode = this.lastTerminalEpisode = null; this.episodeSequence = this.instructionSequence = 0; this.lastOrdinaryInstructionAt = this.readyStableSince = this.passiveConfirmationSince = this.recoveryStableSince = null; this.readySource = null; this.verification = 'NONE'; this.settled = []; this.localFailureStreak = this.lastIssueSwitchAt = this.sameActionRetries = 0; this.lastIssuedAction = null; this.metrics = initialMetrics(); }
+  reset(): void { this.runtimeState = 'IDLE'; this.trialState = 'DISARMED'; this.trialSequence = 0; this.trialArmedAt = this.firstInstructionAt = this.readyAt = null; this.candidateKind = null; this.candidateIssue = null; this.candidateSince = this.activeIssueSince = 0; this.episode = this.lastTerminalEpisode = null; this.episodeSequence = this.instructionSequence = this.epochSequence = 0; this.lastTerminalStateVersion = this.lastSuppressedStateVersion = null; this.previousReacquisitionCount = 0; this.controlAgeHistory = []; this.lastOrdinaryInstructionAt = this.readyStableSince = this.passiveConfirmationSince = this.recoveryStableSince = null; this.readySource = null; this.verification = 'NONE'; this.settled = []; this.localFailureStreak = this.lastIssueSwitchAt = this.sameActionRetries = 0; this.lastIssuedAction = null; this.metrics = initialMetrics(); }
 
-  update(state: StructuredPerceptionState): ClosedLoopSnapshot {
-    const now = state.timestamp_ms; const delta = computeDelta(state, this.target); const candidates = rankIssues(state, delta); const best = candidates[0] ?? null; let instruction: InstructionEvent | null = null; this.metrics.local_decisions += 1;
+  update(state: StructuredPerceptionState, context: ControlUpdateContext = {}): ClosedLoopSnapshot {
+    const now = state.timestamp_ms; const decisionNow = context.decision_timestamp_ms ?? now; this.controlObservation = this.observeControl(state, decisionNow); const delta = computeDelta(state, this.target); const candidates = rankIssues(state, delta); const best = candidates[0] ?? null; let instruction: InstructionEvent | null = null; this.metrics.local_decisions += 1;
     if (!state.subject.present) { this.runtimeState = 'SEARCHING'; this.readyStableSince = this.passiveConfirmationSince = null; this.settled = []; this.trackCandidate(best, now); return this.snapshot(now, state, delta, best, instruction); }
     // READY closes the armed trial. Further movement is observation-only until an explicit re-ARM,
     // so post-ready user motion cannot contaminate the accepted episode denominator.
-    if (this.trialState === 'READY') { this.runtimeState = 'READY'; return this.snapshot(now, state, delta, null, instruction); }
-    if (this.episode) { this.observeEpisode(now, state, delta); if (this.episode && !this.episode.terminal_outcome) instruction = this.maybeIssueStop(now, state, delta); if (this.episode?.stop_cue_issued_at !== null && !state.subject.stable && !this.episode.terminal_outcome) this.runtimeState = 'BRAKING'; if (this.episode?.terminal_outcome) this.finishEpisode(this.episode.terminal_outcome, now); if (this.episode) return this.snapshot(now, state, delta, this.issueForEpisode(candidates), instruction); }
+    if (this.trialState === 'READY_LATCHED') { this.runtimeState = 'READY'; return this.snapshot(now, state, delta, null, instruction); }
+    if (this.episode) { this.observeEpisode(now, state, delta); if (this.episode && !this.episode.terminal_outcome) instruction = this.maybeIssueStop(now, state, delta); if (this.episode?.stop_cue_issued_at !== null && !state.subject.stable && !this.episode.terminal_outcome) this.runtimeState = 'BRAKING'; if (this.episode?.terminal_outcome) { const outcome = this.episode.terminal_outcome; this.finishEpisode(outcome, now, state.sequence); const geometrySatisfied = delta.x.status === 'SATISFIED' && delta.scale.status === 'SATISFIED' && (delta.y.status === 'SATISFIED' || delta.y.status === 'EXEMPT'); if (outcome === 'SUCCESS' && geometrySatisfied && state.subject.stable) this.readyStableSince = now; if (this.runtimeState === 'LOCAL_RECOVERY_REQUIRED' && state.subject.stable) this.recoveryStableSince = now; return this.snapshot(now, state, delta, null, instruction); } if (this.episode) return this.snapshot(now, state, delta, this.issueForEpisode(candidates), instruction); }
     if (this.runtimeState === 'LOCAL_RECOVERY_REQUIRED') {
       if (state.subject.stable) this.recoveryStableSince ??= now; else this.recoveryStableSince = null;
       const recoveryStableMs = this.recoveryStableSince === null ? 0 : now - this.recoveryStableSince;
@@ -74,7 +91,7 @@ export class LocalClosedLoopEngine {
       if (state.subject.stable && !successfulCause) this.passiveConfirmationSince ??= now;
       const duration = this.readyStableSince === null ? 0 : now - this.readyStableSince;
       const required = successfulCause ? this.target.ready_stable_ms : this.config.passive_confirmation_ms;
-      if (duration >= required) { if (this.runtimeState !== 'READY') { this.runtimeState = 'READY'; this.readySource = successfulCause ? 'EPISODE_SUCCESS' : 'PASSIVE_CONFIRMATION'; this.readyAt = now; if (this.trialState === 'RUNNING') { this.trialState = 'READY'; this.metrics.time_to_target_ms = this.firstInstructionAt === null ? null : now - this.firstInstructionAt; } this.instructionSequence += 1; this.metrics.hold_count += 1; instruction = this.event(now, 'HOLD', null); } }
+      if (duration >= required) instruction = this.latchReady(now, successfulCause ? 'EPISODE_SUCCESS' : 'PASSIVE_CONFIRMATION');
       else this.runtimeState = successfulCause ? 'ANALYZING' : 'SATISFIED_PENDING_CONFIRMATION'; return this.snapshot(now, state, delta, null, instruction);
     }
     this.readyStableSince = this.passiveConfirmationSince = null; if (this.runtimeState === 'READY' || this.runtimeState === 'SATISFIED_PENDING_CONFIRMATION') this.runtimeState = 'ANALYZING';
@@ -82,9 +99,11 @@ export class LocalClosedLoopEngine {
     if (!selected || !selected.action) { this.runtimeState = 'ANALYZING'; return this.snapshot(now, state, delta, selected, instruction); }
     if (this.candidateKind !== selected.kind || now - this.candidateSince < this.config.issue_persistence_ms) { this.runtimeState = 'ANALYZING'; return this.snapshot(now, state, delta, selected, instruction); }
     if (this.lastOrdinaryInstructionAt !== null && now - this.lastOrdinaryInstructionAt < this.config.instruction_gap_ms) { this.runtimeState = 'ANALYZING'; return this.snapshot(now, state, delta, selected, instruction); }
+    if (!this.controlObservation.fresh) { this.recordSuppression(state.sequence, 'stale'); this.runtimeState = 'ANALYZING'; return this.snapshot(now, state, delta, selected, instruction); }
+    if (this.lastTerminalStateVersion !== null && state.sequence <= this.lastTerminalStateVersion) { this.recordSuppression(state.sequence, 'post-terminal'); this.runtimeState = 'ANALYZING'; return this.snapshot(now, state, delta, selected, instruction); }
     const signed = this.deltaFor(selected.kind, delta); if (!finite(signed)) return this.snapshot(now, state, delta, selected, instruction);
     const action = selected.action as DirectionalAction; this.sameActionRetries = action === this.lastIssuedAction ? this.sameActionRetries + 1 : 0; this.lastIssuedAction = action; this.episodeSequence += 1; this.instructionSequence += 1;
-    this.episode = { episode_id: this.episodeSequence, issue: selected.kind, action, issued_at: now, baseline_signed_delta: signed, baseline_abs_error: Math.abs(signed), baseline_normalized_error: selected.normalized_error, motion_detected_at: null, best_signed_delta: signed, best_abs_error: Math.abs(signed), best_normalized_error: selected.normalized_error, current_signed_delta: signed, current_normalized_error: selected.normalized_error, target_crossed: false, entered_deadband: false, settled_at: null, final_settled_error: null, terminal_outcome: null, terminal_at: null, reissue_count: this.sameActionRetries, no_effect_subtype: null, action_compliant: false, axis_completed: false, stop_cue_issued_at: null, predicted_normalized_error_at_stop: null, warning_flags: [], state: 'WAITING_FOR_MOTION' };
+    const controlEpoch = this.createControlEpoch(state, action, selected.kind, context); this.episode = { trial_id: this.trialSequence, episode_id: this.episodeSequence, issue: selected.kind, action, issued_at: now, baseline_signed_delta: signed, baseline_abs_error: Math.abs(signed), baseline_normalized_error: selected.normalized_error, motion_detected_at: null, best_signed_delta: signed, best_abs_error: Math.abs(signed), best_normalized_error: selected.normalized_error, current_signed_delta: signed, current_normalized_error: selected.normalized_error, target_crossed: false, entered_deadband: false, settled_at: null, final_settled_error: null, terminal_outcome: null, terminal_at: null, reissue_count: this.sameActionRetries, no_effect_subtype: null, action_compliant: false, axis_completed: false, stop_cue_issued_at: null, predicted_normalized_error_at_stop: null, warning_flags: [], state: 'WAITING_FOR_MOTION', control_epoch: controlEpoch };
     this.settled = []; this.verification = 'NONE'; this.runtimeState = 'INSTRUCTING'; this.lastOrdinaryInstructionAt = now; this.metrics.ordinary_instruction_count += 1; this.metrics.instruction_count = this.metrics.ordinary_instruction_count; this.metrics.episode_count += 1;
     if (this.trialState === 'ARMED') { this.trialState = 'RUNNING'; this.firstInstructionAt = now; }
     instruction = this.event(now, action, selected.kind); return this.snapshot(now, state, delta, selected, instruction);
@@ -122,7 +141,13 @@ export class LocalClosedLoopEngine {
     if (progress >= 0.2) return 'INSUFFICIENT_PROGRESS';
     return 'UNCLASSIFIED';
   }
-  private finishEpisode(outcome: TerminalOutcome, now: number): void {
+  private latchReady(now: number, source: Exclude<ReadySource, null>): InstructionEvent {
+    this.runtimeState = 'READY'; this.trialState = 'READY_LATCHED'; this.readySource = source; this.readyAt = now;
+    this.metrics.time_to_target_ms = this.firstInstructionAt === null ? null : now - this.firstInstructionAt;
+    this.instructionSequence += 1; this.metrics.hold_count += 1;
+    return this.event(now, 'HOLD', null);
+  }
+  private finishEpisode(outcome: TerminalOutcome, now: number, stateVersion: number): void {
     if (!this.episode) return; const progress = this.episode.baseline_normalized_error <= 0 ? 0 : (this.episode.baseline_normalized_error - this.episode.best_normalized_error) / this.episode.baseline_normalized_error;
     this.episode.action_compliant = progress >= 0.2 && !(outcome === 'WRONG_DIRECTION' && !this.episode.target_crossed);
     this.episode.axis_completed = outcome === 'SUCCESS'; if (outcome === 'NO_EFFECT') this.episode.no_effect_subtype = this.classifyNoEffect(this.episode);
@@ -130,7 +155,26 @@ export class LocalClosedLoopEngine {
     if (this.episode.action_compliant) this.metrics.action_compliance_count += 1; if (this.episode.axis_completed) this.metrics.axis_completion_count += 1;
     if (outcome === 'SUCCESS') { this.metrics.successful_corrections += 1; this.localFailureStreak = 0; } if (outcome === 'NO_EFFECT') { this.metrics.no_effect_count += 1; this.localFailureStreak += 1; } if (outcome === 'WRONG_DIRECTION') { this.metrics.wrong_direction_count += 1; this.localFailureStreak += 1; }
     const d = this.metrics.successful_corrections + this.metrics.no_effect_count + this.metrics.wrong_direction_count; this.metrics.correction_success_rate = d ? this.metrics.successful_corrections / d : null; this.metrics.action_compliance_rate = d ? this.metrics.action_compliance_count / d : null; this.metrics.axis_completion_rate = d ? this.metrics.axis_completion_count / d : null;
-    this.episode = null; this.settled = []; this.candidateKind = null; this.candidateIssue = null; this.candidateSince = now; this.runtimeState = 'ANALYZING'; if (this.localFailureStreak >= this.config.local_failure_limit) { this.runtimeState = 'LOCAL_RECOVERY_REQUIRED'; this.metrics.recovery_count += 1; }
+    this.lastTerminalStateVersion = stateVersion; this.episode = null; this.settled = []; this.candidateKind = null; this.candidateIssue = null; this.candidateSince = now; this.runtimeState = 'ANALYZING'; if (this.localFailureStreak >= this.config.local_failure_limit) { this.runtimeState = 'LOCAL_RECOVERY_REQUIRED'; this.metrics.recovery_count += 1; }
+  }
+  private observeControl(state: StructuredPerceptionState, decisionNow: number): ControlObservation {
+    const measurementAge = Math.max(0, state.measurement_age_ms ?? 0); const decisionAge = Math.max(0, decisionNow - state.timestamp_ms);
+    let reason: ControlObservation['suppression_reason'] = 'NONE';
+    if (!state.subject.present) reason = 'SUBJECT_MISSING';
+    else if (state.coordinate_basis !== 'SENSOR_NORMALIZED_NON_MIRRORED') reason = 'COORDINATE_BASIS';
+    else if (measurementAge > this.config.maximum_measurement_age_ms) reason = 'MEASUREMENT_STALE';
+    else if (decisionAge > this.config.maximum_guidance_decision_age_ms) reason = 'DECISION_STALE';
+    else if (state.reacquisition_count > this.previousReacquisitionCount) reason = 'REACQUISITION_BARRIER';
+    this.previousReacquisitionCount = Math.max(this.previousReacquisitionCount, state.reacquisition_count); const causalAge = measurementAge + decisionAge; this.controlAgeHistory.push(causalAge); if (this.controlAgeHistory.length > 240) this.controlAgeHistory.shift(); this.metrics.control_observation_age_ms_p50 = percentile(this.controlAgeHistory,.5); this.metrics.control_observation_age_ms_p95 = percentile(this.controlAgeHistory,.95); this.metrics.control_observation_age_ms_max = Math.max(...this.controlAgeHistory);
+    return { state_version: state.sequence, measurement_timestamp: state.timestamp_ms - measurementAge, measurement_age_ms: measurementAge, guidance_decision_age_ms: decisionAge, fresh: reason === 'NONE', suppression_reason: reason };
+  }
+  private recordSuppression(stateVersion: number, kind: 'stale' | 'post-terminal'): void {
+    if (this.lastSuppressedStateVersion === stateVersion) return; this.lastSuppressedStateVersion = stateVersion;
+    if (kind === 'stale') this.metrics.stale_suppressed_count += 1; else this.metrics.post_terminal_suppressed_count += 1;
+  }
+  private createControlEpoch(state: StructuredPerceptionState, action: DirectionalAction, issue: IssueKind, context: ControlUpdateContext): Readonly<ControlEpoch> {
+    const cameraFacing = context.camera_facing ?? 'UNKNOWN'; const previewMirror = context.preview_mirror_state ?? 'UNKNOWN'; const signs = canonicalDirectionTransform(action, cameraFacing, previewMirror); this.epochSequence += 1;
+    return Object.freeze({ epoch_id: this.epochSequence, trial_id: this.trialSequence, episode_id: this.episodeSequence, issued_at: state.timestamp_ms, action, axis: issue === 'SCALE' ? 'SCALE' : 'X', target_snapshot: Object.freeze({ id: this.target.id, center_x: this.target.center_x, height_ratio: this.target.height_ratio, tolerance_x: this.target.tolerance_x, tolerance_height: this.target.tolerance_height }), measurement_snapshot: Object.freeze({ center_x: state.subject.center_x, height_ratio: state.subject.height_ratio, velocity_x: state.subject.velocity_x, velocity_scale: state.subject.velocity_scale }), measurement_timestamp: this.controlObservation.measurement_timestamp, measurement_age_ms: this.controlObservation.measurement_age_ms, guidance_decision_age_ms: this.controlObservation.guidance_decision_age_ms, camera_facing: cameraFacing, preview_mirror_state: previewMirror, canonical_axis_sign: signs.canonical_axis_sign, display_axis_sign: signs.display_axis_sign, state_version: state.sequence });
   }
   private selectWithHysteresis(best: IssueCandidate | null, candidates: IssueCandidate[], now: number): IssueCandidate | null { const latched = this.candidateIssue; if (!best || !latched) return best; const current = candidates.find((c) => c.kind === latched.kind); if (!current) return best; if (best.kind === current.kind || best.score <= current.score * this.config.dominance_ratio) return current; if ((current.kind === 'X_POSITION' && best.kind === 'SCALE') || (current.kind === 'SCALE' && best.kind === 'X_POSITION')) { if (this.lastIssueSwitchAt > 0 && now - this.lastIssueSwitchAt <= this.config.oscillation_window_ms) this.metrics.oscillation_count += 1; this.lastIssueSwitchAt = now; } return best; }
   private trackCandidate(issue: IssueCandidate | null, now: number): void { if (issue?.kind !== this.candidateKind) { this.candidateKind = issue?.kind ?? null; this.candidateSince = now; if (issue) this.activeIssueSince = now; } this.candidateIssue = issue; }
@@ -144,6 +188,6 @@ export class LocalClosedLoopEngine {
     const geometrySatisfied = delta.x.status === 'SATISFIED' && delta.scale.status === 'SATISFIED' && (delta.y.status === 'SATISFIED' || delta.y.status === 'EXEMPT');
     const passiveElapsed = this.passiveConfirmationSince === null ? 0 : now - this.passiveConfirmationSince;
     const recoveryElapsed = this.recoveryStableSince === null ? 0 : now - this.recoveryStableSince;
-    return { timestamp_ms: now, target: this.target, current: state.subject, delta, issue, issue_age_ms: issue ? Math.max(0, now - this.activeIssueSince) : 0, active_action: this.episode?.stop_cue_issued_at !== null && this.episode?.stop_cue_issued_at !== undefined ? 'STOP_HERE' : this.episode?.action ?? (this.runtimeState === 'READY' ? 'HOLD' : null), action_age_ms: this.episode ? Math.max(0, now - this.episode.issued_at) : null, instruction, runtime_state: this.runtimeState, waiting_remaining_ms: this.episode ? Math.max(0, this.config.action_response_grace_ms - (now - this.episode.issued_at)) : 0, verification: this.verification, episode: ep ? { ...ep, warning_flags: [...ep.warning_flags] } : null, trial_state: this.trialState, trial_armed_at: this.trialArmedAt, first_instruction_at: this.firstInstructionAt, ready_at: this.readyAt, trial_elapsed_ms: this.firstInstructionAt === null ? null : (this.readyAt ?? now) - this.firstInstructionAt, stable_duration_ms: this.readyStableSince === null ? 0 : Math.max(0, now - this.readyStableSince), ready: this.runtimeState === 'READY', geometry_satisfied: geometrySatisfied, ready_source: this.readySource, passive_confirmation_remaining_ms: this.runtimeState === 'SATISFIED_PENDING_CONFIRMATION' ? Math.max(0, this.config.passive_confirmation_ms - passiveElapsed) : 0, local_recovery_remaining_ms: this.runtimeState === 'LOCAL_RECOVERY_REQUIRED' ? Math.max(0, this.config.local_recovery_auto_resume_ms - recoveryElapsed) : 0, near_target_corridor: finite(currentError) && currentError <= this.config.braking_corridor_normalized, predicted_delta: predictedDelta, metrics: { ...this.metrics } };
+    return { timestamp_ms: now, target: this.target, current: state.subject, delta, issue, issue_age_ms: issue ? Math.max(0, now - this.activeIssueSince) : 0, active_action: this.episode?.stop_cue_issued_at !== null && this.episode?.stop_cue_issued_at !== undefined ? 'STOP_HERE' : this.episode?.action ?? (this.runtimeState === 'READY' ? 'HOLD' : null), action_age_ms: this.episode ? Math.max(0, now - this.episode.issued_at) : null, instruction, runtime_state: this.runtimeState, waiting_remaining_ms: this.episode ? Math.max(0, this.config.action_response_grace_ms - (now - this.episode.issued_at)) : 0, verification: this.verification, episode: ep ? { ...ep, warning_flags: [...ep.warning_flags] } : null, trial_id: this.trialState === 'DISARMED' ? null : this.trialSequence, trial_state: this.trialState, trial_armed_at: this.trialArmedAt, first_instruction_at: this.firstInstructionAt, ready_at: this.readyAt, trial_elapsed_ms: this.firstInstructionAt === null ? null : (this.readyAt ?? now) - this.firstInstructionAt, stable_duration_ms: this.readyStableSince === null ? 0 : Math.max(0, now - this.readyStableSince), ready: this.trialState === 'READY_LATCHED', geometry_satisfied: geometrySatisfied, ready_source: this.readySource, passive_confirmation_remaining_ms: this.runtimeState === 'SATISFIED_PENDING_CONFIRMATION' ? Math.max(0, this.config.passive_confirmation_ms - passiveElapsed) : 0, local_recovery_remaining_ms: this.runtimeState === 'LOCAL_RECOVERY_REQUIRED' ? Math.max(0, this.config.local_recovery_auto_resume_ms - recoveryElapsed) : 0, near_target_corridor: finite(currentError) && currentError <= this.config.braking_corridor_normalized, predicted_delta: predictedDelta, control_observation: { ...this.controlObservation }, control_epoch: ep?.control_epoch ?? null, metrics: { ...this.metrics } };
   }
 }

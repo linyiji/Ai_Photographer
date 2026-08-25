@@ -17,6 +17,8 @@ export const CLOSED_LOOP_CONFIG: Readonly<ClosedLoopConfig> = Object.freeze({
   braking_prediction_horizon_ms: 350,
   passive_confirmation_ms: 1200,
   local_recovery_auto_resume_ms: 1200,
+  maximum_measurement_age_ms: 180,
+  maximum_guidance_decision_age_ms: 160,
 });
 
 export const ISSUE_WEIGHTS = Object.freeze({

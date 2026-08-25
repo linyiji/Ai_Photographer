@@ -1,0 +1,15 @@
+{
+  "format": "xfx-live-p2-post-ready-audit-v2",
+  "raw_media": false,
+  "count": 6,
+  "root_cause": "PASSIVE_CONFIRMATION emitted runtime READY while TrialState remained ARMED",
+  "reproduction": "ARMED + already inside target -> passive READY without terminal TrialState -> target exit -> ordinary instruction",
+  "events": [
+    { "trial_id": "A", "trace_file": "live-p2-scalar-trace-1787652746099.json", "ready_at": 50617.3, "ready_source": "PASSIVE_CONFIRMATION_BEFORE_FIRST_EPISODE", "ordinary_at": 53336.7, "action": "MOVE_FARTHER", "episode_id": 1 },
+    { "trial_id": "A", "trace_file": "live-p2-scalar-trace-1787652746099.json", "ready_at": 50617.3, "ready_source": "PASSIVE_CONFIRMATION_BEFORE_FIRST_EPISODE", "ordinary_at": 56089.6, "action": "MOVE_RIGHT", "episode_id": 2 },
+    { "trial_id": "A", "trace_file": "live-p2-scalar-trace-1787652746099.json", "ready_at": 50617.3, "ready_source": "PASSIVE_CONFIRMATION_BEFORE_FIRST_EPISODE", "ordinary_at": 57807.8, "action": "MOVE_RIGHT", "episode_id": 3 },
+    { "trial_id": "F", "trace_file": "live-p2-scalar-trace-1787652906575.json", "ready_at": 207467.3, "ready_source": "PASSIVE_CONFIRMATION_BEFORE_FIRST_EPISODE", "ordinary_at": 208051.4, "action": "MOVE_LEFT", "episode_id": 1 },
+    { "trial_id": "F", "trace_file": "live-p2-scalar-trace-1787652906575.json", "ready_at": 207467.3, "ready_source": "PASSIVE_CONFIRMATION_BEFORE_FIRST_EPISODE", "ordinary_at": 214941.5, "action": "MOVE_FARTHER", "episode_id": 2 },
+    { "trial_id": "F", "trace_file": "live-p2-scalar-trace-1787652906575.json", "ready_at": 207467.3, "ready_source": "PASSIVE_CONFIRMATION_BEFORE_FIRST_EPISODE", "ordinary_at": 216593.0, "action": "MOVE_FARTHER", "episode_id": 3 }
+  ]
+}

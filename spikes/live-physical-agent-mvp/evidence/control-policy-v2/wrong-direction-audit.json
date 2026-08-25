@@ -1,0 +1,32 @@
+{
+  "format": "xfx-live-p2-wrong-direction-audit-v2",
+  "raw_media": false,
+  "count": 8,
+  "limitations": {
+    "issued_measurement_age_ms": "UNKNOWN_NOT_RECORDED_IN_V1",
+    "camera_facing": "UNKNOWN_NOT_RECORDED_IN_V1",
+    "preview_mirror_state": "UNKNOWN_NOT_RECORDED_IN_V1",
+    "coordinate_basis": "SENSOR_NORMALIZED_NON_MIRRORED_BY_AUTHORITY",
+    "user_observed_wrong_physical_direction": "ACCEPTED_FAILURE_NOT_DISMISSED"
+  },
+  "category_counts": {
+    "SIGN_MAPPING_ERROR": 0,
+    "PREVIEW_MIRROR_MAPPING_ERROR": 0,
+    "STALE_MEASUREMENT": 0,
+    "AXIS_SWITCH_STALE_COMMAND": 0,
+    "DELAYED_HUMAN_RESPONSE": 5,
+    "MEASUREMENT_NOISE": 0,
+    "USER_MOVED_OPPOSITE": 2,
+    "UNCLASSIFIED": 1
+  },
+  "episodes": [
+    { "trial_id": "A", "episode_id": 2, "action": "MOVE_RIGHT", "axis": "X_POSITION", "issued_at": 56089.6, "baseline_delta": -0.0630086128, "final_delta": -0.0790007787, "response_direction": "AWAY_FROM_TARGET", "response_delay_ms": 1284.5, "peak_axis_velocity": 0.0423983884, "primary_category": "DELAYED_HUMAN_RESPONSE", "next_action": "MOVE_RIGHT" },
+    { "trial_id": "B", "episode_id": 1, "action": "MOVE_FARTHER", "axis": "SCALE", "issued_at": 75724.4, "baseline_delta": -0.10975475, "final_delta": -0.13167443, "response_direction": "AWAY_FROM_TARGET", "response_delay_ms": 266.9, "peak_axis_velocity": 0.0839707147, "primary_category": "USER_MOVED_OPPOSITE", "next_action": "MOVE_FARTHER" },
+    { "trial_id": "H", "episode_id": 1, "action": "MOVE_CLOSER", "axis": "SCALE", "issued_at": 250477.8, "baseline_delta": 0.1956261317, "final_delta": 0.2263715168, "response_direction": "TOWARD_THEN_AWAY", "response_delay_ms": 266.9, "peak_axis_velocity": 0.2275791677, "primary_category": "UNCLASSIFIED", "next_action": "MOVE_CLOSER" },
+    { "trial_id": "H", "episode_id": 7, "action": "MOVE_RIGHT", "axis": "X_POSITION", "issued_at": 263808.6, "baseline_delta": -0.059638221, "final_delta": -0.0812436488, "response_direction": "AWAY_FROM_TARGET", "response_delay_ms": 1251.2, "peak_axis_velocity": 0.0495186416, "primary_category": "DELAYED_HUMAN_RESPONSE", "next_action": "MOVE_RIGHT" },
+    { "trial_id": "H", "episode_id": 10, "action": "MOVE_RIGHT", "axis": "X_POSITION", "issued_at": 271266.4, "baseline_delta": -0.0678175224, "final_delta": -0.0847571302, "response_direction": "AWAY_FROM_TARGET", "response_delay_ms": 1084.5, "peak_axis_velocity": 0.0334371358, "primary_category": "DELAYED_HUMAN_RESPONSE", "next_action": "MOVE_RIGHT" },
+    { "trial_id": "H", "episode_id": 14, "action": "MOVE_FARTHER", "axis": "SCALE", "issued_at": 304333.7, "baseline_delta": -0.1222490472, "final_delta": -0.1509977287, "response_direction": "AWAY_FROM_TARGET", "response_delay_ms": 283.6, "peak_axis_velocity": 0.1268136732, "primary_category": "USER_MOVED_OPPOSITE", "next_action": "MOVE_FARTHER" },
+    { "trial_id": "H", "episode_id": 18, "action": "MOVE_RIGHT", "axis": "X_POSITION", "issued_at": 315261.4, "baseline_delta": -0.0576238421, "final_delta": -0.0729747421, "response_direction": "AWAY_FROM_TARGET", "response_delay_ms": 1217.9, "peak_axis_velocity": 0.0389790105, "primary_category": "DELAYED_HUMAN_RESPONSE", "next_action": "MOVE_RIGHT" },
+    { "trial_id": "H", "episode_id": 19, "action": "MOVE_RIGHT", "axis": "X_POSITION", "issued_at": 316879.5, "baseline_delta": -0.0778321433, "final_delta": -0.098923613, "response_direction": "AWAY_FROM_TARGET", "response_delay_ms": 967.7, "peak_axis_velocity": 0.0480552639, "primary_category": "DELAYED_HUMAN_RESPONSE", "next_action": "MOVE_RIGHT" }
+  ]
+}
