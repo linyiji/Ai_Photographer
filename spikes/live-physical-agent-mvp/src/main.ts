@@ -162,6 +162,10 @@ const perceptionRuntime = new PerceptionRuntime({
     poseMessage.textContent = text;
     poseMessage.dataset.kind = status === 'ERROR' || status === 'MISSING' ? 'error' : 'info';
     poseInitButton.disabled = status === 'LOADING' || status === 'READY';
+    if (!latestClosedLoop && stream) {
+      guidanceOverlayState.textContent = `P1 LOCAL · MODEL ${status}`;
+      guidanceOverlayText.textContent = status === 'READY' ? '模型已就绪 · 点击“ARM 新试验”开始' : status === 'LOADING' ? '正在加载本机姿态模型，请稍候' : status === 'ERROR' || status === 'MISSING' ? '本机模型启动失败 · 请查看下方错误' : '正在准备本机分析';
+    }
   },
   onState: (state, rawMeasurement) => {
     latestPerceptionState = state;
@@ -374,6 +378,7 @@ function renderClosedLoop(): void {
 }
 
 function closedLoopPresentation(snapshot: ClosedLoopSnapshot): { state: string; text: string } {
+  if (snapshot.trial_state === 'DISARMED') return { state: 'P2 LOCAL · DISARMED', text: '模型已就绪 · 点击“ARM 新试验”开始' };
   if (snapshot.runtime_state === 'SEARCHING') return { state: 'P2 LOCAL · SEARCHING', text: '请进入画面' };
   if (snapshot.runtime_state === 'INSTRUCTING' && snapshot.instruction) {
     return { state: `P2 LOCAL · ${snapshot.issue?.kind ?? 'ACTION'}`, text: snapshot.instruction.copy_zh };
@@ -624,6 +629,10 @@ async function startCamera(facingMode: FacingMode): Promise<void> {
     });
     await refreshCameraInventory();
     setMessage(`${activeFacingMode === 'user' ? '前置' : '后置'}摄像头已启动；画面仅在本机预览。`);
+    if (!latestClosedLoop) {
+      guidanceOverlayState.textContent = 'P1 LOCAL · CAMERA READY';
+      guidanceOverlayText.textContent = perceptionRuntime.currentModelStatus === 'READY' ? '模型已就绪 · 点击“ARM 新试验”开始' : '正在加载本机姿态模型，请稍候';
+    }
 
     videoTrack?.addEventListener('ended', () => {
       if (!ownsActiveCameraSession(stream, nextStream)) return;

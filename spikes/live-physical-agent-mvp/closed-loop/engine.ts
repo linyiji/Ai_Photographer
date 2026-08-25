@@ -73,6 +73,7 @@ export class LocalClosedLoopEngine {
 
   update(state: StructuredPerceptionState, context: ControlUpdateContext = {}): ClosedLoopSnapshot {
     const now = state.timestamp_ms; const decisionNow = context.decision_timestamp_ms ?? now; this.controlObservation = this.observeControl(state, decisionNow); const delta = computeDelta(state, this.target); const candidates = rankIssues(state, delta); const best = candidates[0] ?? null; let instruction: InstructionEvent | null = null; this.metrics.local_decisions += 1;
+    if (this.trialState === 'DISARMED') { this.runtimeState = 'IDLE'; return this.snapshot(now, state, delta, null, instruction); }
     if (!state.subject.present) { this.runtimeState = 'SEARCHING'; this.readyStableSince = this.passiveConfirmationSince = null; this.settled = []; this.trackCandidate(best, now); return this.snapshot(now, state, delta, best, instruction); }
     // READY closes the armed trial. Further movement is observation-only until an explicit re-ARM,
     // so post-ready user motion cannot contaminate the accepted episode denominator.
