@@ -41,6 +41,7 @@ export class VisualGuidanceProjector {
   private targetCrossingDelayMs: number | null = null;
   private insideSince: number | null = null;
   private insideBeforeReadyMs: number | null = null;
+  private visualLatencyMs = 0;
   private entryCount = 0;
   private exitCount = 0;
 
@@ -49,16 +50,16 @@ export class VisualGuidanceProjector {
   reset(): void {
     this.smoothed = null; this.trackingStatus = 'UNLOCKED'; this.acquireSince = this.lastFreshAt = this.quietSince = null;
     this.lastRaw = this.lastSmoothed = null; this.rawJitter = []; this.stabilizedJitter = []; this.lockLossCount = this.reacquisitionCount = 0;
-    this.wasInside = false; this.rawInsideAt = this.targetCrossingDelayMs = this.insideSince = this.insideBeforeReadyMs = null; this.entryCount = this.exitCount = 0;
+    this.wasInside = false; this.rawInsideAt = this.targetCrossingDelayMs = this.insideSince = this.insideBeforeReadyMs = null; this.visualLatencyMs = 0; this.entryCount = this.exitCount = 0;
   }
 
   update(state: StructuredPerceptionState, control: ClosedLoopSnapshot, rawMeasurement: PoseMeasurement | null = null, options: { mode?: VisualServoMode; grid?: boolean; now?: number } = {}): VisualGuidanceState {
     const now = options.now ?? state.timestamp_ms; const fresh = state.subject.present && (state.measurement_age_ms ?? 0) === 0;
-    const rawBox = boxFromState(state, rawMeasurement); this.updateTracking(rawBox, state, fresh, now);
-    if (rawBox && fresh) this.updateProjection(rawBox, state, now);
-    const target = this.targetGeometry(control, this.smoothed ?? rawBox);
-    const xStatus = axisStatus(control.delta.x.normalized_error); const scaleStatus = axisStatus(control.delta.scale.normalized_error);
+    const rawBox = boxFromState(state, rawMeasurement); const authoritativeBox = boxFromState(state, null); this.updateTracking(rawBox, state, fresh, now);
     const rawInside = control.delta.x.status === 'SATISFIED' && control.delta.scale.status === 'SATISFIED' && (control.delta.y.status === 'SATISFIED' || control.delta.y.status === 'EXEMPT');
+    if (rawBox && fresh) this.updateProjection(rawBox, state, now, control.ready && state.subject.stable ? authoritativeBox : null);
+    const target = this.targetGeometry(control, this.smoothed ?? authoritativeBox ?? rawBox);
+    const xStatus = axisStatus(control.delta.x.normalized_error); const scaleStatus = axisStatus(control.delta.scale.normalized_error);
     const visualInside = this.smoothed ? Math.abs(control.target.center_x - this.smoothed.center_x) <= control.target.tolerance_x && Math.abs(control.target.height_ratio - this.smoothed.height) <= control.target.tolerance_height : false;
     if (rawInside && this.rawInsideAt === null) this.rawInsideAt = now;
     if (!rawInside) this.rawInsideAt = null;
@@ -107,11 +108,13 @@ export class VisualGuidanceProjector {
     else if (this.trackingStatus !== 'UNLOCKED') { this.trackingStatus = 'UNLOCKED'; this.lockLossCount += 1; this.acquireSince = null; this.smoothed = null; }
   }
 
-  private updateProjection(raw: NormalizedBox, state: StructuredPerceptionState, now: number): void {
+  private updateProjection(raw: NormalizedBox, state: StructuredPerceptionState, now: number, settledAuthority: NormalizedBox | null): void {
     const speed = Math.hypot(state.subject.velocity_x ?? 0, state.subject.velocity_y ?? 0, state.subject.velocity_scale ?? 0);
     const alpha = speed > this.config.moving_velocity_threshold ? this.config.moving_ema_alpha : this.config.base_ema_alpha;
-    if (!this.smoothed) this.smoothed = { ...raw };
+    if (settledAuthority) this.smoothed = { ...settledAuthority };
+    else if (!this.smoothed) this.smoothed = { ...raw };
     else this.smoothed = boxFromValues(ema(this.smoothed.center_x, raw.center_x, alpha), ema(this.smoothed.center_y, raw.center_y, alpha), ema(this.smoothed.width, raw.width, alpha), ema(this.smoothed.height, raw.height, alpha));
+    this.visualLatencyMs = speed > 0.01 ? Math.min(500, boxDistance(raw, this.smoothed) / speed * 1000) : 0;
     if (this.lastRaw) this.pushBounded(this.rawJitter, boxDistance(raw, this.lastRaw));
     if (this.lastSmoothed) {
       const movement = boxDistance(this.smoothed, this.lastSmoothed); this.pushBounded(this.stabilizedJitter, movement);
@@ -137,7 +140,7 @@ export class VisualGuidanceProjector {
 
   private metrics(): VisualGuidanceMetrics {
     const raw = mean(this.rawJitter); const stabilized = mean(this.stabilizedJitter);
-    return { raw_box_jitter: raw, stabilized_box_jitter: stabilized, jitter_reduction_ratio: raw > 0 ? 1 - stabilized / raw : null, visual_projection_latency_ms: 0, target_crossing_delay_ms: this.targetCrossingDelayMs, time_inside_target_before_ready_ms: this.insideBeforeReadyMs, target_box_entry_count: this.entryCount, target_box_exit_count: this.exitCount, subject_lock_loss_count: this.lockLossCount, reacquisition_count: this.reacquisitionCount };
+    return { raw_box_jitter: raw, stabilized_box_jitter: stabilized, jitter_reduction_ratio: raw > 0 ? 1 - stabilized / raw : null, visual_projection_latency_ms: this.visualLatencyMs, target_crossing_delay_ms: this.targetCrossingDelayMs, time_inside_target_before_ready_ms: this.insideBeforeReadyMs, target_box_entry_count: this.entryCount, target_box_exit_count: this.exitCount, subject_lock_loss_count: this.lockLossCount, reacquisition_count: this.reacquisitionCount };
   }
 
   private pushBounded(values: number[], value: number): void { values.push(value); if (values.length > this.config.history_limit) values.shift(); }

@@ -1,4 +1,4 @@
-# XFX Live Physical Agent — LIVE-P2 Local Closed Loop
+# XFX Live Physical Agent — LIVE-P2 Visual Servo Spike
 
 This isolated Mobile Web spike preserves accepted LIVE-P0 camera and LIVE-P1 perception, then adds only the deterministic local P2 chain:
 
@@ -49,6 +49,10 @@ Controlled routes:
 
 Replay routes are explicitly synthetic, request no camera, call no provider, and exist only for deterministic browser evidence.
 
+## Visual servo overlay
+
+The spike now includes a stabilized subject box, target box, exact acceptable zone, optional grid, one direction cue, distinct STOP/READY visuals, and `TEXT_DOMINANT`, `VISUAL_SERVO`, and `VISUAL_PLUS_TEXT` modes. The DEFAULT and LINE_DOG themes share one immutable semantic state; the HUD must report semantic diff `0`. See `docs/visual-servo-guidance.md`, `docs/subject-lock-and-overlay.md`, and `docs/guidance-theme-runtime.md`.
+
 ## P1 perception semantics
 
 - One subject, VIDEO mode, no segmentation, candidate 8 Hz, at most one inference in flight.
@@ -90,16 +94,20 @@ Luna Calls = 0
 
 Use a trusted HTTPS tunnel without bypassing certificate warnings and complete `evidence/closed-loop/manual-device-test-template.md`. Run at least three trials with a fixed phone and one person. Verify one instruction, >=900 ms gap, silence while improving, automatic verification, correct physical direction, no X/Scale ping-pong, one-shot HOLD, and READY only while stable.
 
-Latest complete real-device result:
+Latest complete post-visual-implementation real-device result:
 
 ```text
-Status = FAIL / COMPLETE POST-FIX DEVICE SAMPLE
+Status = FAIL / COMPLETE FRESH VISUAL-SERVO SAMPLE
 LIVE-P1 = PASS
 P2 Implementation Gate = PASS
-P2 Overshoot / READY Implementation Gate = PASS / 76 of 76 tests
-P2 Real Device Gate = FAIL / 54 terminal Episodes / 22.2% correction success
+Visual Servo Automated Gate = PASS / 123 of 123 tests
+P2 Real Device Gate = FAIL / 8 trials / 59 terminal Episodes / 33.9% correction success
+Fresh A/B = TEXT 28.6% / VISUAL+TEXT 36.8%
+Hard failures = wrong direction observed / 6 post-READY ordinary / oscillation / unstable box / unclear target zone
 LIVE-P2 = FAIL
 ```
+
+The 54-Episode / 22.2% sample remains preserved as the task starting baseline; it is not the result above. Fresh scalar evidence and hashes are in `evidence/visual-servo/oppo-k11.md`. No additional threshold tuning is authorized after this failure.
 
 ## Stop boundary
 

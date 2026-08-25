@@ -93,6 +93,7 @@ const closedLoopFields = {
   recovery: requireElement<HTMLElement>('cl-recovery'),
   visualStatus: requireElement<HTMLElement>('cl-visual-status'), visualLock: requireElement<HTMLElement>('cl-visual-lock'),
   visualJitter: requireElement<HTMLElement>('cl-visual-jitter'), visualEntry: requireElement<HTMLElement>('cl-visual-entry'),
+  visualLatency: requireElement<HTMLElement>('cl-visual-latency'), visualTiming: requireElement<HTMLElement>('cl-visual-timing'),
   theme: requireElement<HTMLElement>('cl-theme'),
 };
 const perceptionFields = {
@@ -319,6 +320,7 @@ function renderClosedLoop(): void {
     closedLoopFields.recovery.textContent = '0 ms';
     closedLoopFields.visualStatus.textContent = `LOST / ${guidanceMode.value}`; closedLoopFields.visualLock.textContent = 'UNLOCKED / 0.000';
     closedLoopFields.visualJitter.textContent = '0.0000 / 0.0000'; closedLoopFields.visualEntry.textContent = '0 / 0';
+    closedLoopFields.visualLatency.textContent = '0 / 0 ms'; closedLoopFields.visualTiming.textContent = '— / —';
     closedLoopFields.theme.textContent = `${guidanceTheme.value||'DEFAULT'} / 0`;
     return;
   }
@@ -357,6 +359,8 @@ function renderClosedLoop(): void {
   closedLoopFields.visualStatus.textContent = `${visual?.visual_status ?? 'LOST'} / ${visual?.overlay_mode ?? guidanceMode.value}`;
   closedLoopFields.visualLock.textContent = `${visual?.tracking_status ?? 'UNLOCKED'} / ${(visual?.tracking_confidence ?? 0).toFixed(3)}`;
   closedLoopFields.visualJitter.textContent = `${(visual?.metrics.raw_box_jitter ?? 0).toFixed(4)} / ${(visual?.metrics.stabilized_box_jitter ?? 0).toFixed(4)}`;
+  closedLoopFields.visualLatency.textContent = `${(visual?.metrics.visual_projection_latency_ms ?? 0).toFixed(0)} / ${(visual?.projection_age ?? 0).toFixed(0)} ms`;
+  closedLoopFields.visualTiming.textContent = `${visual?.metrics.target_crossing_delay_ms === null || visual?.metrics.target_crossing_delay_ms === undefined ? '—' : `${visual.metrics.target_crossing_delay_ms.toFixed(0)} ms`} / ${visual?.metrics.time_inside_target_before_ready_ms === null || visual?.metrics.time_inside_target_before_ready_ms === undefined ? '—' : `${visual.metrics.time_inside_target_before_ready_ms.toFixed(0)} ms`}`;
   closedLoopFields.visualEntry.textContent = `${visual?.metrics.target_box_entry_count ?? 0} / ${visual?.metrics.target_box_exit_count ?? 0}`;
   closedLoopFields.countsA.textContent = `${metrics.ordinary_instruction_count} / ${metrics.stop_cue_count} / ${metrics.hold_count} / ${metrics.successful_corrections}`;
   closedLoopFields.countsB.textContent = `${metrics.improving_count} / ${metrics.no_effect_count}`;
