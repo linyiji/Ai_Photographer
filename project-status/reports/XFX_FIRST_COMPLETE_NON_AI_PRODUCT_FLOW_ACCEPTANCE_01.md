@@ -82,3 +82,39 @@ FIRST_COMPLETE_NON_AI_PRODUCT_BASELINE = NOT_YET_PASS
 Full report:
 
 `project-status/evidence/first-complete-non-ai/oppo-bounded-remediation/oppo-camera-and-save-failure-root-cause-report.md`
+
+## BOUNDED_REMEDIATION_02 — Camera Geometry and Capture Transport
+
+Automated remediation is complete. Camera geometry is now orientation-aware, preserves raw and normalized coordinate spaces separately, does not reintroduce the OPPO 56.25% false center crop, and does not claim Preview/Still identity without A/B evidence. Native ImageCapture stills remain unchanged.
+
+Capture transport now retains the local candidate, exposes explicit upload states, records bounded per-attempt telemetry, and uses stable upload/action idempotency. Backend tests prove 7 MiB, 9 MiB, 20 MiB boundary persistence and lost-response replay without duplicate stored-asset authority.
+
+```text
+Camera Root Cause = RAW_INTRINSIC_PRESENTATION_CONFLATION + PREVIEW_STILL_FOV_UNVALIDATED
+Camera Fix Applied = ORIENTATION_AWARE_NORMALIZED_GEOMETRY
+Normalized Geometry Result = PASS / 1920×1440 portrait presentation → logical 1440×1920
+Preview ↔ Still Result = FOV_UNVALIDATED / REAL_DEVICE_A_B_REQUIRED
+Native Still Preservation = PASS / DEVICE_NATIVE / no derived replacement
+Capture Transport Result = MANUAL_REVIEW_REQUIRED_FOR_FORMAL_OPPO
+Origin Reachability = PASS_AUTOMATED / OPPO_STABLE_HTTPS_NOT_EXERCISED
+Backend Persistence = PASS_AUTOMATED / 7MiB + 9MiB + 20MiB
+Retry / Idempotency = PASS_AUTOMATED / SAME_ASSET_ID / NO_DUPLICATE
+FINAL Device Save Result = NOT_REACHED
+Fine Tune Result = NOT_REACHED
+Full Golden Flow Result = FAIL / NOT_RERUN
+OPPO_MAIN_GATE = FAIL
+FIRST_COMPLETE_NON_AI_PRODUCT_BASELINE = NOT_YET_PASS
+PUBLIC_PRODUCTION_READY = NO
+Automated Tests = Backend 106 PASS / Frontend 55 PASS / TypeScript PASS / H5 PASS_WITH_WARNING / WeChat PASS
+Implementation Commit = 31870de126b284efb601ed6b0d5b671111da80d4
+Current HEAD = SELF_AFTER_CLOSURE_COMMIT
+Remote HEAD = PENDING_PUSH
+Worktree Status = CLEAN_AFTER_CLOSURE_COMMIT
+TRANSPORT_ENVIRONMENT_GATE = MANUAL_REVIEW_REQUIRED
+```
+
+The current environment has no already-authorized stable trusted HTTPS ingress. Quick Tunnel is not reused as formal evidence. Real-device Camera composition fidelity, OPPO upload/persistence, controlled interruption/retry, final device save, remaining Fine Tune, and full Golden Flow remain open.
+
+Evidence:
+
+`project-status/evidence/first-complete-non-ai/oppo-bounded-remediation/camera-geometry-and-capture-transport-remediation-02.md`
