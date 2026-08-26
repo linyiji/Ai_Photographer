@@ -153,7 +153,7 @@ $('start').addEventListener('click', async () => {
     latestYaw = sample.relative_yaw_deg; orientationSource = sample.source; telemetry.orientation();
     if (firstOrientationAt === null) firstOrientationAt = sample.timestamp_ms;
     if (sample.timestamp_ms - firstOrientationAt <= 3000) initialYawSamples.push(sample.relative_yaw_deg);
-    runtime?.observeOrientation(sample); render();
+    runtime?.observeOrientation(sample); latestYaw = runtime?.currentYawDeg() ?? sample.relative_yaw_deg; render();
   });
   candidateTimer = window.setInterval(sampleFrame, 125);
   setText('message', orientationState === 'ACTIVE' ? '方向传感器已启用；先静止约 3 秒，再缓慢转动。' : '相机可用，但方向传感器不可用。'); render();
@@ -174,6 +174,7 @@ $('fixture').addEventListener('click', () => {
     if (firstOrientationAt === null) firstOrientationAt = timestamp;
     if (timestamp - firstOrientationAt <= 3000) initialYawSamples.push(yaw);
     runtime.observeOrientation({ timestamp_ms: timestamp, relative_yaw_deg: yaw, raw_heading_deg: yaw, confidence: 'HIGH', status: 'ACTIVE', screen_orientation: 'PORTRAIT_PRIMARY', source: 'CONTROLLED_FIXTURE' });
+    latestYaw = runtime.currentYawDeg() ?? yaw;
     const candidate: FrameMetrics = { timestamp_ms: timestamp, yaw_deg: yaw, width: 640, height: 480, blur_score: 30, exposure_mean: 128, highlight_clipping_ratio: 0, shadow_clipping_ratio: 0, fingerprint: [(yaw % 24) / 24, 1 - (yaw % 24) / 24] };
     const started = performance.now(); const selected = runtime.observeFrame(candidate);
     telemetry.candidate(performance.now() - started, selected); yaw += 6; render();

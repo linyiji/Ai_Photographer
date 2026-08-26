@@ -34,3 +34,17 @@ Authorized bounded fixes applied for revalidation:
 - device evidence now includes input blur/exposure score distributions.
 
 Fresh post-fix QUICK and WIDE device trials remain required before final P0 disposition.
+
+## Continuation chronology — repeat-session attempt
+
+Post-calibration evidence demonstrated that device throughput was healthy and the keyframe-zero defect was resolved:
+
+- QUICK: 110.0°, 5,012 ms, `LEFT_TO_RIGHT`, 8 keyframes, Preview 29.17–29.97 FPS, Orientation 51.1 Hz, quality p50/p95 15.8/27.2 ms, queue 0.
+- QUICK: 110.3°, 7,518 ms, `MIXED`, 12 bounded keyframes, Preview min 29.85 FPS, Orientation 51.3 Hz, quality p50/p95 17.1/22.1 ms, queue 0.
+- WIDE: 180.6°, 9,159 ms, `MIXED`, 18 bounded keyframes, Preview min 29.85 FPS, Orientation 52.6 Hz, quality p50/p95 18.1/24.3 ms, queue 0.
+- One WIDE `CONTROLLED_FIXTURE` trial was excluded from device acceptance.
+- All included trials retained raw/third-party uploads and provider/backend/Luna calls at 0.
+
+The next repeat trial failed: QUICK was manually completed after 3,257 ms with coverage 0°, one keyframe at 88.4°, 23 duplicate rejections, Orientation still 19.7 Hz, Preview min 29.83 FPS, and queue 0. The pasted following WIDE record was truncated after reporting duration 55,715 ms; the tester reported that the first WIDE worked but the second right-to-left attempt did not respond.
+
+Diagnosis: this was not a processing backlog. A stale first orientation sample followed by a persistent >45° posture discontinuity left the spike guard comparing every new sample to the old baseline. Bounded recovery now requires three mutually stable samples in the new cluster, rebases continuity without adding the jump to coverage, and routes corrected yaw into keyframe sampling. Failed evidence is preserved; a fresh right-to-left WIDE remains required.

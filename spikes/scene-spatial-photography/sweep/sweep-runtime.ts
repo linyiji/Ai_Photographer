@@ -20,10 +20,11 @@ export class SceneSweepRuntime {
     this.session.orientation_source = sample.source; this.session.screen_posture = sample.screen_orientation;
     if (this.session.start_heading === null) this.session.start_heading = sample.raw_heading_deg;
     const accepted = this.coverage.observe(sample.relative_yaw_deg); if (!accepted) return false;
-    this.latestYaw = sample.relative_yaw_deg; this.session.status = 'SWEEPING';
+    this.latestYaw = this.coverage.currentYaw() ?? sample.relative_yaw_deg; this.session.status = 'SWEEPING';
     if (this.coverage.snapshot().span_deg >= configForMode(this.session.mode).target_deg) this.finish(sample.timestamp_ms);
     return true;
   }
+  currentYawDeg(): number | null { return this.latestYaw; }
   observeFrame(frame: Omit<FrameMetrics, 'yaw_deg'> & { yaw_deg?: number }): boolean {
     if (this.session.status !== 'SWEEPING' || (frame.yaw_deg === undefined && this.latestYaw === null)) return false;
     if (this.session.source_width === 0 || this.session.source_height === 0) { this.session.source_width = frame.width; this.session.source_height = frame.height; }

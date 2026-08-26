@@ -8,12 +8,30 @@ export class CoverageTracker {
   private positive = 0;
   private negative = 0;
   private spikes = 0;
+  private yawOffset = 0;
+  private jumpCandidateRaw: number | null = null;
+  private jumpCandidateCount = 0;
   constructor(private readonly maxStepDeg = 45, private readonly jitterDeg = 0.5) {}
 
-  observe(yaw: number): boolean {
+  observe(rawYaw: number): boolean {
+    let yaw = rawYaw + this.yawOffset;
     if (this.previous !== null) {
-      const delta = yaw - this.previous;
-      if (Math.abs(delta) > this.maxStepDeg) { this.spikes++; return false; }
+      let delta = yaw - this.previous;
+      if (Math.abs(delta) > this.maxStepDeg) {
+        this.spikes++;
+        if (this.jumpCandidateRaw !== null && Math.abs(rawYaw - this.jumpCandidateRaw) <= 5) this.jumpCandidateCount++;
+        else this.jumpCandidateCount = 1;
+        this.jumpCandidateRaw = rawYaw;
+        if (this.jumpCandidateCount < 3) return false;
+        this.yawOffset = this.previous - rawYaw;
+        yaw = rawYaw + this.yawOffset;
+        delta = 0;
+        this.jumpCandidateRaw = null;
+        this.jumpCandidateCount = 0;
+      } else {
+        this.jumpCandidateRaw = null;
+        this.jumpCandidateCount = 0;
+      }
       if (delta > this.jitterDeg) this.positive += delta;
       if (delta < -this.jitterDeg) this.negative += -delta;
     }
@@ -26,5 +44,6 @@ export class CoverageTracker {
       : this.positive ? 'LEFT_TO_RIGHT' : this.negative ? 'RIGHT_TO_LEFT' : 'UNDETERMINED';
     return { min_observed_yaw: empty ? 0 : this.min, max_observed_yaw: empty ? 0 : this.max, span_deg: empty ? 0 : this.max - this.min, direction, rejected_spikes: this.spikes };
   }
-  reset(): void { this.min = Infinity; this.max = -Infinity; this.previous = null; this.positive = 0; this.negative = 0; this.spikes = 0; }
+  currentYaw(): number | null { return this.previous; }
+  reset(): void { this.min = Infinity; this.max = -Infinity; this.previous = null; this.positive = 0; this.negative = 0; this.spikes = 0; this.yawOffset = 0; this.jumpCandidateRaw = null; this.jumpCandidateCount = 0; }
 }
