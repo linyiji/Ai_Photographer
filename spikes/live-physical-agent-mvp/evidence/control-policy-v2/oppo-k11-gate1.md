@@ -89,3 +89,21 @@ Source fingerprints:
 | Scale | `live-p2-scale-gate1_scale-1787735064276.json` | `BD2DDB10DA8BD2AD4525FCDAE3A43BC52E11A43A4E443D48B60C20F3908C1D33` |
 | Combined | `live-p2-scale-gate1_combined-1787735097010.json` | `5B7B58BD94080E199ECF5EAA11BA44FE0C801BA0023390841C876FCA5426EEE4` |
 | Scale | `live-p2-scale-gate1_scale-1787735126629.json` | `5167E2F38E254C9A0B32AB32D8189CBF52C7F88EB0CF081593DAEB4677B41B76` |
+
+## Gate 1 attempt 7 — Scale/Combined supplements, not accepted
+
+- The labeled Scale supplement contains only coarse compatibility `MOVE_FARTHER`, followed by passive READY. It contains no Parent precision Scale Episode and therefore does not supply the required Scale correction trial.
+- The labeled Combined supplement contains four precision X Episodes and no Scale Episode. It is an X-only trial, not a Combined X+Scale trial.
+- X causal reconstruction: Episode 1 begins with Anchor X `0.390` and terminates `NO_EFFECT` after crossing to about `0.680`; Episodes 2 and 3 start near `0.670`, with Episode 3 issuing `STOP_HERE` near `0.509` before motion continues across to about `0.380`; Episode 4 starts near `0.380` and later reaches about `0.502`. The instruction sequence is `MOVE_LEFT -> MOVE_RIGHT -> MOVE_RIGHT -> MOVE_LEFT`, with the first three terminal outcomes `NO_EFFECT`.
+- READY is `PASSIVE_CONFIRMATION`, not Episode success. Both traces emit zero post-READY ordinary action, but this does not establish Combined correction success or zero obvious oscillation.
+- Scale stayed close to the target during X precision (`~0.442–0.538`), so no Scale issue was active. The initial `HEAD_SHOULDERS / TOO_TIGHT` coarse transition is not a precision Scale Episode.
+- Performance: Scale trace cadence `6.69 Hz`, Preview `28.0 fps`, Vision/State `6.155 Hz`, inference p50/p95 `75.0/124.8 ms`, skipped-busy `3.4%`; Combined trace cadence `7.02 Hz`, Preview `29.8 fps`, Vision/State `6.627 Hz`, inference p50/p95 `81.7/111.3 ms`, skipped-busy `2.8%`. Combined performance passes the candidate; Scale p95 remains a small warning above 120 ms. The sustained-use thermal warning from Attempt 6 remains open.
+- Privacy/external: both downloads declare `raw_media=false`; Provider, Backend per-frame, Luna, and Raw Upload are all 0.
+- Decision: NOT Gate 1 PASS. Gate 2 remains blocked. No control threshold, Target, Deadband, or success semantic is changed from this evidence. A valid retry must begin in compatible UPPER_BODY framing with both X and Scale outside their unchanged precision targets before ARM, then avoid continuing past the visible STOP cue.
+
+Source fingerprints:
+
+| Label | Filename | SHA-256 |
+| --- | --- | --- |
+| Scale | `live-p2-scale-gate1_scale-1787736229109.json` | `885E0D8D18F0035C0EA4D476905155DC6FB02A2D7690479865CA5BE3B38EDB0E` |
+| Combined | `live-p2-scale-gate1_combined-1787736320137.json` | `D1D3036546BB109F9F5085E6839143EF103E25D82A3F80BCAED63B1A4290EA47` |
