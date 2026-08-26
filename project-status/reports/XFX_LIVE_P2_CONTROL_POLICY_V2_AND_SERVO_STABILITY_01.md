@@ -21,7 +21,7 @@ Amendment start head: `62207ffaf00c542002a6bdd3bbe4911469b853ef`
 - Cadence: 8/10/12 Hz bounded scheduler candidates automated PASS; default remains 8 Hz until fresh OPPO A/B.
 - Coordinate audit: automated PASS; visible cover crop is separated from sensor control and mirrored display coordinates.
 - Debug: optional BodyMode/metric/uncertainty/torso-anchor overlay; raw box explicitly labeled `DEBUG POSE EXTENT`.
-- Automated semantic fixtures: 31/31 PASS. Complete suite: 194/194 PASS. Typecheck PASS. Build PASS / 28 modules.
+- Automated semantic baseline fixtures: 31/31 PASS. Current complete suite after Scale amendment: 208/208 PASS. Typecheck PASS. Build PASS / 29 modules.
 - Provider / Backend per-frame / Luna / Raw Upload: 0 / 0 / 0 / 0.
 
 Semantic Measurement Device Gate: READY_FOR_MANUAL_DEVICE_TEST. Parent OPPO Gate 1 is paused and must not resume until the dedicated OPPO semantic gate passes.
@@ -31,6 +31,25 @@ Fresh OPPO startup evidence reported model loading incomplete after more than 60
 Post-fix scalar evidence set 1 contains 676 rows over three exports from one continuous session, with `raw_media=false`. First perception occurred at page timestamp about 18.3 seconds, so cold-start revalidation passes and the prior >60-second failure did not reproduce. The exports do not include a page reload, so cached-reload remains pending. The opening 50.73-second segment had 315/342 `HEAD_SHOULDERS` rows and zero BodyMode flicker; however precision Scale was valid in only 31/676 rows, labeled scenarios B–H and cadence telemetry are missing, and no READY occurred. This set is not Parent Gate 1 evidence; the Semantic Measurement Device Gate remains `MANUAL_REVIEW_REQUIRED`.
 
 The user subsequently confirmed that the updated page reached usable Camera/Model startup within a few seconds after refresh. Cached reload therefore passes qualitatively (exact duration not supplied), and the startup sub-gate is PASS. This does not close the Semantic Measurement Device Gate or resume Parent OPPO Gate 1.
+
+## SEMANTIC_SCALE_AND_FRAMING_DISTANCE_AMENDMENT
+
+Start head: `fd337ca8cf3afadb6b006064a7f833d14d7aa1f6`.
+
+- Scale validity audit: PASS; every one of 676 old rows classified. Primary reasons are 606 `UNCERTAINTY_TOO_HIGH`, 28 `REACQUISITION_BARRIER`, 10 `METRIC_FAMILY_UNAVAILABLE`, one `BODY_MODE_INCOMPATIBLE`, and 31 `VALID`.
+- Root cause: 461/462 `HEAD_SHOULDERS` rows already had a metric but were rejected by the old opaque combination of absolute, differently normalized component disagreement plus temporal variance. Missing hips were not the cause.
+- DistanceProxy: continuous shoulder-led near/far signal with torso/head corroboration; `HEAD_SHOULDERS` does not require hips. Wrist/elbow/knee/ankle outliers do not control it.
+- Orientation: frontal/oblique/sideways-or-uncertain scalar estimate; strongly sideways evidence gates shoulder-only direction rather than using brittle compensation.
+- Precision Scale V2: `HEAD_SHOULDERS_SCALE`, `UPPER_BODY_SCALE`, `THREE_QUARTER_SCALE`, `FULL_BODY_SCALE`; separate confidence/disagreement/orientation/crop/temporal uncertainty telemetry.
+- Compatibility/calibration: exact per-target BodyMode mapping and deterministic spike-local metric targets. Existing Scale tolerance remains 0.07; Parent target/deadband/success semantics are not widened.
+- Coarse framing: one separate `CoarseFramingEpisode` observes DistanceProxy and BodyMode progression, suppresses repeats while improving, and records SUCCESS/NO_EFFECT/WRONG_DIRECTION/MEASUREMENT_UNCERTAIN without entering the Parent denominator.
+- Handoff: target compatibility terminates coarse control; a newer stable valid state is required before precision ControlEpoch. Old and new metric numeric values are never compared across the switch.
+- Filter A/B: selected Distance One Euro (`0.35/4/1`) reduced controlled static jitter from 0.000786 to 0.000505 and small-step p90 from 750 to 500 ms without increasing 2% settle time (1250 ms).
+- Counterfactual replay: PASS_WITH_WARNING. All 462 `HEAD_SHOULDERS` rows imply bilateral shoulder evidence and are proxy candidates; eight repeated cues in the first sequence occurred while the old scalar trend was already improving. Exact V2 values cannot be reconstructed from old traces.
+- Automated tests: 208/208 PASS. TypeScript PASS. Production build PASS / 29 modules.
+- Provider / Backend per-frame / Luna / Raw Upload: 0 / 0 / 0 / 0.
+
+Semantic Scale Device Gate: READY_FOR_MANUAL_DEVICE_TEST. Semantic Measurement Device Gate remains `MANUAL_REVIEW_REQUIRED`, and Parent OPPO Gate 1 remains paused until the Scale Device Gate passes.
 
 ## Starting evidence reconstruction
 
@@ -90,4 +109,4 @@ CH-003: IDENTIFIED / UNCHANGED
 
 Main / Develop / Fine Tune / AI Visual: UNTOUCHED
 
-Next: complete OPPO K11 Gate 1 in this same task. Do not start Luna or another task.
+Next: complete the OPPO K11 Semantic Scale Device Gate in this same task. Resume Parent OPPO Gate 1 only after that sub-gate passes. Do not start Luna or another task.
