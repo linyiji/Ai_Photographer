@@ -2,12 +2,13 @@
   "schema_version": "0.1",
   "track": "PARALLEL_SCENE_SPATIAL",
   "branch": "spike/scene-spatial-photography-v0.1",
-  "accepted_head": null,
+  "accepted_head": "1e7b6b4889e13104f23c9a3e13902177740ca612",
+  "p0_status": "PASS_WITH_WARNING",
   "base_main_head": "56cd8e5c41ef35b3af43ff5979e5c921fdfddd17",
   "source_provenance": "source-provenance.json",
   "provided_capabilities": ["SceneSweepRuntime", "OrientationProvider", "SceneSweepManifest", "YawMap"],
   "future_output_candidate": "SceneSpatialContext",
   "future_main_consumer": "Photography Director / Scene Understanding",
-  "integration_status": "NOT_READY",
+  "integration_status": "P0_RUNTIME_ACCEPTED_ONLY",
   "migration_policy": "SELECTIVE_MIGRATION_ONLY_NO_RAW_SPIKE_MERGE"
 }
