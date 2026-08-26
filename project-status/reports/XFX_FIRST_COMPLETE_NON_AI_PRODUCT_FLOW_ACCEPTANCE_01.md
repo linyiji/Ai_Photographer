@@ -4,7 +4,7 @@
 Status = IN_PROGRESS
 Branch = feature/first-complete-non-ai-product-flow
 Main Base Head = 56cd8e5c41ef35b3af43ff5979e5c921fdfddd17
-Implementation head under test = faff0f727389f615c80a92c4fc5fe20455cda556
+Implementation head under test = 35aca06031c98021d800c530853abeb9f47869d1
 Product provenance commit = 02821e6c4dcefbef8d916c61eeb502b9ddba5ddd
 OPPO_MAIN_GATE = FAIL
 FIRST_COMPLETE_NON_AI_PRODUCT_BASELINE = NOT_YET_PASS
@@ -118,3 +118,36 @@ The current environment has no already-authorized stable trusted HTTPS ingress. 
 Evidence:
 
 `project-status/evidence/first-complete-non-ai/oppo-bounded-remediation/camera-geometry-and-capture-transport-remediation-02.md`
+
+## FIDELITY_AND_TRANSPORT_REACCEPTANCE_AMENDMENT_03 — 2026-08-26
+
+The same Main Track branch now captures a transient, local-only, orientation-normalized shutter-time Preview Reference Frame cropped to the authoritative viewport. `PreviewStillAlignmentResultV01` is implementation-local and fails closed as `UNSUPPORTED` with confidence `0` until device evidence establishes a reliable mapping. Native `ImageCapture.takePhoto()` remains the preserved source-quality JPEG.
+
+Automated alignment fixtures A–J pass, along with the full 65-test frontend suite, 106-test backend suite, TypeScript and H5 build. They do not supply the missing OPPO three-composition qualitative evidence.
+
+```text
+Remaining Camera Mismatch = UNKNOWN / MULTIPLE / POST_REMEDIATION_OPPO_A_B_NOT_EXERCISED
+Preview Reference = IMPLEMENTED / LOCAL_ONLY / VIEWPORT_NORMALIZED
+PreviewStillAlignment = PASS_WITH_WARNING / AUTOMATED_MODEL_PASS / OPPO_NOT_EXERCISED
+Alignment Mode = UNSUPPORTED
+Alignment Confidence = 0
+PreviewMatchedCaptureAsset = NOT_CREATED
+Native Source = PASS / 3072×4096 accepted OPPO evidence / approximately 7.7–8.8 MB
+3-case OPPO Preview vs Review = NOT_EXERCISED
+CAMERA_COMPOSITION_FIDELITY = FAIL
+Stable trusted HTTPS ingress = NOT_AVAILABLE
+CAPTURE_TRANSPORT = MANUAL_REVIEW_REQUIRED
+BACKEND_PERSISTENCE = PASS / 106 tests
+OPPO retry and idempotency = NOT_EXERCISED
+FINE_TUNE_DEVICE_GATE = NOT_REACHED
+FINAL_DEVICE_SAVE = NOT_REACHED
+FULL_MAIN_GOLDEN_FLOW = FAIL
+OPPO_MAIN_GATE = FAIL
+FIRST_COMPLETE_NON_AI_PRODUCT_BASELINE = NOT_YET_PASS
+PUBLIC_PRODUCTION_READY = NO
+```
+
+Formal evidence and exact stable-ingress commands:
+
+- `project-status/evidence/first-complete-non-ai/oppo-bounded-remediation/oppo-preview-still-fidelity-and-transport-reacceptance.md`
+- `project-status/evidence/first-complete-non-ai/oppo-bounded-remediation/TRANSPORT_MANUAL_GATE_INSTRUCTIONS.md`
