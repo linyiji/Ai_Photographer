@@ -1,0 +1,29 @@
+{
+  "schema_version": "0.1",
+  "recorded_at": "2026-08-26",
+  "main": {
+    "source_ref": "56cd8e5c41ef35b3af43ff5979e5c921fdfddd17",
+    "source_paths_inspected": [
+      "apps/client/src/platform/runtime.ts",
+      "packages/platform/catalog.json",
+      "packages/contracts/schemas/ErrorContract.schema.json",
+      "packages/contracts/schemas/AssetRef.schema.json",
+      "packages/contracts/schemas/AssetManifest.schema.json",
+      "docs/architecture/65-replay-e2e-lab-v1.0.md"
+    ],
+    "adaptation_types": ["platform responsibility and user-action permission pattern", "deterministic replay/evidence architecture", "privacy/network boundary conventions"],
+    "runtime_dependency": false
+  },
+  "live": {
+    "source_ref": "62207ffaf00c542002a6bdd3bbe4911469b853ef",
+    "source_paths_inspected": [
+      "spikes/live-physical-agent-mvp/camera/session-guard.ts",
+      "spikes/live-physical-agent-mvp/perception/telemetry.ts",
+      "spikes/live-physical-agent-mvp/index.html",
+      "spikes/live-physical-agent-mvp/package.json"
+    ],
+    "adaptation_types": ["async camera request ownership guard", "track stop/release lifecycle", "requestVideoFrameCallback FPS pattern", "bounded percentile telemetry and zero-network counters"],
+    "explicitly_not_adapted": ["closed-loop controller", "body pose servo policy", "READY logic", "ActionEpisode semantics", "Line Dog theme"],
+    "runtime_dependency": false
+  }
+}

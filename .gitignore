@@ -7,6 +7,7 @@
 node_modules/
 dist/
 .test-dist/
+.replay-dist/
 .taro/
 .swc/
 *.log

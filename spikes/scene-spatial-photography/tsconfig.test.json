@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": ".test-dist",
+    "types": ["node"]
+  },
+  "include": ["camera", "motion", "sweep", "spatial", "telemetry", "replay", "fixtures", "tests"]
+}
