@@ -2,6 +2,7 @@ import type { PerceptionTelemetrySnapshot, StructuredPerceptionState } from '../
 import type { ClosedLoopSnapshot } from './types.js';
 import { LocalClosedLoopEngine } from './engine.js';
 import type { VisualGuidanceState } from '../visual-guidance/types.js';
+import type { Gate1ActualCoverage, Gate1PreArmTelemetry } from './gate1-acceptance.js';
 
 export interface ScalarTraceRow {
   timestamp: number; sequence: number; subject_present: boolean; center_x: number | null; height_ratio: number | null;
@@ -30,6 +31,37 @@ export interface ScalarTraceExportContext {
   session:{user_agent:string;viewport_width:number;viewport_height:number;orientation:string;camera_facing:string;preview_mirror_state:string;target_id:string;theme_id:string;vision_target_hz:number;scheduler:string};
 }
 
+export interface StopResponseTelemetry {
+  trial_id: number | null;
+  episode_id: number | null;
+  axis: string | null;
+  commanded_action: string | null;
+  stop_issued_at: number;
+  x_at_stop: number | null;
+  scale_at_stop: number | null;
+  last_control_measurement_at_stop: { timestamp_ms: number; state_version: number };
+  first_post_stop_measurement: { timestamp_ms: number; state_version: number; x: number | null; scale: number | null } | null;
+  motion_continued_after_stop: boolean;
+  movement_settle_at: number | null;
+  stop_to_settle_ms: number | null;
+  max_post_stop_x_excursion: number;
+  max_post_stop_scale_excursion: number;
+  reverse_instruction_after_stop: string | null;
+  reverse_instruction_age: number | null;
+  measurement_state_version: number;
+  control_epoch_id: number | null;
+}
+
+export interface Gate1AcceptanceExport extends Gate1PreArmTelemetry {
+  actual_trial_coverage: Gate1ActualCoverage;
+  trial_acceptance_eligible: boolean;
+  precision_episode_counts: { x: number; scale: number };
+  precision_success_counts: { x: number; scale: number };
+  ready_source: string | null;
+  post_ready_ordinary: number;
+  stop_responses: StopResponseTelemetry[];
+}
+
 export const scalarTraceRow = (state: StructuredPerceptionState, snapshot: ClosedLoopSnapshot, visual?: VisualGuidanceState | null, themeId?: string): ScalarTraceRow => ({
   timestamp: state.timestamp_ms, sequence: state.sequence, subject_present: state.subject.present,
   center_x: state.subject.center_x, height_ratio: state.subject.height_ratio, velocity_x: state.subject.velocity_x,
@@ -47,9 +79,93 @@ export const scalarTraceRow = (state: StructuredPerceptionState, snapshot: Close
 
 export class ScalarTraceRecorder {
   readonly rows: ScalarTraceRow[] = [];
-  clear(): void { this.rows.length = 0; }
-  append(state: StructuredPerceptionState, snapshot: ClosedLoopSnapshot, visual?: VisualGuidanceState | null, themeId?: string): void { this.rows.push(scalarTraceRow(state, snapshot, visual, themeId)); }
-  json(context?:ScalarTraceExportContext): string { return JSON.stringify({ format: 'xfx-live-p2-scalar-trace-v2', raw_media: false, ...(context?{evidence_context:context}:{}), rows: this.rows }, null, 2); }
+  private gate1PreArm: Gate1PreArmTelemetry | null = null;
+  private readonly stopResponses: StopResponseTelemetry[] = [];
+  clear(): void { this.rows.length = 0; this.gate1PreArm = null; this.stopResponses.length = 0; }
+  beginGate1Trial(preArm: Gate1PreArmTelemetry): void { this.gate1PreArm = structuredClone(preArm); }
+  append(state: StructuredPerceptionState, snapshot: ClosedLoopSnapshot, visual?: VisualGuidanceState | null, themeId?: string): void {
+    const row = scalarTraceRow(state, snapshot, visual, themeId);
+    this.rows.push(row);
+    this.observeStopResponse(state, snapshot, row);
+  }
+  json(context?:ScalarTraceExportContext): string {
+    const acceptance = this.gate1PreArm ? this.gate1AcceptanceExport() : null;
+    return JSON.stringify({ format: 'xfx-live-p2-scalar-trace-v2', raw_media: false, ...(context?{evidence_context:context}:{}), ...(acceptance?{gate1_acceptance:acceptance}:{}), rows: this.rows }, null, 2);
+  }
+  private gate1AcceptanceExport(): Gate1AcceptanceExport {
+    const episodes = new Map<number, string>();
+    const successes = new Map<number, string>();
+    for (const row of this.rows) {
+      if (row.episode_id !== null && row.control_epoch?.axis) episodes.set(row.episode_id, row.control_epoch.axis);
+      if (row.episode_id !== null && row.episode_state === 'TERMINAL' && row.verification === 'SUCCESS' && row.control_epoch?.axis) successes.set(row.episode_id, row.control_epoch.axis);
+    }
+    const x = [...episodes.values()].filter((axis) => axis === 'X').length;
+    const scale = [...episodes.values()].filter((axis) => axis === 'SCALE').length;
+    const actual: Gate1ActualCoverage = x > 0 && scale > 0 ? 'COMBINED' : x > 0 ? 'X_ONLY' : scale > 0 ? 'SCALE_ONLY' : 'NONE';
+    const readyRow = [...this.rows].reverse().find((row) => row.ready);
+    const readyIndex = this.rows.findIndex((row) => row.ready);
+    const postReadyOrdinary = readyIndex < 0 ? 0 : this.rows.slice(readyIndex + 1).filter((row) => {
+      const action = row.instruction_event?.action;
+      return action === 'MOVE_LEFT' || action === 'MOVE_RIGHT' || action === 'MOVE_CLOSER' || action === 'MOVE_FARTHER';
+    }).length;
+    return {
+      ...structuredClone(this.gate1PreArm!),
+      actual_trial_coverage: actual,
+      trial_acceptance_eligible: this.gate1PreArm!.precondition_valid && actual === this.gate1PreArm!.expected_trial_coverage,
+      precision_episode_counts: { x, scale },
+      precision_success_counts: {
+        x: [...successes.values()].filter((axis) => axis === 'X').length,
+        scale: [...successes.values()].filter((axis) => axis === 'SCALE').length,
+      },
+      ready_source: readyRow?.ready_source ?? null,
+      post_ready_ordinary: postReadyOrdinary,
+      stop_responses: structuredClone(this.stopResponses),
+    };
+  }
+  private observeStopResponse(state: StructuredPerceptionState, snapshot: ClosedLoopSnapshot, row: ScalarTraceRow): void {
+    const event = row.instruction_event?.action;
+    const x = state.framing?.anchor_x ?? state.subject.center_x;
+    const scale = state.framing?.scale ?? state.subject.height_ratio;
+    if (event === 'STOP_HERE') {
+      this.stopResponses.push({
+        trial_id: row.trial_id,
+        episode_id: row.episode_id,
+        axis: row.control_epoch?.axis ?? null,
+        commanded_action: row.control_epoch?.action ?? null,
+        stop_issued_at: row.instruction_event!.timestamp_ms,
+        x_at_stop: x,
+        scale_at_stop: scale,
+        last_control_measurement_at_stop: { timestamp_ms: snapshot.control_observation.measurement_timestamp, state_version: snapshot.control_observation.state_version },
+        first_post_stop_measurement: null,
+        motion_continued_after_stop: false,
+        movement_settle_at: null,
+        stop_to_settle_ms: null,
+        max_post_stop_x_excursion: 0,
+        max_post_stop_scale_excursion: 0,
+        reverse_instruction_after_stop: null,
+        reverse_instruction_age: null,
+        measurement_state_version: snapshot.control_observation.state_version,
+        control_epoch_id: row.control_epoch?.epoch_id ?? null,
+      });
+      return;
+    }
+    const active = [...this.stopResponses].reverse().find((item) => item.trial_id === row.trial_id);
+    if (!active || state.timestamp_ms <= active.stop_issued_at) return;
+    active.first_post_stop_measurement ??= { timestamp_ms: state.timestamp_ms, state_version: state.sequence, x, scale };
+    if (x !== null && active.x_at_stop !== null) active.max_post_stop_x_excursion = Math.max(active.max_post_stop_x_excursion, Math.abs(x - active.x_at_stop));
+    if (scale !== null && active.scale_at_stop !== null) active.max_post_stop_scale_excursion = Math.max(active.max_post_stop_scale_excursion, Math.abs(scale - active.scale_at_stop));
+    const stable = state.framing?.stable ?? state.subject.stable;
+    if (!stable) active.motion_continued_after_stop = true;
+    if (stable && active.movement_settle_at === null) {
+      active.movement_settle_at = state.timestamp_ms;
+      active.stop_to_settle_ms = Math.max(0, state.timestamp_ms - active.stop_issued_at);
+    }
+    const reverse: Readonly<Record<string, string>> = { MOVE_LEFT: 'MOVE_RIGHT', MOVE_RIGHT: 'MOVE_LEFT', MOVE_CLOSER: 'MOVE_FARTHER', MOVE_FARTHER: 'MOVE_CLOSER' };
+    if (event && active.commanded_action && event === reverse[active.commanded_action]) {
+      active.reverse_instruction_after_stop = event;
+      active.reverse_instruction_age = Math.max(0, row.instruction_event!.timestamp_ms - active.stop_issued_at);
+    }
+  }
 }
 
 export function replayScalarStates(states: readonly StructuredPerceptionState[], armed = true): ClosedLoopSnapshot[] {

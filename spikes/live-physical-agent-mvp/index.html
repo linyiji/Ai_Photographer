@@ -189,6 +189,21 @@
           <span class="status-pill status-pill--muted">LUNA · OFF</span>
         </div>
         <p id="cl-instruction" class="instruction-copy" role="status" aria-live="polite">等待本机状态输入</p>
+        <section id="gate1-precondition" class="gate1-precondition" aria-label="Gate 1 precondition">
+          <div class="gate1-precondition__header">
+            <strong>GATE 1 PRECONDITION</strong>
+            <span id="gate1-precondition-result">NOT READY</span>
+          </div>
+          <dl>
+            <div><dt>EXPECTED</dt><dd id="gate1-expected">—</dd></div>
+            <div><dt>BODY MODE</dt><dd id="gate1-body-mode">—</dd></div>
+            <div><dt>X</dt><dd id="gate1-x">—</dd></div>
+            <div><dt>SCALE</dt><dd id="gate1-scale">—</dd></div>
+            <div><dt>X MEASUREMENT</dt><dd id="gate1-x-valid">INVALID</dd></div>
+            <div><dt>SCALE MEASUREMENT</dt><dd id="gate1-scale-valid">INVALID</dd></div>
+          </dl>
+          <p id="gate1-precondition-reason">请先选择 Gate 1 场景并建立有效起始状态</p>
+        </section>
         <dl class="perception-grid guidance-grid">
           <div><dt>TARGET X / Y / SCALE</dt><dd id="cl-target">— / — / —</dd></div>
           <div><dt>CURRENT X / Y / SCALE</dt><dd id="cl-current">— / — / —</dd></div>

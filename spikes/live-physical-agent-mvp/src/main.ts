@@ -11,6 +11,7 @@ import type { NormalizedBox, VisualGuidanceState, VisualServoMode } from '../vis
 import { projectBoxToCover } from '../visual-guidance/viewport.js';
 import { GUIDANCE_THEMES, renderGuidanceTheme } from '../visual-guidance/themes.js';
 import { CameraSessionGuard, ownsActiveCameraSession } from '../camera/session-guard.js';
+import { evaluateGate1PreArm, isGate1Scenario, type Gate1PreArmTelemetry } from '../closed-loop/gate1-acceptance.js';
 
 type FacingMode = 'user' | 'environment';
 type PermissionStateLabel = PermissionState | 'not_requested' | 'unsupported' | 'error';
@@ -63,6 +64,15 @@ const guidanceMode = requireElement<HTMLSelectElement>('guidance-mode');
 const guidanceGrid = requireElement<HTMLInputElement>('guidance-grid');
 const semanticDebug = requireElement<HTMLInputElement>('semantic-debug');
 const scaleGateScenario = requireElement<HTMLSelectElement>('scale-gate-scenario');
+const gate1Precondition = requireElement<HTMLElement>('gate1-precondition');
+const gate1PreconditionResult = requireElement<HTMLElement>('gate1-precondition-result');
+const gate1Expected = requireElement<HTMLElement>('gate1-expected');
+const gate1BodyMode = requireElement<HTMLElement>('gate1-body-mode');
+const gate1X = requireElement<HTMLElement>('gate1-x');
+const gate1Scale = requireElement<HTMLElement>('gate1-scale');
+const gate1XValid = requireElement<HTMLElement>('gate1-x-valid');
+const gate1ScaleValid = requireElement<HTMLElement>('gate1-scale-valid');
+const gate1PreconditionReason = requireElement<HTMLElement>('gate1-precondition-reason');
 const guidanceTheme = requireElement<HTMLSelectElement>('guidance-theme');
 const visualOverlay = requireElement<HTMLElement>('visual-servo-overlay');
 const visualGrid = requireElement<HTMLElement>('visual-grid');
@@ -146,6 +156,7 @@ let latestClosedLoop: ClosedLoopSnapshot | null = null;
 let latestVisualGuidance: VisualGuidanceState | null = null;
 let displayedActionCopy: string | null = null;
 let displayedActionUntilMs = 0;
+let activeGate1PreArm: Gate1PreArmTelemetry | null = null;
 const cameraSessionGuard = new CameraSessionGuard();
 
 const simulatedUnsupported = new URLSearchParams(window.location.search).get('simulateUnsupported') === '1';
@@ -183,6 +194,7 @@ const perceptionRuntime = new PerceptionRuntime({
     }
     renderPerceptionState();
     renderClosedLoop();
+    renderGate1Precondition();
     renderVisualGuidance();
   },
   onError: (text) => {
@@ -199,6 +211,39 @@ function setMessage(text: string, kind: 'info' | 'error' = 'info'): void {
 function setPermission(next: PermissionStateLabel): void {
   permissionState = next;
   permissionValue.textContent = next.toUpperCase();
+}
+
+const GATE1_REASON_COPY: Readonly<Record<string, string>> = Object.freeze({
+  SUBJECT_NOT_PRESENT: '人物未进入画面',
+  BODY_MODE_NOT_STABLE: 'BodyMode 尚未稳定 600ms',
+  BODY_MODE_MUST_BE_UPPER_BODY: '需要稳定 UPPER_BODY',
+  BODY_MODE_NOT_PRECISION_COMPATIBLE: '当前 BodyMode 不支持精调',
+  X_MEASUREMENT_INVALID: 'X 测量无效',
+  SCALE_MEASUREMENT_INVALID: 'Scale 测量无效',
+  X_MUST_START_OUTSIDE_TARGET: 'X 必须在目标区外',
+  SCALE_MUST_START_IN_TARGET: 'Scale 必须在目标区内',
+  X_MUST_START_IN_TARGET: 'X 必须在目标区内',
+  SCALE_MUST_START_OUTSIDE_TARGET: 'Scale 必须在目标区外',
+  X_RELATION_UNKNOWN: '无法判断 X 起始关系',
+  SCALE_RELATION_UNKNOWN: '无法判断 Scale 起始关系',
+});
+
+function renderGate1Precondition(): void {
+  const scenario = scaleGateScenario.value;
+  gate1Precondition.hidden = !isGate1Scenario(scenario);
+  if (!isGate1Scenario(scenario)) return;
+  const current = activeGate1PreArm ?? evaluateGate1PreArm(scenario, latestPerceptionState, currentTarget);
+  gate1Precondition.dataset.valid = String(current.precondition_valid);
+  gate1PreconditionResult.textContent = current.precondition_valid ? `${current.expected_trial_coverage} READY TO ARM ✓` : 'NOT READY';
+  gate1Expected.textContent = current.expected_trial_coverage;
+  gate1BodyMode.textContent = `${current.pre_arm_body_mode} ${current.pre_arm_body_mode_stable ? '✓' : '✕'}`;
+  gate1X.textContent = `${formatMetric(current.pre_arm_anchor_x)} / ${current.pre_arm_x_relation}`;
+  gate1Scale.textContent = `${formatMetric(current.pre_arm_scale)} / ${current.pre_arm_scale_relation}`;
+  gate1XValid.textContent = current.pre_arm_x_valid ? 'VALID ✓' : 'INVALID ✕';
+  gate1ScaleValid.textContent = current.pre_arm_scale_valid ? 'VALID ✓' : 'INVALID ✕';
+  gate1PreconditionReason.textContent = current.precondition_valid
+    ? '起始覆盖有效；现在可以 ARM。移动要慢，看到“停一下”立即停止并保持不动。'
+    : current.precondition_failure_reason.map((reason) => GATE1_REASON_COPY[reason] ?? reason).join('；');
 }
 
 function formatElapsed(milliseconds: number): string {
@@ -690,13 +735,14 @@ targetPreset.addEventListener('change', () => {
   const selected = TARGET_PRESETS.find((preset) => preset.id === targetPreset.value) ?? TARGET_PRESETS[0];
   currentTarget = selected; closedLoop.setTarget(selected); latestClosedLoop = null;
   visualProjector.reset(); latestVisualGuidance = null;
-  displayedActionCopy = null; displayedActionUntilMs = 0; renderClosedLoop(); renderVisualGuidance();
+  displayedActionCopy = null; displayedActionUntilMs = 0; activeGate1PreArm = null; renderClosedLoop(); renderGate1Precondition(); renderVisualGuidance();
 });
 
 guidanceMode.addEventListener('change',()=>{ if(latestPerceptionState&&latestClosedLoop) latestVisualGuidance=visualProjector.update(latestPerceptionState,latestClosedLoop,latestRawMeasurement,{mode:guidanceMode.value as VisualServoMode,grid:guidanceGrid.checked,now:performance.now()}); renderVisualGuidance(); renderClosedLoop(); });
 guidanceGrid.addEventListener('change',()=>{ if(latestPerceptionState&&latestClosedLoop) latestVisualGuidance=visualProjector.update(latestPerceptionState,latestClosedLoop,latestRawMeasurement,{mode:guidanceMode.value as VisualServoMode,grid:guidanceGrid.checked,now:performance.now()}); renderVisualGuidance(); });
 semanticDebug.addEventListener('change',renderSemanticDebug);
 guidanceTheme.addEventListener('change',()=>renderVisualGuidance());
+scaleGateScenario.addEventListener('change', () => { activeGate1PreArm = null; renderGate1Precondition(); });
 
 closedLoopReset.addEventListener('click', () => {
   if (latestClosedLoop?.runtime_state === 'LOCAL_RECOVERY_REQUIRED' && closedLoop.resumeAfterLocalRecovery(performance.now())) {
@@ -704,12 +750,21 @@ closedLoopReset.addEventListener('click', () => {
     setMessage('已继续本机引导；历史 Episode 与标量 Trace 保留，不会重复编号。');
     return;
   }
-  closedLoop.reset(); latestClosedLoop = null; displayedActionCopy = null; displayedActionUntilMs = 0;
-  visualProjector.reset(); latestVisualGuidance = null; renderClosedLoop(); renderVisualGuidance();
+  closedLoop.reset(); latestClosedLoop = null; displayedActionCopy = null; displayedActionUntilMs = 0; activeGate1PreArm = null;
+  visualProjector.reset(); latestVisualGuidance = null; renderClosedLoop(); renderGate1Precondition(); renderVisualGuidance();
 });
 closedLoopArm.addEventListener('click', () => {
-  closedLoop.armTrial(performance.now()); scalarTrace.clear(); latestClosedLoop = null; displayedActionCopy = null; displayedActionUntilMs = 0;
-  visualProjector.reset(); latestVisualGuidance = null; renderClosedLoop(); renderVisualGuidance(); setMessage('试验已 ARM；请从目标外位置开始，首个普通指令发出时开始计时。');
+  const scenario = scaleGateScenario.value;
+  const preArm = isGate1Scenario(scenario) ? evaluateGate1PreArm(scenario, latestPerceptionState, currentTarget) : null;
+  if (preArm && !preArm.precondition_valid) {
+    activeGate1PreArm = null; renderGate1Precondition();
+    setMessage(`Gate 1 ARM 已阻止：${preArm.precondition_failure_reason.map((reason) => GATE1_REASON_COPY[reason] ?? reason).join('；')}`, 'error');
+    return;
+  }
+  closedLoop.armTrial(performance.now()); scalarTrace.clear();
+  if (preArm) { activeGate1PreArm = preArm; scalarTrace.beginGate1Trial(preArm); } else activeGate1PreArm = null;
+  latestClosedLoop = null; displayedActionCopy = null; displayedActionUntilMs = 0;
+  visualProjector.reset(); latestVisualGuidance = null; renderClosedLoop(); renderGate1Precondition(); renderVisualGuidance(); setMessage('试验已 ARM；起始覆盖已锁定。缓慢连续移动，看到“停一下”立即停止并保持不动。');
 });
 closedLoopTrace.addEventListener('click', () => {
   const previewFps=Number.parseFloat(fpsValue.textContent??'0')||0;const runtimeTelemetry=perceptionRuntime.snapshot(previewFps);const scenario=scaleGateScenario.value;
@@ -735,6 +790,7 @@ perceptionFields.targetHz.textContent = PERCEPTION_CONFIG.visionTargetHz.toFixed
 renderPerceptionState();
 renderPerceptionTelemetry();
 renderClosedLoop();
+renderGate1Precondition();
 renderVisualGuidance();
 void readPermissionState();
 void refreshCameraInventory();

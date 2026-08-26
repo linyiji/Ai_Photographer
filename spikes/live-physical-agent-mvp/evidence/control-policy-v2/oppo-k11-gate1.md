@@ -107,3 +107,12 @@ Source fingerprints:
 | --- | --- | --- |
 | Scale | `live-p2-scale-gate1_scale-1787736229109.json` | `885E0D8D18F0035C0EA4D476905155DC6FB02A2D7690479865CA5BE3B38EDB0E` |
 | Combined | `live-p2-scale-gate1_combined-1787736320137.json` | `D1D3036546BB109F9F5085E6839143EF103E25D82A3F80BCAED63B1A4290EA47` |
+
+## Gate 1 attempt 8 — acceptance harness ready, device evidence pending
+
+- A debug-only Pre-ARM panel now evaluates X, Scale, and Combined starting coverage against the existing target, deadband, precision calibration, measurement validity, and stable compatible BodyMode. It does not tune controller semantics.
+- Invalid Gate 1 ARM is prevented with an explicit failure reason. A valid ARM locks the Pre-ARM scalar snapshot into the downloaded trace.
+- Trace export now reports expected/actual coverage, precision Episode/success counts, READY source, post-READY ordinary count, and per-STOP scalar causality: measurement version/epoch, X/Scale at STOP, first newer measurement, continued motion, settle time, maximum excursion, and opposite reissue age.
+- Automated regression: 215/215 PASS. TypeScript PASS. Production build PASS / 30 modules.
+- Browser Replay: READY / EPISODE_SUCCESS, ordinary/STOP/HOLD/success `1/1/1/1`, Provider/Backend/Luna/Upload `0/0/0/0`, console errors 0. Invalid ARM smoke remains DISARMED and shows the bounded failure reason.
+- Real-device status: `MANUAL_REVIEW_REQUIRED`. No Attempt 8 X/Scale/Combined trace has yet been accepted, no overshoot classification is claimed, and Gate 2 remains blocked.

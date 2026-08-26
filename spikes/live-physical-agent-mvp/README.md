@@ -104,7 +104,7 @@ Current Control Policy V2 state:
 Status = READY_FOR_MANUAL_DEVICE_TEST
 LIVE-P1 = PASS
 P2 Implementation Gate = PASS
-Automated Gate = PASS / 210 of 210 tests
+Automated Gate = PASS / 215 of 215 tests
 Browser Replay = PASS
 P2 Real Device Gate = MANUAL_REVIEW_REQUIRED
 LIVE-P2 Final Gate = NOT_YET_REEVALUATED
@@ -112,9 +112,11 @@ LIVE-P2 Final Gate = NOT_YET_REEVALUATED
 
 The accepted 59-Episode / 33.9% sample remains preserved only as this task's starting baseline. It is not a V2 result and cannot satisfy Gate 1 or Gate 2.
 
-The OPPO Semantic Scale Device Gate and Semantic Measurement Device Gate are `PASS_WITH_WARNING` on post-fix Attempt 2, so Parent OPPO Gate 1 is ready to resume. Live control separates a continuous shoulder/torso `DistanceProxy` from target-specific precision Scale, records explicit validity reasons, and uses one measured `CoarseFramingEpisode` instead of repeating open-loop distance text. The labeled S1–S6 evidence remains in `evidence/semantic-framing-v2/oppo-semantic-scale.md`; do not reuse those sub-gate traces as Parent Gate 1 correction-success evidence.
+The OPPO Semantic Scale Device Gate and Semantic Measurement Device Gate are `PASS_WITH_WARNING` on post-fix Attempt 2. Parent OPPO Gate 1 remains `FAIL / REVALIDATION_REQUIRED` after Attempt 7. Live control separates a continuous shoulder/torso `DistanceProxy` from target-specific precision Scale, records explicit validity reasons, and uses one measured `CoarseFramingEpisode` instead of repeating open-loop distance text. The labeled S1–S6 evidence remains in `evidence/semantic-framing-v2/oppo-semantic-scale.md`; do not reuse those sub-gate traces as Parent Gate 1 correction-success evidence.
 
 For S1–S6, select the labeled `SCALE GATE` scenario before ARM. `下载标量 Trace` directly downloads one JSON containing the scalar rows plus scenario label, user agent, viewport/orientation, camera/mirror, target/theme/cadence, Preview/Vision/State rates, inference current/p50/p95, scheduled/processed/skipped counts, memory availability, and zero-valued external/raw-upload counters. Starting another ARM clears the current trace, so download each scenario before arming the next one.
+
+For Gate 1 Attempt 8, select X, Scale, or Combined and use the debug-only `GATE 1 PRECONDITION` panel. ARM is blocked until the selected scenario proves its required unchanged X/Scale target relation, valid precision measurements, and stable compatible BodyMode. The downloaded trace locks the Pre-ARM snapshot, reports actual precision coverage and success counts, and includes scalar-only STOP-to-settle telemetry. It does not change Target, Deadband, success semantics, or the production controller.
 
 ## Stop boundary
 
