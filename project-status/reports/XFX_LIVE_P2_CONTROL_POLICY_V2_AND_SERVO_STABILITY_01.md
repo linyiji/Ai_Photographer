@@ -4,6 +4,28 @@ Status: READY_FOR_MANUAL_DEVICE_TEST
 
 Start Head: `44e7914e3df7f778c1f0d4d6c127ddbb8048bef4`
 
+## SEMANTIC_FRAMING_MEASUREMENT_AMENDMENT
+
+Amendment start head: `62207ffaf00c542002a6bdd3bbe4911469b853ef`
+
+- Admission: PASS; same Parent Task, worktree, branch, and linear published history.
+- Body visibility classifier: IMPLEMENTED for HEAD_ONLY, HEAD_SHOULDERS, UPPER_BODY, THREE_QUARTER, FULL_BODY, and PARTIAL_OR_AMBIGUOUS.
+- BodyMode hysteresis: 400 ms; controlled static 5 s flicker 0; single-frame knee/ankle changes do not promote/demote.
+- Semantic X: confidence-aware shoulder/hip torso fusion; raw Pose min/max is not used for live precision X.
+- Semantic scale: four mode-specific robust metric families; raw Pose height is not the only precision scale.
+- Measurement uncertainty: precision X/scale suppression implemented and counted separately; target tolerance unchanged.
+- Two-stage control: incompatible BodyMode emits separately counted coarse framing guidance; compatible stable mode enters existing precision servo.
+- ControlEpoch: snapshots BodyMode, scale metric family, and scale baseline. Metric-family loss cannot silently remove an Episode from the denominator.
+- Target calibration: spike-local `SEMANTIC_VISIBLE_OCCUPANCY_EQUIVALENT`; existing target values/tolerances and `AXIS_TARGET_SUCCESS` unchanged.
+- Filter A/B: EMA jitter/step90 `0.001496803 / 750 ms`; One Euro `0.000941642 / 625 ms`; One Euro selected as device candidate.
+- Cadence: 8/10/12 Hz bounded scheduler candidates automated PASS; default remains 8 Hz until fresh OPPO A/B.
+- Coordinate audit: automated PASS; visible cover crop is separated from sensor control and mirrored display coordinates.
+- Debug: optional BodyMode/metric/uncertainty/torso-anchor overlay; raw box explicitly labeled `DEBUG POSE EXTENT`.
+- Automated semantic fixtures: 31/31 PASS. Complete suite: 193/193 PASS. Typecheck PASS. Build PASS / 27 modules.
+- Provider / Backend per-frame / Luna / Raw Upload: 0 / 0 / 0 / 0.
+
+Semantic Measurement Device Gate: READY_FOR_MANUAL_DEVICE_TEST. Parent OPPO Gate 1 is paused and must not resume until the dedicated OPPO semantic gate passes.
+
 ## Starting evidence reconstruction
 
 - Historical baseline: `33.9%`, 59 terminal Episodes, 20/31/8 SUCCESS/NO_EFFECT/WRONG_DIRECTION. It is not a V2 result.

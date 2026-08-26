@@ -104,13 +104,15 @@ Current Control Policy V2 state:
 Status = READY_FOR_MANUAL_DEVICE_TEST
 LIVE-P1 = PASS
 P2 Implementation Gate = PASS
-Automated Gate = PASS / 162 of 162 tests
+Automated Gate = PASS / 193 of 193 tests
 Browser Replay = PASS
 P2 Real Device Gate = MANUAL_REVIEW_REQUIRED
 LIVE-P2 Final Gate = NOT_YET_REEVALUATED
 ```
 
 The accepted 59-Episode / 33.9% sample remains preserved only as this task's starting baseline. It is not a V2 result and cannot satisfy Gate 1 or Gate 2.
+
+Before the next OPPO Gate 1 rerun, complete `evidence/semantic-framing-v2/oppo-semantic-measurement.md`. Live precision control now consumes spike-local BodyMode-aware torso anchor and robust semantic scale rather than the green raw Pose min/max extent. Enable `Semantic Debug` only for device diagnosis; its dashed box is explicitly `DEBUG POSE EXTENT`. Test 8/10/12 Hz serially, retain 8 Hz unless a higher cadence satisfies the documented device guards, and do not resume correction-success sampling until the semantic device gate passes.
 
 ## Stop boundary
 

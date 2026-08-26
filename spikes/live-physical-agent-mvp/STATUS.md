@@ -28,15 +28,26 @@ DEFAULT Theme = PASS
 LINE_DOG = IMPLEMENTED_CANDIDATE
 Theme Semantic Diff = 0
 
-Automated Tests = 162/162 PASS
+Automated Tests = 193/193 PASS
 Typecheck = PASS
-Production Build = PASS / 22 MODULES
+Production Build = PASS / 27 MODULES
 Browser Replay = PASS
 Counterfactual Post-READY Blocked = 6/6
 Counterfactual Wrong Prevented = 0/8 EVIDENCE-CONFIRMED / NOT DEVICE SUCCESS
 
 Status = READY_FOR_MANUAL_DEVICE_TEST
 P2 Implementation Gate = PASS
+Semantic Framing Amendment = IMPLEMENTATION PASS / DEVICE GATE REQUIRED
+Body Visibility Modes = HEAD_ONLY / HEAD_SHOULDERS / UPPER_BODY / THREE_QUARTER / FULL_BODY / PARTIAL_OR_AMBIGUOUS
+Body Mode Static Flicker = 0 / CONTROLLED 5S
+Semantic Anchor X = PASS / TORSO FUSION
+Raw Pose MinMax Used For Precision X = NO
+Raw Pose Height Used As Only Precision Scale = NO
+Measurement Uncertainty = PASS / SEPARATE SUPPRESSION COUNTERS
+Two-stage Framing Control = PASS
+Selected Filter Candidate = ONE_EURO / DEVICE CONFIRMATION REQUIRED
+Vision Cadence Candidates = 8 / 10 / 12 HZ / DEFAULT 8 HZ
+OPPO Semantic Measurement Gate = MANUAL_REVIEW_REQUIRED
 OPPO Gate 1 = MANUAL_REVIEW_REQUIRED
 OPPO Gate 1 Attempt 1 = FRONT SWITCH DEFECT / BOUNDED FIX IMPLEMENTED / REVALIDATION REQUIRED
 OPPO Gate 1 Attempt 2 = DISARMED/UI STATE DEFECT / BOUNDED FIX IMPLEMENTED / REVALIDATION REQUIRED
@@ -57,4 +68,4 @@ CH-003 = IDENTIFIED / UNCHANGED
 Main / Develop / Fine Tune / AI Visual = UNTOUCHED
 ```
 
-The accepted 33.9% / 59-Episode sample remains the task's starting baseline, not its V2 acceptance result. Attempt 3 is fresh V2 evidence but is a pre-fix, non-passing diagnostic sample; it cannot satisfy Gate 1 or Gate 2. Gate 2 and the unchanged `>=80%` Correction Success decision may begin only after a post-fix Gate 1 passes. No next task or Luna work starts automatically.
+The accepted 33.9% / 59-Episode sample remains the task's starting baseline, not its V2 acceptance result. Attempt 3 is fresh V2 evidence but is a pre-fix, non-passing diagnostic sample; it cannot satisfy Gate 1 or Gate 2. The mandatory Semantic Measurement Device Gate now precedes Parent OPPO Gate 1. Gate 1 may resume only after that semantic gate passes; Gate 2 and the unchanged `>=80%` Correction Success decision may begin only after Gate 1 passes. No next task or Luna work starts automatically.

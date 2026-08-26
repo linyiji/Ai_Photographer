@@ -16,6 +16,8 @@
     "perception/state-tracker.ts",
     "perception/telemetry.ts",
     "perception/types.ts",
+    "semantic-framing/**/*.ts",
+    "visual-guidance/viewport.ts",
     "fixtures/perception/**/*.ts",
     "tests/**/*.ts"
   ]
