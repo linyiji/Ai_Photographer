@@ -151,3 +151,34 @@ Formal evidence and exact stable-ingress commands:
 
 - `project-status/evidence/first-complete-non-ai/oppo-bounded-remediation/oppo-preview-still-fidelity-and-transport-reacceptance.md`
 - `project-status/evidence/first-complete-non-ai/oppo-bounded-remediation/TRANSPORT_MANUAL_GATE_INSTRUCTIONS.md`
+
+## OPPO_LOCAL_LOOPBACK_REACCEPTANCE_GATE_04 — 2026-08-26
+
+Gate 04 attempted the required ADB-first environment admission. Git lineage was exact and clean, but Windows has no `adb` command, Android SDK environment variable, known local Platform-Tools binary, or discoverable authorized device. No tooling was silently installed and no product code was changed.
+
+The deterministic local acceptance endpoints are frontend `http://localhost:4175` and backend `http://localhost:8000`; the H5 acceptance build must receive `XFX_API_BASE=http://localhost:8000` at build time. Because ADB reverse could not be created, OPPO secure-context, Camera API, payload transport, three-case Camera A/B, retry and all downstream Parent gates remain unexercised.
+
+```text
+DEVICE_TRANSPORT_MODE = UNAVAILABLE
+ADB_LOOPBACK_GATE = MANUAL_REVIEW_REQUIRED
+DEVICE_SECURE_CONTEXT = NOT_EXERCISED
+OPPO_CAMERA_A_B = NOT_EXERCISED
+CAMERA_COMPOSITION_FIDELITY = FAIL / REAL_DEVICE_A_B_NOT_EXERCISED
+CAPTURE_TRANSPORT = MANUAL_REVIEW_REQUIRED
+ORIGIN_UPLOAD_REACHED = NOT_EXERCISED
+BACKEND_PERSISTENCE = PASS / ACCEPTED_UNCHANGED
+UPLOAD_RETRY = NOT_EXERCISED
+UPLOAD_IDEMPOTENCY = NOT_EXERCISED
+FINE_TUNE_DEVICE_GATE = NOT_REACHED
+FINAL_DEVICE_SAVE = NOT_REACHED
+MY_WORKS_READBACK = NOT_REACHED
+FULL_MAIN_GOLDEN_FLOW = FAIL
+OPPO_MAIN_GATE = FAIL
+FIRST_COMPLETE_NON_AI_PRODUCT_BASELINE = NOT_YET_PASS
+PUBLIC_PRODUCTION_READY = NO
+Product code changes = 0
+```
+
+Evidence and exact Owner instructions:
+
+`project-status/evidence/first-complete-non-ai/oppo-bounded-remediation/oppo-local-loopback-reacceptance.md`
