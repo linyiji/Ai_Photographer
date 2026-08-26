@@ -15,7 +15,12 @@
     "runtime_dependency": false
   },
   "live": {
-    "source_ref": "62207ffaf00c542002a6bdd3bbe4911469b853ef",
+    "source_ref": "847ff95c6d95b32f8cb36be5207d8d3a4343ad9a",
+    "authorization_ref": "62207ffaf00c542002a6bdd3bbe4911469b853ef",
+    "admission_ref": "62207ffaf00c542002a6bdd3bbe4911469b853ef",
+    "closure_ref": "847ff95c6d95b32f8cb36be5207d8d3a4343ad9a",
+    "advance_is_linear": true,
+    "closure_diff_note": "Two linear commits added semantic framing measurement; referenced camera guard and telemetry source were unchanged. package.json test list and index HUD advanced only.",
     "source_paths_inspected": [
       "spikes/live-physical-agent-mvp/camera/session-guard.ts",
       "spikes/live-physical-agent-mvp/perception/telemetry.ts",

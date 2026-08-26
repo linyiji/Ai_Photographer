@@ -3,7 +3,7 @@
 Status: **BLOCKED**
 
 Main Base Head: `56cd8e5c41ef35b3af43ff5979e5c921fdfddd17`  
-Live Reference Head: `62207ffaf00c542002a6bdd3bbe4911469b853ef`  
+Live Reference Head: `847ff95c6d95b32f8cb36be5207d8d3a4343ad9a` (linear advance from authorization/admission `62207ffaf00c542002a6bdd3bbe4911469b853ef`)  
 Worktree: `D:\Projects\_worktrees\Ai_Photographer-scene-spatial`  
 Branch: `spike/scene-spatial-photography-v0.1`
 
