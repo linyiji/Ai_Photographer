@@ -51,7 +51,7 @@ function distanceProxy(groups:LandmarkGroupEvidenceMap,head:SensorPoint|null,ori
   else if(hs!==null){value=sw*1.2+hs*.55;source='HEAD_SHOULDER_COMPOSITE';corroborationConfidence=Math.min(groups.SHOULDERS.confidence,groups.HEAD_CORE.confidence);}
   const confidence=clamp(groups.SHOULDERS.confidence*.75+corroborationConfidence*.25);const uncertainty=clamp((1-confidence)*.55+orientationUncertainty*.45);
   const valid=orientation!=='SIDEWAYS_OR_UNCERTAIN'&&uncertainty<=.5;
-  return {value:clamp(value),source,confidence,uncertainty,valid,validity_reason:valid?'VALID':orientation==='SIDEWAYS_OR_UNCERTAIN'?'ORIENTATION_UNCERTAIN':'UNCERTAINTY_TOO_HIGH'};
+  return {value,source,confidence,uncertainty,valid,validity_reason:valid?'VALID':orientation==='SIDEWAYS_OR_UNCERTAIN'?'ORIENTATION_UNCERTAIN':'UNCERTAINTY_TOO_HIGH'};
 }
 
 function scale(mode:BodyMode,groups:LandmarkGroupEvidenceMap,head:SensorPoint|null,orientationUncertainty:number,crop:CroppedEdges):FramingScaleMeasurement|null {
@@ -68,7 +68,7 @@ function scale(mode:BodyMode,groups:LandmarkGroupEvidenceMap,head:SensorPoint|nu
   const confidenceUncertainty=1-average(candidates.map(([,confidence])=>confidence));const cropAmbiguity:number=(crop.left||crop.right)?0.15:0;const componentDisagreement=clamp(disagreement);
   const uncertaintyComponents={landmark_confidence:clamp(confidenceUncertainty),component_disagreement:componentDisagreement,orientation_ambiguity:orientationUncertainty,crop_ambiguity:cropAmbiguity,temporal_variance:0};
   const uncertainty=clamp(uncertaintyComponents.landmark_confidence*.35+componentDisagreement*.15+orientationUncertainty*.3+cropAmbiguity*.2);
-  return {value:clamp(value),metric_type:metric,component_values:Object.freeze(components),component_confidences:Object.freeze(confidences),uncertainty,uncertainty_components:Object.freeze(uncertaintyComponents),body_mode:mode};
+  return {value,metric_type:metric,component_values:Object.freeze(components),component_confidences:Object.freeze(confidences),uncertainty,uncertainty_components:Object.freeze(uncertaintyComponents),body_mode:mode};
 }
 
 export function extractSemanticRawMeasurement(landmarks:readonly LandmarkSample[],timestampMs:number,config:Pick<PerceptionConfig,'visibilityThreshold'|'presenceThreshold'>,viewport:VisibleSensorRect,rawPoseBox:PoseMeasurement|null):SemanticRawMeasurement|null {

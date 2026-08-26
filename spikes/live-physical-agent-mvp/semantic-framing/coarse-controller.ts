@@ -15,13 +15,13 @@ const coarseName=(action:DirectionalAction):CoarseFramingAction=>action==='MOVE_
 const directionProgress=(action:CoarseFramingAction,start:number,current:number):number=>action==='COARSE_MOVE_FARTHER'?(start-current)/Math.max(start,.01):(current-start)/Math.max(start,.01);
 
 export class CoarseFramingController {
-  private sequence=0;private episode:CoarseFramingEpisode|null=null;private handoffBarrier:number|null=null;private handoffCount=0;private lastTerminalAt:number|null=null;
-  constructor(private readonly persistenceMs=250,private readonly responseGraceMs=900,private readonly timeoutMs=4500,private readonly reissueGapMs=1200){}
-  reset():void{this.sequence=0;this.episode=null;this.handoffBarrier=null;this.handoffCount=0;this.lastTerminalAt=null;}
+  private sequence=0;private episode:CoarseFramingEpisode|null=null;private handoffBarrier:number|null=null;private handoffCount=0;private previousCompatibility:FramingCompatibilityState|null=null;
+  constructor(private readonly persistenceMs=250,private readonly responseGraceMs=900,private readonly timeoutMs=4500){}
+  reset():void{this.sequence=0;this.episode=null;this.handoffBarrier=null;this.handoffCount=0;this.previousCompatibility=null;}
   update(targetId:string,framing:FramingMeasurement,trialId:number,now:number):CoarseFramingDecision {
-    const compatibility=framingCompatibilityFor(targetId,framing.body_mode);
+    const compatibility=framingCompatibilityFor(targetId,framing.body_mode);const previous=this.previousCompatibility;this.previousCompatibility=compatibility;
     if(compatibility==='COMPATIBLE'){
-      if(this.episode&&!this.episode.terminal_outcome){const directional:DirectionalAction=this.episode.action==='COARSE_MOVE_FARTHER'?'MOVE_FARTHER':'MOVE_CLOSER';if(this.episode.body_mode_progression_path.at(-1)!==framing.body_mode)this.episode.body_mode_progression_path.push(framing.body_mode);this.episode.body_mode_progression=Math.max(this.episode.body_mode_progression,bodyModeProgressionDelta(this.episode.start_body_mode,framing.body_mode,directional));this.finish('SUCCESS',now);this.handoffBarrier=framing.state_version;this.handoffCount+=1;}
+      if(this.episode&&previous!==compatibility){const directional:DirectionalAction=this.episode.action==='COARSE_MOVE_FARTHER'?'MOVE_FARTHER':'MOVE_CLOSER';if(this.episode.body_mode_progression_path.at(-1)!==framing.body_mode)this.episode.body_mode_progression_path.push(framing.body_mode);this.episode.body_mode_progression=Math.max(this.episode.body_mode_progression,bodyModeProgressionDelta(this.episode.start_body_mode,framing.body_mode,directional));if(!this.episode.terminal_outcome)this.finish('SUCCESS',now);this.handoffBarrier=framing.state_version;this.handoffCount+=1;}
       const ready=this.handoffBarrier===null||(framing.state_version>this.handoffBarrier&&framing.stable&&framing.valid_for_precision_scale);
       if(ready)this.handoffBarrier=null;
       return this.decision(compatibility,ready,null);
@@ -29,11 +29,11 @@ export class CoarseFramingController {
     const directional=coarseActionForCompatibility(compatibility);
     if(!directional){if(this.episode&&!this.episode.terminal_outcome&&now-this.episode.issued_at>=this.timeoutMs)this.finish('MEASUREMENT_UNCERTAIN',now);return this.decision(compatibility,false,null);}
     const action=coarseName(directional);
-    if(!this.episode||this.episode.terminal_outcome){
-      if(this.lastTerminalAt!==null&&now-this.lastTerminalAt<this.reissueGapMs)return this.decision(compatibility,false,null);
+    if(!this.episode||(this.episode.terminal_outcome&&this.episode.action!==action)){
       this.sequence+=1;this.episode={trial_id:trialId,coarse_episode_id:this.sequence,action,issued_at:now,instruction_issued:false,start_body_mode:framing.body_mode,target_compatibility:compatibility,start_distance_proxy:framing.distance_proxy.valid?framing.distance_proxy.value:null,start_distance_proxy_confidence:framing.distance_proxy.confidence,best_distance_proxy:framing.distance_proxy.value,coarse_progress_proxy:0,body_mode_progression:0,body_mode_progression_path:[framing.body_mode],terminal_outcome:null,terminal_at:null};
     }
     const episode=this.episode;
+    if(episode.terminal_outcome)return this.decision(compatibility,false,null);
     if(episode.action!==action){this.finish('SUCCESS',now);return this.update(targetId,framing,trialId,now);}
     if(episode.body_mode_progression_path.at(-1)!==framing.body_mode)episode.body_mode_progression_path.push(framing.body_mode);
     episode.body_mode_progression=Math.max(episode.body_mode_progression,bodyModeProgressionDelta(episode.start_body_mode,framing.body_mode,directional));
@@ -42,6 +42,6 @@ export class CoarseFramingController {
     let instruction:DirectionalAction|null=null;if(!episode.instruction_issued&&now-episode.issued_at>=this.persistenceMs){episode.instruction_issued=true;instruction=directional;}
     return this.decision(compatibility,false,instruction);
   }
-  private finish(outcome:NonNullable<CoarseFramingEpisode['terminal_outcome']>,now:number):void{if(!this.episode||this.episode.terminal_outcome)return;this.episode.terminal_outcome=outcome;this.episode.terminal_at=now;this.lastTerminalAt=now;}
+  private finish(outcome:NonNullable<CoarseFramingEpisode['terminal_outcome']>,now:number):void{if(!this.episode||this.episode.terminal_outcome)return;this.episode.terminal_outcome=outcome;this.episode.terminal_at=now;}
   private decision(compatibility:FramingCompatibilityState,precisionReady:boolean,instruction:DirectionalAction|null):CoarseFramingDecision{return {compatibility,precision_ready:precisionReady,handoff_barrier_state_version:this.handoffBarrier,handoff_count:this.handoffCount,instruction_action:instruction,episode:this.episode?Object.freeze({...this.episode,body_mode_progression_path:[...this.episode.body_mode_progression_path]}):null};}
 }

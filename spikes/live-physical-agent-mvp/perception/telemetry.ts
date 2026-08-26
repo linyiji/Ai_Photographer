@@ -66,6 +66,7 @@ export class PerceptionTelemetry {
       thermal_observation: 'BROWSER_API_UNAVAILABLE',
       raw_video_upload: 0,
       backend_per_frame_calls: 0,
+      provider_calls: 0,
       luna_calls: 0,
     };
   }

@@ -46,13 +46,17 @@ Start head: `fd337ca8cf3afadb6b006064a7f833d14d7aa1f6`.
 - Handoff: target compatibility terminates coarse control; a newer stable valid state is required before precision ControlEpoch. Old and new metric numeric values are never compared across the switch.
 - Filter A/B: selected Distance One Euro (`0.35/4/1`) reduced controlled static jitter from 0.000786 to 0.000505 and small-step p90 from 750 to 500 ms without increasing 2% settle time (1250 ms).
 - Counterfactual replay: PASS_WITH_WARNING. All 462 `HEAD_SHOULDERS` rows imply bilateral shoulder evidence and are proxy candidates; eight repeated cues in the first sequence occurred while the old scalar trend was already improving. Exact V2 values cannot be reconstructed from old traces.
-- Automated tests: 210/210 PASS. TypeScript PASS. Production build PASS / 29 modules.
+- Automated tests before device Attempt 1: 210/210 PASS. TypeScript PASS. Production build PASS / 29 modules.
 - Device evidence export: direct labeled S1–S6 JSON download includes device/orientation/camera/mirror/target/theme context and the final Preview/Vision/State/inference/frame/memory/privacy telemetry snapshot; no manual HUD transcription is required for those scalar fields.
 - Provider / Backend per-frame / Luna / Raw Upload: 0 / 0 / 0 / 0.
 
 Semantic Scale Device Gate: READY_FOR_MANUAL_DEVICE_TEST. Semantic Measurement Device Gate remains `MANUAL_REVIEW_REQUIRED`, and Parent OPPO Gate 1 remains paused until the Scale Device Gate passes.
 
 A device revalidation then exposed a cached-mobile `HEAD` response with `Content-Length: 0`; the strict preflight falsely labeled the intact 5,777,746-byte model invalid. The bounded fix treats zero/missing HEAD length as unknown, still rejects explicit nonzero mismatches, and relies on the real model GET/MediaPipe initialization for final validation. Device revalidation remains required.
+
+Fresh OPPO Scale Attempt 1 then completed labeled S1–S6 downloads with no raw media. Preview was 26.3–30.0 fps and no visible freeze, black screen, or crash occurred, but Vision Actual was only 4.157–4.380 Hz, inference p95 was 265.7–304.1 ms, and the user reported obvious device heating. Functionally, the exported scalar was capped near 1.0 in closer scenarios, farther/closer sign evidence was therefore invalid, coarse terminal episodes reopened into repeated cues, S4 had only one stable UPPER_BODY precision row, and S6 never transitioned BodyMode. Attempt 1 is retained as pre-fix FAIL evidence and cannot close the gate.
+
+A bounded correction removes the value cap while keeping uncertainty bounded, prevents automatic same-action coarse reissue after a terminal outcome, adds the compatibility-transition fresh-state barrier even after a terminal coarse episode, and exports explicit zero provider calls. Complete automated verification is now `211/211 PASS`; TypeScript and production build / 29 modules pass. Fresh S1–S6 evidence on a cooled device is required. The Semantic Scale Device Gate remains `MANUAL_REVIEW_REQUIRED`, and Parent OPPO Gate 1 remains paused.
 
 ## Starting evidence reconstruction
 
