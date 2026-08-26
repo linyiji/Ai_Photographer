@@ -1,6 +1,6 @@
 # OPPO K11 Semantic Scale Device Gate
 
-Status: ATTEMPT_1_FAIL / REVALIDATION_REQUIRED
+Status: ATTEMPT_2_OBJECTIVE_PASS_WITH_WARNING_CANDIDATE / SUBJECTIVE_CONFIRMATION_REQUIRED
 
 Device: OPPO K11 / ColorOS 15 / Chrome Mobile. Use DEFAULT theme and enable `Semantic Debug`. Do not capture, save, or upload frames/video.
 
@@ -78,3 +78,31 @@ Source fingerprints (files remain outside the repository; no camera frame/video 
 - Automated regression: `211/211 PASS`; TypeScript PASS; production build PASS / 29 modules.
 
 Fresh, cooled-device S1–S6 evidence is required. Attempt 1 is retained as pre-fix FAIL evidence and cannot be reused as a passing result.
+
+## Device Attempt 2 — post-fix objective evidence
+
+Date: 2026-08-26. Same OPPO K11 / ColorOS 15 / Chrome Mobile context, portrait front camera, mirrored preview, DEFAULT theme, and `requestVideoFrameCallback`. All files declare `raw_media=false`; Provider, Backend per-frame, Luna, and Raw Upload are explicitly zero.
+
+| Scenario | Objective result | Evidence |
+| --- | --- | --- |
+| S1 HEAD_SHOULDERS STATIC | PASS_WITH_WARNING | DistanceProxy valid 54/59 stable-present rows = 91.5%; one coarse instruction, zero repeats, zero BodyMode flicker. Stable P10/P50/P90 = 1.188/1.235/1.414, so residual settling/drift remains a warning. |
+| S2 MOVE FARTHER | PASS | deliberate farther segment 1.713→0.772 (−54.9%) by 13.4 s; coarse progress 0.308; one instruction. The subject subsequently returned closer before export, which explains the non-directional full-file endpoint. |
+| S3 MOVE CLOSER | PASS | after reaching the wider setup at 0.848, deliberate closer segment rose to 2.080 (+145.5%); no saturation and correct sign. |
+| S4 UPPER_BODY PRECISION | PASS | stable UPPER_BODY precision Scale valid 16/16 = 100%; observed Scale 0.462→0.395 farther, then 0.395→0.409 closer. |
+| S5 ARM INVARIANCE | PASS_WITH_WARNING | stable UPPER_BODY window emitted no near/far instruction; DistanceProxy P10/P50/P90 = 0.597/0.616/0.638 (6.7% P10–P90 spread). A wider entry/exit pose transition is excluded from the stable arm window. |
+| S6 MODE TRANSITION | PASS | HEAD_SHOULDERS↔UPPER_BODY↔THREE_QUARTER transitions occurred with zero instruction on the switch row and zero flicker; later instructions waited for a new stable row. |
+
+Scenario-local state-row cadence was 6.95–7.21 Hz, above the 6 Hz steady-state minimum. The cumulative runtime `vision_hz_avg` rose from 1.61 to 4.60 Hz because its denominator includes the pre-sampling startup/idle interval; it is not a steady-state scenario rate and is retained as a telemetry warning. Preview was 28.4–30.0 fps. Cumulative inference p95 was 127.6 ms in S1, then 108.0/92.0/94.1/86.9/98.7 ms; the warmed final snapshot passes the 120 ms candidate. Final scheduled/processed/skipped-busy was 1530/1491/38 with no queued-work evidence.
+
+Objective hard-criterion result: PASS_WITH_WARNING candidate. Final Device Gate decision is withheld pending a fresh user statement for visible freeze/black screen/crash and device heating during this Attempt 2 session.
+
+Source fingerprints:
+
+| Scenario | Filename | SHA-256 |
+| --- | --- | --- |
+| S1 | `live-p2-scale-s1_head_shoulders_static-1787724336973.json` | `A4EEF46F7761DB937D40BB60A3BEA92F4ADBB649837AE24E28986E61221AAE84` |
+| S2 | `live-p2-scale-s2_head_shoulders_move_farther-1787724395821.json` | `A318333931BC346019208A9B715A3D598193CB1979BF3448A6287E4C1EAB8D71` |
+| S3 | `live-p2-scale-s3_move_closer-1787724424873.json` | `17CC29B141CD279E7D383B2B1980D25463985562555FD36C8CD9F84275A68C7E` |
+| S4 | `live-p2-scale-s4_upper_body_precision-1787724469082.json` | `B7B110B0271627169FFFF278F5A785100659DF7CBA9FD8E3ECAE28562C256439` |
+| S5 | `live-p2-scale-s5_arm_motion_invariance-1787724501182.json` | `2EC48C244B46A296F77D1213410B5F3425FE1FBAE3B5EA19A9C4BCC4527820FC` |
+| S6 | `live-p2-scale-s6_body_mode_transition-1787724537433.json` | `114FF5BD92FA3FF538C83C08950DED863666D19D4D0FCB3483F51FE50061B42A` |
