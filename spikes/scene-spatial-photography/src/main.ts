@@ -2,7 +2,11 @@ import './style.css';
 import { CameraRuntime } from '../camera/camera-runtime.js';
 import { DeviceOrientationProvider } from '../motion/device-orientation-provider.js';
 import type { OrientationSource } from '../motion/orientation-provider.js';
+import { analyzeSceneSweep } from '../p1/analyze-scene-sweep.js';
+import { clonePixelFrame, syntheticVisualFixtures } from '../p1/synthetic-fixtures.js';
+import type { PhotographyOpportunityV01, SceneSweepAnalysisResult, TransientKeyframePixels } from '../p1/types.js';
 import { canonicalManifestJson } from '../spatial/scene-sweep-manifest.js';
+import { YawMap } from '../spatial/yaw-map.js';
 import { metricsFromImageData } from '../sweep/quality-gate.js';
 import { SceneSweepRuntime } from '../sweep/sweep-runtime.js';
 import type { FrameMetrics, SweepMode } from '../sweep/types.js';
@@ -27,6 +31,12 @@ type TrialEvidence = {
   quality_eval_ms_p95: number | null; blur_score_min_p50_p95: number[];
   exposure_mean_min_p50_max: number[]; queue_length: number; privacy: object; network: object;
 };
+type P1TrialEvidence = {
+  sweep_id: string; mode: SweepMode; descriptor_count: number; region_count: number; opportunity_count: number;
+  analysis_ms: { descriptor: number; region: number; ranking: number; total: number; };
+  top_opportunities: { yaw_deg: number; score: number; placement_anchor: string; reason_codes: string[]; }[];
+  preview_fps_median: number | null; privacy: object; qualitative_pending: true;
+};
 
 let runtime: SceneSweepRuntime | null = null;
 let latestYaw = 0;
@@ -40,6 +50,10 @@ let candidateExposureMeans: number[] = [];
 let orientationSource: OrientationSource = 'CONTROLLED_FIXTURE';
 const completedTrials: TrialEvidence[] = [];
 const recordedTrialIds = new Set<string>();
+const transientKeyframes = new Map<string, TransientKeyframePixels>();
+const analyzedSweepIds = new Set<string>();
+const p1Trials: P1TrialEvidence[] = [];
+let latestP1Analysis: SceneSweepAnalysisResult | null = null;
 
 const currentMode = (): SweepMode => $<HTMLSelectElement>('mode').value as SweepMode;
 const modeTarget = (): number => ({ QUICK_SWEEP: 110, WIDE_SWEEP: 180, FULL_SWEEP: 360 })[currentMode()];
@@ -52,6 +66,50 @@ const percentile = (values: readonly number[], ratio: number): number | null => 
 const stationaryRange = (): number | null => initialYawSamples.length < 2 ? null : Math.max(...initialYawSamples) - Math.min(...initialYawSamples);
 const resetTrialTelemetry = (): void => { firstOrientationAt = null; initialYawSamples = []; previewFpsSamples = []; candidateBlurScores = []; candidateExposureMeans = []; };
 const updateEvidenceText = (): void => { $<HTMLTextAreaElement>('device-evidence').value = JSON.stringify(completedTrials, null, 2); };
+const updateP1EvidenceText = (): void => { $<HTMLTextAreaElement>('p1-device-evidence').value = JSON.stringify(p1Trials, null, 2); };
+const reasonLabel: Record<string, string> = {
+  BALANCED_EXPOSURE: '曝光较均衡', GOOD_SHARPNESS: '画面较清晰', LOW_BACKGROUND_CLUTTER: '背景较简洁',
+  CLEAN_LEFT_PLACEMENT: '左侧留人更干净', CLEAN_CENTER_PLACEMENT: '中间留人更干净', CLEAN_RIGHT_PLACEMENT: '右侧留人更干净',
+  GOOD_EDGE_CLEARANCE: '画面边缘余量较好', REGION_VISUALLY_STABLE: '方向画面较稳定', PENALTY_HIGH_CLUTTER: '背景较繁杂',
+  PENALTY_EDGE_CONFLICT: '人物区域边缘干扰', PENALTY_LOW_SHARPNESS: '清晰度偏低', PENALTY_OVEREXPOSED: '高光偏多', PENALTY_UNDEREXPOSED: '暗部偏多',
+};
+const directionLabel = (yaw: number): string => Math.abs(yaw) < 1 ? '相对起点 0°' : yaw > 0 ? `相对起点向右 ${Math.abs(yaw).toFixed(0)}°` : `相对起点向左 ${Math.abs(yaw).toFixed(0)}°`;
+const pixelFrameThumbnail = (width: number, height: number, data: Uint8ClampedArray): string => {
+  const thumbnail = document.createElement('canvas'); thumbnail.width = width; thumbnail.height = height;
+  thumbnail.getContext('2d')!.putImageData(new ImageData(new Uint8ClampedArray(data), width, height), 0, 0);
+  return thumbnail.toDataURL('image/jpeg', 0.72);
+};
+const imageDataToTransient = (imageData: ImageData, keyframeId: string): TransientKeyframePixels => {
+  return { keyframe_id: keyframeId, pixels: { width: imageData.width, height: imageData.height, data: new Uint8ClampedArray(imageData.data) }, thumbnail_url: pixelFrameThumbnail(imageData.width, imageData.height, imageData.data) };
+};
+const renderOpportunityCard = (opportunity: PhotographyOpportunityV01, index: number): HTMLElement => {
+  const article = document.createElement('article'); article.className = 'opportunity-card';
+  const transient = transientKeyframes.get(opportunity.representative_keyframe_id), zone = opportunity.subject_placement_zone.normalized_rect;
+  const visual = document.createElement('div'); visual.className = 'opportunity-visual';
+  if (transient?.thumbnail_url) { const image = document.createElement('img'); image.src = transient.thumbnail_url; image.alt = `候选方向 ${index + 1}`; visual.append(image); }
+  const overlay = document.createElement('div'); overlay.className = 'placement-overlay'; overlay.style.left = `${zone.x * 100}%`; overlay.style.top = `${zone.y * 100}%`; overlay.style.width = `${zone.width * 100}%`; overlay.style.height = `${zone.height * 100}%`; overlay.textContent = '人物'; visual.append(overlay);
+  const body = document.createElement('div'); body.className = 'opportunity-body';
+  const title = document.createElement('h3'); title.textContent = `${index + 1}. ${directionLabel(opportunity.relative_camera_yaw_deg)}`;
+  const meta = document.createElement('p'); meta.textContent = `评分 ${Math.round(opportunity.score * 100)} · 建议人物在画面${({ LEFT_THIRD: '左侧', CENTER: '中间', RIGHT_THIRD: '右侧' } as const)[opportunity.subject_placement_zone.anchor]}`;
+  const reasons = document.createElement('div'); reasons.className = 'reason-list';
+  for (const code of opportunity.reason_codes.filter((code) => !code.startsWith('PENALTY_')).slice(0, 3)) { const tag = document.createElement('span'); tag.textContent = reasonLabel[code] ?? code; reasons.append(tag); }
+  body.append(title, meta, reasons); article.append(visual, body); return article;
+};
+
+const runP1Analysis = (): void => {
+  if (!runtime || runtime.session.status !== 'COMPLETE' || analyzedSweepIds.has(runtime.session.sweep_id)) return;
+  const manifest = runtime.manifest(), yawMap = new YawMap(manifest.ordered_keyframes).serialize();
+  latestP1Analysis = analyzeSceneSweep(manifest, yawMap, [...transientKeyframes.values()]);
+  analyzedSweepIds.add(runtime.session.sweep_id);
+  const cards = $('opportunity-cards'); cards.replaceChildren(...latestP1Analysis.opportunities.map(renderOpportunityCard));
+  $('p1-results').hidden = false; setText('p1-latency', `${latestP1Analysis.timings.total_ms.toFixed(1)} ms`);
+  setText('p1-regions', String(latestP1Analysis.context.angular_regions.length)); setText('p1-opportunities', String(latestP1Analysis.opportunities.length));
+  setText('p1-timings', `${latestP1Analysis.timings.descriptor_ms.toFixed(1)} / ${latestP1Analysis.timings.region_ms.toFixed(1)} / ${latestP1Analysis.timings.ranking_ms.toFixed(1)} ms`);
+  $<HTMLButtonElement>('download-p1').disabled = false;
+  const trial = completedTrials.find((item) => item.sweep_id === manifest.sweep_id);
+  p1Trials.push({ sweep_id: manifest.sweep_id, mode: manifest.mode, descriptor_count: latestP1Analysis.descriptors.length, region_count: latestP1Analysis.context.angular_regions.length, opportunity_count: latestP1Analysis.opportunities.length, analysis_ms: { descriptor: latestP1Analysis.timings.descriptor_ms, region: latestP1Analysis.timings.region_ms, ranking: latestP1Analysis.timings.ranking_ms, total: latestP1Analysis.timings.total_ms }, top_opportunities: latestP1Analysis.opportunities.map((item) => ({ yaw_deg: rounded(item.relative_camera_yaw_deg), score: rounded(item.score, 3), placement_anchor: item.subject_placement_zone.anchor, reason_codes: item.reason_codes })), preview_fps_median: trial?.preview_fps_median ?? null, privacy: latestP1Analysis.context.privacy, qualitative_pending: true });
+  updateP1EvidenceText();
+};
 
 const recordTrial = (): void => {
   if (!runtime || runtime.session.status !== 'COMPLETE' || recordedTrialIds.has(runtime.session.sweep_id)) return;
@@ -117,7 +175,7 @@ const render = (): void => {
   $('arc-fill').style.width = `${Math.min(100, coverage.span_deg / modeTarget() * 100)}%`;
   setText('hero', runtime.session.status === 'COMPLETE' ? '看完了' : '慢慢转动手机');
   if (runtime.session.status === 'COMPLETE') {
-    recordTrial(); stopAcquisition();
+    recordTrial(); runP1Analysis(); stopAcquisition();
     $<HTMLButtonElement>('start').disabled = false;
     $<HTMLButtonElement>('start').textContent = '再扫一次';
     $<HTMLButtonElement>('next-sweep').hidden = false;
@@ -131,10 +189,12 @@ const sampleFrame = (): void => {
   const started = performance.now();
   canvas.width = 160; canvas.height = Math.max(1, Math.round(160 * video.videoHeight / video.videoWidth));
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  const frameMetrics = metricsFromImageData(ctx.getImageData(0, 0, canvas.width, canvas.height), performance.now(), latestYaw);
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const frameMetrics = metricsFromImageData(imageData, performance.now(), latestYaw);
   candidateBlurScores.push(frameMetrics.blur_score); candidateExposureMeans.push(frameMetrics.exposure_mean);
   runtime.setCameraSourceDimensions(video.videoWidth, video.videoHeight);
   const selected = runtime.observeFrame(frameMetrics);
+  if (selected) { const selectedKeyframe = runtime.sampler.keyframes.at(-1); if (selectedKeyframe) transientKeyframes.set(selectedKeyframe.keyframe_id, imageDataToTransient(imageData, selectedKeyframe.keyframe_id)); }
   telemetry.candidate(performance.now() - started, selected); render();
 };
 
@@ -142,7 +202,7 @@ $('start').addEventListener('click', async () => {
   $<HTMLButtonElement>('start').disabled = true; $<HTMLButtonElement>('start').textContent = '启动中…';
   $<HTMLButtonElement>('next-sweep').hidden = true; $<HTMLSelectElement>('mode').disabled = true;
   runtime = new SceneSweepRuntime(currentMode(), `sweep-${Date.now()}`, Date.now());
-  telemetry.start(performance.now()); resetTrialTelemetry(); orientation.resetBaseline(); orientationSource = 'DEVICE_ORIENTATION';
+  telemetry.start(performance.now()); resetTrialTelemetry(); transientKeyframes.clear(); latestP1Analysis = null; $('p1-results').hidden = true; $<HTMLButtonElement>('download-p1').disabled = true; orientation.resetBaseline(); orientationSource = 'DEVICE_ORIENTATION';
   setText('message', '正在请求相机与方向权限…');
   const [cameraState, orientationState] = await Promise.all([camera.start(), orientation.requestPermission()]);
   if (cameraState.state !== 'ACTIVE') { setText('message', cameraState.message ?? '相机不可用'); $<HTMLButtonElement>('start').disabled = false; $<HTMLButtonElement>('start').textContent = '重试'; $<HTMLSelectElement>('mode').disabled = false; render(); return; }
@@ -163,7 +223,7 @@ $('fixture').addEventListener('click', () => {
   clearInterval(fixtureTimer);
   const target = modeTarget();
   runtime = new SceneSweepRuntime(currentMode(), `fixture-${currentMode().toLowerCase()}-${Date.now()}`, Date.now());
-  telemetry.start(performance.now()); resetTrialTelemetry(); orientationSource = 'CONTROLLED_FIXTURE';
+  telemetry.start(performance.now()); resetTrialTelemetry(); transientKeyframes.clear(); latestP1Analysis = null; $('p1-results').hidden = true; $<HTMLButtonElement>('download-p1').disabled = true; orientationSource = 'CONTROLLED_FIXTURE';
   $('empty').style.display = 'none'; $('finish').toggleAttribute('disabled', false); $('cancel').toggleAttribute('disabled', false);
   setText('message', '确定性 Fixture：无相机、无网络、无 Provider。');
   let yaw = 0;
@@ -177,6 +237,14 @@ $('fixture').addEventListener('click', () => {
     latestYaw = runtime.currentYawDeg() ?? yaw;
     const candidate: FrameMetrics = { timestamp_ms: timestamp, yaw_deg: yaw, width: 640, height: 480, blur_score: 30, exposure_mean: 128, highlight_clipping_ratio: 0, shadow_clipping_ratio: 0, fingerprint: [(yaw % 24) / 24, 1 - (yaw % 24) / 24] };
     const started = performance.now(); const selected = runtime.observeFrame(candidate);
+    if (selected) {
+      const selectedKeyframe = runtime.sampler.keyframes.at(-1);
+      if (selectedKeyframe) {
+        const names = ['clean-left', 'high-clutter', 'moderate-balanced', 'clean-right'] as const;
+        const fixture = syntheticVisualFixtures[names[Math.min(3, Math.floor(yaw / Math.max(1, target / 4)))] ?? 'moderate-balanced'];
+        transientKeyframes.set(selectedKeyframe.keyframe_id, { keyframe_id: selectedKeyframe.keyframe_id, pixels: clonePixelFrame(fixture), thumbnail_url: pixelFrameThumbnail(fixture.width, fixture.height, fixture.data) });
+      }
+    }
     telemetry.candidate(performance.now() - started, selected); yaw += 6; render();
     if (yaw > target + 12) stopAcquisition();
   };
@@ -199,5 +267,16 @@ $('download').addEventListener('click', () => {
 $('copy-evidence').addEventListener('click', async () => {
   try { await navigator.clipboard.writeText($<HTMLTextAreaElement>('device-evidence').value); setText('message', `已复制 ${completedTrials.length} 次试验证据。`); }
   catch { setText('message', '无法自动复制；请长按下方证据文本手动复制。'); }
+});
+$('download-p1').addEventListener('click', () => {
+  if (!runtime || !latestP1Analysis) return;
+  const output = { context: latestP1Analysis.context, opportunities: latestP1Analysis.opportunities, descriptors: latestP1Analysis.descriptors, timings: latestP1Analysis.timings };
+  const blob = new Blob([JSON.stringify(output, null, 2) + '\n'], { type: 'application/json' });
+  const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `${runtime.session.sweep_id}-p1.json`; link.click();
+  setText('message', `P1 标量结果已导出：${link.download}`); setTimeout(() => URL.revokeObjectURL(link.href), 0);
+});
+$('copy-p1-evidence').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText($<HTMLTextAreaElement>('p1-device-evidence').value); setText('message', `已复制 ${p1Trials.length} 次 P1 评估证据。`); }
+  catch { setText('message', '无法自动复制；请长按 P1 证据文本手动复制。'); }
 });
 window.addEventListener('pagehide', () => { orientation.stop(); camera.stop(); });
