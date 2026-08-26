@@ -93,6 +93,14 @@ OPPO Gate 1 Attempt 2 = DISARMED/UI STATE DEFECT / BOUNDED FIX IMPLEMENTED / REV
 OPPO Gate 1 Attempt 3 = PRE-FIX 5 TRIALS / 45 EPISODES / 35.6% / NOT ACCEPTED
 OPPO Gate 1 Attempt 4 = FRAMING COMPATIBILITY FALLBACK COPY BLOCKER / BOUNDED FIX IMPLEMENTED / REVALIDATION REQUIRED
 Persistent Framing Compatibility Action Copy = PASS / NO REPEATED INSTRUCTION EVENT
+OPPO Gate 1 Attempt 5 = 4 TRACES / NOT ACCEPTED / COMBINED MISSING + PERFORMANCE FAIL
+Attempt 5 READY / Post-READY Ordinary = 4/4 / 0
+Attempt 5 X / Scale / Combined Coverage = YES / YES / NO
+Attempt 5 Steady Trace Cadence = 3.79-5.04 HZ / FAIL
+Attempt 5 Inference p50 / p95 = 126.6-171.1 / 261.4-377.5 MS / FAIL
+Attempt 5 Skipped Busy = 35.6-45.8% / FAIL
+Attempt 5 Preview = 27.2-30.0 FPS / PASS
+Attempt 5 External / Raw = 0 / PASS
 Attempt 3 Causal Invariants = POST-READY 0 / SIGN MISMATCH 0 / ACTIVE-EPISODE AXIS SWITCH 0
 Attempt 3 Display Latency p50/p95/max = 91.6/248.1/893.4 MS
 Attempt 3 Response = CONTINUATION CUE + 1100 MS READABILITY + MEANINGFUL-MOTION LATENCY / REVALIDATION REQUIRED
@@ -109,4 +117,4 @@ CH-003 = IDENTIFIED / UNCHANGED
 Main / Develop / Fine Tune / AI Visual = UNTOUCHED
 ```
 
-The accepted 33.9% / 59-Episode sample remains the task's starting baseline, not its V2 acceptance result. Attempt 3 is fresh V2 evidence but is a pre-fix, non-passing diagnostic sample; it cannot satisfy Gate 1 or Gate 2. The mandatory Semantic Measurement and Scale Device Gates are now PASS_WITH_WARNING, so Parent OPPO Gate 1 is ready to resume. Gate 2 and the unchanged `>=80%` Correction Success decision may begin only after fresh Gate 1 passes. No next task or Luna work starts automatically.
+The accepted 33.9% / 59-Episode sample remains the task's starting baseline, not its V2 acceptance result. The mandatory Semantic Measurement and Scale Device Gates are PASS_WITH_WARNING. Parent Gate 1 Attempt 5 is not accepted because Combined coverage is absent and steady device performance fails; its causal READY evidence cannot substitute for a complete passing Gate 1. Gate 2 and the unchanged `>=80%` Correction Success decision may begin only after fresh Gate 1 passes. No next task or Luna work starts automatically.
