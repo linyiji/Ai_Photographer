@@ -21,4 +21,6 @@ function runtimeAssetCacheHeaders(): Plugin {
 
 export default defineConfig({
   plugins: [runtimeAssetCacheHeaders()],
+  server: { allowedHosts: ['.trycloudflare.com'] },
+  preview: { allowedHosts: ['.trycloudflare.com'] },
 });
