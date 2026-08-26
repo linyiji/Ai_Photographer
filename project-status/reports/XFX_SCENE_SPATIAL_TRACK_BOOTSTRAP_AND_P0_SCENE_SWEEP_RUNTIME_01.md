@@ -89,3 +89,11 @@ Scene Spatial Worktree: CLEAN at handoff
 Warnings: exact Chrome version unavailable; absolute heading not globally calibrated; FULL sweep experimental; thermal/memory APIs unavailable; one isolated FPS estimator interval below 24 without visible jank; stationary window movement-contaminated; device quality thresholds may receive future tuning.
 
 Next Recommended Task: `XFX_SCENE_SPATIAL_P1_SCENE_CONTEXT_AND_PHOTOGRAPHY_OPPORTUNITY_01` — **DO NOT START**.
+
+## Authorized P1 continuation closure — 2026-08-26
+
+P0 evidence and accepted runtime above remain unchanged. The subsequently authorized P1 task and direction-map/candidate amendment reached `PASS_WITH_WARNING` at accepted runtime head `f0e8baf6600f52ca6f8d509cc959b4edc04e93ee`.
+
+P1 now provides `SceneFrameSetV01`, `SceneDirectionMapV01`, `PhotographyViewCandidateV01`, and `PlacementCandidateV01`. `Region Count != Candidate Count`; OPPO K11 V2 verified one-region QUICK/WIDE sweeps still return three view candidates. P1 does not make the final photography decision, and P2 Photography Geometry remains `READY_FOR_ALGORITHM_SPIKE / NOT_STARTED`.
+
+Current track status: `ACTIVE_ACCEPTED_P1`. Integration status: `READY_FOR_INTEGRATION_DESIGN`. Main Integration remains `NOT_STARTED`.

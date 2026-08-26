@@ -7,7 +7,9 @@
 - P0 implementation / automated / replay / browser / OPPO K11: PASS_WITH_WARNING
 - P0 disposition: `ACTIVE_ACCEPTED_P0`; accepted runtime head `1e7b6b4889e13104f23c9a3e13902177740ca612`
 - Warnings: exact Chrome version unavailable; absolute heading not globally calibrated; FULL sweep experimental; one isolated FPS estimator low interval without visible jank; stationary window movement-contaminated
-- Future integration readiness: `P0_RUNTIME_ACCEPTED_ONLY`; Main integration not started
+- Future integration readiness: `READY_FOR_INTEGRATION_DESIGN`; Main integration not started
 - P1 V1 deterministic opportunity: `CHECKPOINT / NOT_ACCEPTED` after 4 OPPO sweeps collapsed to 1 region / 1 opportunity
-- P1 V2 SceneFrameSet / SceneDirectionMap / multi-view and multi-anchor candidate runtime: implemented; automated/replay/browser PASS; OPPO V2 pending
+- P1 V2 SceneFrameSet / SceneDirectionMap / multi-view and multi-anchor candidate runtime: `PASS_WITH_WARNING`; automated/replay/browser/OPPO V2 PASS
+- P1 disposition: `ACTIVE_ACCEPTED_P1`; accepted runtime head `f0e8baf6600f52ca6f8d509cc959b4edc04e93ee`
+- P2 Photography Geometry readiness: `READY_FOR_ALGORITHM_SPIKE`; implementation not started
 - Panorama stitching / AI provider: off
