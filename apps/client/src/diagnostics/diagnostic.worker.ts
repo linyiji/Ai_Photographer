@@ -1,0 +1,2 @@
+import {renderPixels,type AdjustmentRecipe,type SourceImage} from '../fineTune/core'
+self.onmessage=(event:MessageEvent<{id:number;source:SourceImage;recipe:AdjustmentRecipe}>)=>{const started=performance.now(),result=renderPixels(event.data.source,event.data.recipe);(self as any).postMessage({id:event.data.id,processingMs:result.renderMs,totalWorkerMs:performance.now()-started,data:result.data},[result.data.buffer])}

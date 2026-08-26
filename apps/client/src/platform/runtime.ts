@@ -1,6 +1,7 @@
 import Taro from '@tarojs/taro'
 import {API_BASE,UploadedAsset} from '../api/client'
 import {AdapterDescriptor,CapabilityName,CapabilitySelection,PlatformResult,RuntimePlatform,selectionFrom,normalizedFailure} from './model'
+import {centeredAspectCrop,estimateCentralCropByLuma,projectObjectFit,rectToPixels,type NormalizedRect,type TransformEstimate} from '../diagnostics/cameraGeometry'
 
 const ALL:CapabilityName[]=['CameraAdapter','FrameAdapter','AlbumAdapter','ShareAdapter','HapticAdapter','VoiceOutputAdapter','AuthAdapter','PaymentAdapter','DeviceMotionAdapter','StorageAdapter','NetworkAdapter']
 
@@ -28,6 +29,17 @@ export function detectPlatform():RuntimePlatform{return Taro.getEnv()===Taro.ENV
 export type CaptureSource='camera'|'album'
 export type CameraOpenDiagnostics={track:{width:number|null;height:number|null;frameRate:number|null;facingMode:string|null};video:{width:number;height:number};previewFps:number|null}
 export type CaptureDiagnostics={width:number;height:number;bytes:number;quality:string;backend:'IMAGE_CAPTURE'|'CANVAS_VIDEO_INTRINSIC';track:CameraOpenDiagnostics['track'];video:CameraOpenDiagnostics['video']}
+export type CameraGeometryInventory={
+ userAgent:string;screen:{width:number;height:number;devicePixelRatio:number;orientation:string|null}
+ track:{label:string;kind:string;readyState:string;settings:Record<string,unknown>;constraints:Record<string,unknown>;capabilities:Record<string,unknown>}
+ video:{videoWidth:number;videoHeight:number;clientWidth:number;clientHeight:number;rect:{x:number;y:number;width:number;height:number};objectFit:string;objectPosition:string}
+ container:{width:number;height:number;aspectRatio:number}
+ currentCover:ReturnType<typeof projectObjectFit>
+ centeredThreeFour:NormalizedRect
+ imageCapture:{available:boolean;photoCapabilities:Record<string,unknown>|null}
+ devices:Array<{deviceId:string;label:string;groupId:string}>
+}
+export type CameraDiagnosticCapture={inventory:CameraGeometryInventory;intrinsicVideoUrl:string;visibleCoverUrl:string;centerThreeFourUrl:string;nativeStillUrl:string;nativeStill:{width:number;height:number;bytes:number;mimeType:string};estimatedPreviewToStillTransform:TransformEstimate}
 export type LocalCaptureCandidate={id:string;source:CaptureSource;previewUrl:string;filePath:string;file?:File;filename:string;orientation:'PORTRAIT'|'LANDSCAPE'|'UNKNOWN';confirmed:false;captureDiagnostics?:CaptureDiagnostics}
 
 function cameraFailure(error:unknown,supportLevel:'PARTIAL'|'UNVERIFIED_REAL_DEVICE'):PlatformResult<never>{
@@ -50,12 +62,38 @@ export class H5StillCamera{
   if(!video?.requestVideoFrameCallback)return this.trackSettings().frameRate
   return new Promise(resolve=>{let frames=0,finished=false;const started=performance.now();const finish=()=>{if(finished)return;finished=true;const elapsed=performance.now()-started;resolve(elapsed>0?frames*1000/elapsed:null)};const tick=()=>{if(finished)return;frames++;if(performance.now()-started>=durationMs){finish();return}video.requestVideoFrameCallback!(tick)};video.requestVideoFrameCallback(tick);setTimeout(finish,durationMs+250)})
  }
+ async diagnosticInventory(containerId:string):Promise<CameraGeometryInventory>{
+  if(typeof __XFX_DIAGNOSTIC_MODE__==='undefined'||!__XFX_DIAGNOSTIC_MODE__)throw new Error('DIAGNOSTIC_MODE_DISABLED')
+  if(!this.video||!this.stream)throw new Error('DIAGNOSTIC_CAMERA_NOT_OPEN')
+  const track=this.stream.getVideoTracks()[0],settings=track.getSettings(),constraints=track.getConstraints(),capabilities=typeof track.getCapabilities==='function'?track.getCapabilities():{}
+  const videoRect=this.video.getBoundingClientRect(),host=document.getElementById(containerId),hostRect=host?.getBoundingClientRect();if(!hostRect)throw new Error('DIAGNOSTIC_CONTAINER_MISSING')
+  const computed=getComputedStyle(this.video),orientation=screen.orientation?.type||null
+  const ImageCaptureConstructor=(globalThis as any).ImageCapture;let photoCapabilities:Record<string,unknown>|null=null
+  if(typeof ImageCaptureConstructor==='function'&&track)try{const capture=new ImageCaptureConstructor(track);if(typeof capture.getPhotoCapabilities==='function')photoCapabilities=await capture.getPhotoCapabilities()}catch{}
+  let devices:Array<{deviceId:string;label:string;groupId:string}>=[]
+  try{devices=(await navigator.mediaDevices.enumerateDevices()).filter(item=>item.kind==='videoinput').map(item=>({deviceId:item.deviceId,label:item.label,groupId:item.groupId}))}catch{}
+  return {userAgent:navigator.userAgent,screen:{width:screen.width,height:screen.height,devicePixelRatio:globalThis.devicePixelRatio||1,orientation},track:{label:track.label,kind:track.kind,readyState:track.readyState,settings:{...settings},constraints:{...constraints},capabilities:{...capabilities}},video:{videoWidth:this.video.videoWidth,videoHeight:this.video.videoHeight,clientWidth:this.video.clientWidth,clientHeight:this.video.clientHeight,rect:{x:videoRect.x,y:videoRect.y,width:videoRect.width,height:videoRect.height},objectFit:computed.objectFit,objectPosition:computed.objectPosition},container:{width:hostRect.width,height:hostRect.height,aspectRatio:hostRect.width/hostRect.height},currentCover:projectObjectFit(this.video.videoWidth,this.video.videoHeight,hostRect.width,hostRect.height,'cover'),centeredThreeFour:centeredAspectCrop(this.video.videoWidth,this.video.videoHeight,3/4),imageCapture:{available:typeof ImageCaptureConstructor==='function',photoCapabilities},devices}
+ }
+ async diagnosticCapture(containerId:string):Promise<CameraDiagnosticCapture>{
+  if(typeof __XFX_DIAGNOSTIC_MODE__==='undefined'||!__XFX_DIAGNOSTIC_MODE__)throw new Error('DIAGNOSTIC_MODE_DISABLED')
+  if(!this.video||!this.stream)throw new Error('DIAGNOSTIC_CAMERA_NOT_OPEN')
+  const inventory=await this.diagnosticInventory(containerId),width=this.video.videoWidth,height=this.video.videoHeight
+  const source=document.createElement('canvas');source.width=width;source.height=height;const sourceContext=source.getContext('2d',{alpha:false});if(!sourceContext)throw new Error('DIAGNOSTIC_CANVAS_UNAVAILABLE');sourceContext.drawImage(this.video,0,0,width,height)
+  const blobUrl=async(canvas:HTMLCanvasElement)=>{const blob=await new Promise<Blob|null>(resolve=>canvas.toBlob(resolve,'image/jpeg',.9));if(!blob)throw new Error('DIAGNOSTIC_ENCODE_FAILED');return URL.createObjectURL(blob)}
+  const cropCanvas=async(rect:NormalizedRect,targetWidth:number,targetHeight:number)=>{const pixels=rectToPixels(rect,width,height),canvas=document.createElement('canvas');canvas.width=targetWidth;canvas.height=targetHeight;const context=canvas.getContext('2d',{alpha:false});if(!context)throw new Error('DIAGNOSTIC_CANVAS_UNAVAILABLE');context.drawImage(source,pixels.x,pixels.y,pixels.width,pixels.height,0,0,targetWidth,targetHeight);return blobUrl(canvas)}
+  const coverRect=inventory.currentCover.visibleSourceRect
+  const intrinsicVideoUrl=await blobUrl(source),visibleCoverUrl=await cropCanvas(coverRect,Math.max(1,Math.round(inventory.container.width)),Math.max(1,Math.round(inventory.container.height))),centerThreeFourUrl=await cropCanvas(inventory.centeredThreeFour,720,960)
+  const track=this.stream.getVideoTracks()[0],ImageCaptureConstructor=(globalThis as any).ImageCapture;if(typeof ImageCaptureConstructor!=='function')throw new Error('IMAGE_CAPTURE_UNAVAILABLE_FOR_DIAGNOSTIC')
+  const still:Blob=await new ImageCaptureConstructor(track).takePhoto();let stillWidth=0,stillHeight=0,estimatedPreviewToStillTransform:TransformEstimate={classification:'MANUAL_VISUAL_ONLY',scale:null,offsetX:null,offsetY:null,confidence:0}
+  if(typeof createImageBitmap==='function'){const bitmap=await createImageBitmap(still,{imageOrientation:'from-image'});stillWidth=bitmap.width;stillHeight=bitmap.height;try{const luma=(drawable:CanvasImageSource,sx:number,sy:number,sw:number,sh:number)=>{const canvas=document.createElement('canvas');canvas.width=64;canvas.height=64;const context=canvas.getContext('2d',{willReadFrequently:true})!;context.drawImage(drawable,sx,sy,sw,sh,0,0,64,64);const rgba=context.getImageData(0,0,64,64).data,out=new Uint8Array(64*64);for(let i=0;i<out.length;i++)out[i]=Math.round(rgba[i*4]*.2126+rgba[i*4+1]*.7152+rgba[i*4+2]*.0722);return out},videoCrop=rectToPixels(inventory.centeredThreeFour,width,height);estimatedPreviewToStillTransform=estimateCentralCropByLuma(luma(source,videoCrop.x,videoCrop.y,videoCrop.width,videoCrop.height),64,64,luma(bitmap,0,0,bitmap.width,bitmap.height),64,64)}catch{}finally{bitmap.close()}}
+  return {inventory,intrinsicVideoUrl,visibleCoverUrl,centerThreeFourUrl,nativeStillUrl:URL.createObjectURL(still),nativeStill:{width:stillWidth,height:stillHeight,bytes:still.size,mimeType:still.type},estimatedPreviewToStillTransform}
+ }
  private async openWithConstraint(containerId:string,strict:boolean):Promise<PlatformResult<{facingMode:string}>>{
   if(typeof navigator==='undefined'||!navigator.mediaDevices?.getUserMedia)return normalizedFailure('PLATFORM_UNSUPPORTED','UNSUPPORTED','Camera preview is unavailable in this browser')
   try{
    this.close();this.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:strict?{exact:this.facingMode}:{ideal:this.facingMode},width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:30}},audio:false})
    const host=document.getElementById(containerId);if(!host)throw new Error('Camera preview host is unavailable')
-   const video=document.createElement('video');video.autoplay=true;video.muted=true;video.playsInline=true;video.setAttribute('aria-label','œ‡ª˙ µ ±‘§¿¿');video.srcObject=this.stream;host.replaceChildren(video);await video.play();this.video=video
+   const video=document.createElement('video');video.autoplay=true;video.muted=true;video.playsInline=true;video.setAttribute('aria-label','Áõ∏Êú∫ÂÆûÊó∂È¢ÑËßà');video.srcObject=this.stream;host.replaceChildren(video);await video.play();this.video=video
    const actual=this.stream.getVideoTracks()[0]?.getSettings().facingMode
    return {ok:true,code:'OK',supportLevel:'UNVERIFIED_REAL_DEVICE',value:{facingMode:actual||this.facingMode}}
   }catch(error){this.close();return cameraFailure(error,'PARTIAL')}
@@ -161,7 +199,7 @@ export class PlatformAdapterRegistry{
 
  async share(url:string):Promise<PlatformResult>{
   if(this.platform==='H5'&&typeof navigator!=='undefined'&&typeof navigator.share==='function'){
-   try{await navigator.share({title:'œÚ∑Á–– °§ My Final Photo',url});return {ok:true,code:'OK',supportLevel:'PARTIAL'}}catch(error){return normalizedFailure(error instanceof DOMException&&error.name==='AbortError'?'USER_CANCELLED':'SHARE_FAILURE','PARTIAL',String(error))}
+   try{await navigator.share({title:'ÂêëÈ£éË°å ¬∑ My Final Photo',url});return {ok:true,code:'OK',supportLevel:'PARTIAL'}}catch(error){return normalizedFailure(error instanceof DOMException&&error.name==='AbortError'?'USER_CANCELLED':'SHARE_FAILURE','PARTIAL',String(error))}
   }
   return normalizedFailure('PLATFORM_UNSUPPORTED',this.platform==='WECHAT'?'UNVERIFIED_REAL_DEVICE':'UNSUPPORTED','Share capability is unavailable in this runtime')
  }

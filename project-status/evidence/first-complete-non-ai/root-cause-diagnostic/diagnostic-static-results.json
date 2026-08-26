@@ -1,0 +1,118 @@
+{
+  "amendment": "XFX_FIRST_COMPLETE_NON_AI_OPPO_CAMERA_FINE_TUNE_ROOT_CAUSE_DIAGNOSTIC_AMENDMENT_01",
+  "parent_task": "XFX_FIRST_COMPLETE_NON_AI_PRODUCT_FLOW_ACCEPTANCE_01",
+  "parent_branch": "feature/first-complete-non-ai-product-flow",
+  "parent_head_start": "eca7703eab5c61f1b2f87dfb5875fbc01c6d98f8",
+  "baseline": {
+    "backend": "101/101 PASS",
+    "frontend": "34/34 PASS after diagnostic tests",
+    "typescript": "PASS",
+    "h5": "PASS_WITH_WARNING",
+    "h5_warning": "302 KiB entry advisory"
+  },
+  "camera": {
+    "geometry_math_tests": "PASS",
+    "transform_estimator_synthetic": "PASS",
+    "device_ab": "3_OF_3_COMPLETE",
+    "stream": "1080x1920@30/environment",
+    "track_zoom": 1,
+    "container": "320.9375x192",
+    "visible_source_rect": {"x0":0,"y0":0.3317429406037001,"x1":1,"y1":0.6682570593963},
+    "center_three_four_rect": {"x0":0,"y0":0.125,"x1":1,"y1":0.875},
+    "native_stills": [
+      {"width":3072,"height":4096,"bytes":7899471,"mime":"image/jpeg","transform_classification":"MANUAL_VISUAL_ONLY","confidence":0.05913673835376327},
+      {"width":3072,"height":4096,"bytes":7911928,"mime":"image/jpeg","transform_classification":"MANUAL_VISUAL_ONLY","confidence":0.18940708065197578},
+      {"width":3072,"height":4096,"bytes":7922931,"mime":"image/jpeg","transform_classification":"MANUAL_VISUAL_ONLY","confidence":0.12995283672383362}
+    ],
+    "primary_cause": "MIXED/CSS_COVER_CROP+ASPECT_RATIO_MISMATCH",
+    "digital_zoom_evidence": "NOT_SUPPORTED_CURRENT_ZOOM_1",
+    "physical_lens_selection_evidence": "NOT_SUPPORTED_BY_EXPOSED_DEVICE_LABELS"
+  },
+  "local_region": {
+    "runtime": "PASS",
+    "overlay": "FAIL",
+    "touch_interaction": "FAIL",
+    "classification": "MULTIPLE"
+  },
+  "semantic_masks": {
+    "person_controlled": "PASS",
+    "background_controlled": "PASS",
+    "fail_closed_without_mask": "PASS",
+    "production_mask_provider": "NOT_IMPLEMENTED"
+  },
+  "range": {
+    "raw": "-100..100",
+    "recipe": "-1..1",
+    "classification": "UI_LABEL_ONLY_MISMATCH"
+  },
+  "scheduler": {
+    "max_pending_depth": 1,
+    "superseded_work_actually_cancelled": false
+  },
+  "oppo_plain_h5": {
+    "device": "OPPO K11 / ColorOS 15 / Chrome Mobile 138.0.7204.168",
+    "status": "3_RUNS_COMPLETE",
+    "fixture": "360x480 deterministic RGBA, 20 brightness changes",
+    "runs": [
+      {
+        "samples": 20,
+        "p50_ms": 84.79999995231628,
+        "p95_ms": 98.70000004768372,
+        "max_ms": 98.70000004768372,
+        "elapsed_ms": 1805.5999999046326,
+        "long_task_count": 20,
+        "long_task_max_ms": 100,
+        "screenshot_sha256": "C2065555874137E58ECB65BE4D4505A5FAB79328B803A2D3DD58727A15F0D39E"
+      },
+      {
+        "samples": 20,
+        "p50_ms": 66.5,
+        "p95_ms": 80.40000009536743,
+        "max_ms": 80.40000009536743,
+        "elapsed_ms": 1468.5,
+        "long_task_count": 20,
+        "long_task_max_ms": 81,
+        "screenshot_sha256": "D1B1E931C648EDD65D8FDBB3FD1E7FEC51C90139A53FF342BC93E4034A8F92BF"
+      },
+      {
+        "samples": 20,
+        "p50_ms": 82.89999985694885,
+        "p95_ms": 96.29999995231628,
+        "max_ms": 96.29999995231628,
+        "elapsed_ms": 1784.8999998569489,
+        "long_task_count": 20,
+        "long_task_max_ms": 96,
+        "screenshot_sha256": "849C03897A459BE37FF14973E3CD122AF76CADACDA37A54AE6664239DDE9EB7E"
+      }
+    ],
+    "classification": "MEASURED_CONTRIBUTOR_NOT_SOLE_EXPLANATION_FOR_800MS_PRODUCTION_FAILURE"
+  },
+  "oppo_main_app_ab": {
+    "status": "12_OF_12_ROWS_COMPLETE",
+    "screenshot_sha256": [
+      "DC3072009F8F5D50536536CACA9DEA89B9857A1C5A190004A4F90CA2D8C096A9",
+      "16897FBD91ABC582D6C11194B92C37AC23E9DF02210BDA8809AD0BE599C5AA81"
+    ],
+    "rows": [
+      {"parameter":"BRIGHTNESS","mode":"UI_ONLY","p50_ms":33.5,"p95_ms":41.6,"max_ms":41.6,"throughput_per_second":26.6,"long_task_count":0,"long_task_max_ms":0.0,"render_count":20},
+      {"parameter":"BRIGHTNESS","mode":"CURRENT","p50_ms":124.8,"p95_ms":144.8,"max_ms":144.8,"throughput_per_second":7.7,"long_task_count":20,"long_task_max_ms":124.0,"render_count":20},
+      {"parameter":"BRIGHTNESS","mode":"RENDERER_MAIN","p50_ms":96.1,"p95_ms":206.0,"max_ms":206.0,"throughput_per_second":8.6,"long_task_count":20,"long_task_max_ms":193.0,"render_count":2},
+      {"parameter":"BRIGHTNESS","mode":"WORKER_DIAGNOSTIC","p50_ms":148.8,"p95_ms":924.9,"max_ms":924.9,"throughput_per_second":5.2,"long_task_count":0,"long_task_max_ms":0.0,"render_count":1},
+      {"parameter":"WARMTH","mode":"UI_ONLY","p50_ms":33.3,"p95_ms":35.1,"max_ms":35.1,"throughput_per_second":26.9,"long_task_count":0,"long_task_max_ms":0.0,"render_count":20},
+      {"parameter":"WARMTH","mode":"CURRENT","p50_ms":141.6,"p95_ms":152.5,"max_ms":152.5,"throughput_per_second":6.9,"long_task_count":20,"long_task_max_ms":136.0,"render_count":20},
+      {"parameter":"WARMTH","mode":"RENDERER_MAIN","p50_ms":83.6,"p95_ms":119.1,"max_ms":119.1,"throughput_per_second":11.2,"long_task_count":20,"long_task_max_ms":120.0,"render_count":1},
+      {"parameter":"WARMTH","mode":"WORKER_DIAGNOSTIC","p50_ms":176.3,"p95_ms":295.1,"max_ms":295.1,"throughput_per_second":5.2,"long_task_count":1,"long_task_max_ms":55.0,"render_count":1},
+      {"parameter":"SATURATION","mode":"UI_ONLY","p50_ms":33.1,"p95_ms":34.8,"max_ms":34.8,"throughput_per_second":26.9,"long_task_count":0,"long_task_max_ms":0.0,"render_count":20},
+      {"parameter":"SATURATION","mode":"CURRENT","p50_ms":159.9,"p95_ms":206.7,"max_ms":206.7,"throughput_per_second":5.9,"long_task_count":20,"long_task_max_ms":161.0,"render_count":20},
+      {"parameter":"SATURATION","mode":"RENDERER_MAIN","p50_ms":91.0,"p95_ms":109.7,"max_ms":109.7,"throughput_per_second":10.5,"long_task_count":20,"long_task_max_ms":110.0,"render_count":1},
+      {"parameter":"SATURATION","mode":"WORKER_DIAGNOSTIC","p50_ms":328.6,"p95_ms":787.1,"max_ms":787.1,"throughput_per_second":2.8,"long_task_count":11,"long_task_max_ms":144.0,"render_count":3}
+    ],
+    "dominant_cause": "MAIN_THREAD_RENDERER/PIXEL_LOOP",
+    "secondary_causes": ["H5_BROWSER_BASELINE","TARO_REACT_RENDER_CHURN","TELEMETRY_CHURN"],
+    "worker_path": "WORKER_TRANSFER/STARTUP_MEASURED_DOMINANT_IN_DIAGNOSTIC_PATH",
+    "generic_h5_primary": false,
+    "taro_primary": "NO_PRIMARY/PARTIAL_SECONDARY",
+    "main_thread_renderer_primary": true
+  },
+  "product_fixes_applied": 0
+}

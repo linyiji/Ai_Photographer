@@ -2,12 +2,14 @@ import {Button,ScrollView,Text,View} from '@tarojs/components'
 import {useLoad} from '@tarojs/taro'
 import {useState} from 'react'
 import {api,LabScenario,ReplayResult} from '../../api/client'
+import {RootCauseDiagnostic} from '../../diagnostics/RootCauseDiagnostic'
 import './index.css'
 
 const modes=['FROM_SCRATCH','FROM_CHECKPOINT','FAULT_INJECTED']
 export default function ReplayLab(){
  const [scenarios,setScenarios]=useState<LabScenario[]>([]);const [profiles,setProfiles]=useState<Array<{profile:string}>>([]);const [scenario,setScenario]=useState('S01_HAPPY_PATH');const [mode,setMode]=useState('FROM_SCRATCH');const [profile,setProfile]=useState('H5_FULL');const [result,setResult]=useState<ReplayResult|null>(null);const [busy,setBusy]=useState(false);const [error,setError]=useState('')
- useLoad(()=>{if(__XFX_LAB_MODE__)Promise.all([api.labScenarios(),api.labPlatformProfiles()]).then(([items,platforms])=>{setScenarios(items);setProfiles(platforms)}).catch(e=>setError(String(e)))})
+ useLoad(()=>{if(__XFX_LAB_MODE__&&!__XFX_DIAGNOSTIC_MODE__)Promise.all([api.labScenarios(),api.labPlatformProfiles()]).then(([items,platforms])=>{setScenarios(items);setProfiles(platforms)}).catch(e=>setError(String(e)))})
+ if(__XFX_DIAGNOSTIC_MODE__)return <RootCauseDiagnostic/>
  if(!__XFX_LAB_MODE__)return <View className='labUnavailable'><Text className='labCode'>LAB_DISABLED</Text><Text>Replay Lab is unavailable in this build.</Text></View>
  const run=async()=>{setBusy(true);setError('');try{setResult(await api.runReplay(scenario,mode,mode==='FROM_CHECKPOINT'?5:undefined,profile))}catch(e){setError(e instanceof Error?e.message:String(e))}finally{setBusy(false)}}
  const selected=scenarios.find(x=>x.scenario_id===scenario)

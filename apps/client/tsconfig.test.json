@@ -1,5 +1,5 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {"module":"commonjs","target":"es2022","outDir":".test-dist","rootDir":"."},
-  "include": ["src/platform/model.ts", "src/product/capturePolicy.ts", "src/product/userPreferences.ts", "src/product/simplifiedFlow.ts", "tests/*.test.ts"]
+  "include": ["src/platform/model.ts", "src/product/capturePolicy.ts", "src/product/userPreferences.ts", "src/product/simplifiedFlow.ts", "src/fineTune/core.ts", "src/diagnostics/cameraGeometry.ts", "src/diagnostics/fineTuneDiagnostics.ts", "tests/*.test.ts"]
 }
