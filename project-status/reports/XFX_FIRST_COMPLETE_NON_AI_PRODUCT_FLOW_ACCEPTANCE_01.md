@@ -1,0 +1,12 @@
+# XFX_FIRST_COMPLETE_NON_AI_PRODUCT_FLOW_ACCEPTANCE_01
+
+```text
+Status = IN_PROGRESS
+Branch = feature/first-complete-non-ai-product-flow
+Main Base Head = 56cd8e5c41ef35b3af43ff5979e5c921fdfddd17
+Current committed head = eca7703eab5c61f1b2f87dfb5875fbc01c6d98f8
+OPPO_MAIN_GATE = FAIL
+FIRST_COMPLETE_NON_AI_PRODUCT_BASELINE = NOT_YET_PASS
+INTERNAL_USER_GOLDEN_FLOW_READY = NO
+PUBLIC_PRODUCTION_READY = NO
+```

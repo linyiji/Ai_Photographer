@@ -26,7 +26,9 @@ function descriptor(capabilityName:CapabilityName,platform:RuntimePlatform):Adap
 export function detectPlatform():RuntimePlatform{return Taro.getEnv()===Taro.ENV_TYPE.WEAPP?'WECHAT':'H5'}
 
 export type CaptureSource='camera'|'album'
-export type LocalCaptureCandidate={id:string;source:CaptureSource;previewUrl:string;filePath:string;file?:File;filename:string;orientation:'PORTRAIT'|'LANDSCAPE'|'UNKNOWN';confirmed:false}
+export type CameraOpenDiagnostics={track:{width:number|null;height:number|null;frameRate:number|null;facingMode:string|null};video:{width:number;height:number};previewFps:number|null}
+export type CaptureDiagnostics={width:number;height:number;bytes:number;quality:string;backend:'IMAGE_CAPTURE'|'CANVAS_VIDEO_INTRINSIC';track:CameraOpenDiagnostics['track'];video:CameraOpenDiagnostics['video']}
+export type LocalCaptureCandidate={id:string;source:CaptureSource;previewUrl:string;filePath:string;file?:File;filename:string;orientation:'PORTRAIT'|'LANDSCAPE'|'UNKNOWN';confirmed:false;captureDiagnostics?:CaptureDiagnostics}
 
 function cameraFailure(error:unknown,supportLevel:'PARTIAL'|'UNVERIFIED_REAL_DEVICE'):PlatformResult<never>{
  const message=error instanceof Error?error.message:String(error);const lowered=message.toLowerCase()
@@ -41,12 +43,19 @@ export class H5StillCamera{
  private switching=false
  setFacingMode(value:'environment'|'user'){this.facingMode=value}
  private async waitForRelease(delayMs:number){await new Promise(resolve=>setTimeout(resolve,delayMs))}
+ private trackSettings():CameraOpenDiagnostics['track']{const settings=this.stream?.getVideoTracks()[0]?.getSettings();return {width:settings?.width||null,height:settings?.height||null,frameRate:settings?.frameRate||null,facingMode:settings?.facingMode||null}}
+ diagnostics(previewFps:number|null=null):CameraOpenDiagnostics{return {track:this.trackSettings(),video:{width:this.video?.videoWidth||0,height:this.video?.videoHeight||0},previewFps}}
+ async measurePreviewFps(durationMs=1200):Promise<number|null>{
+  const video=this.video as (HTMLVideoElement&{requestVideoFrameCallback?:(callback:(now:number)=>void)=>number})|null
+  if(!video?.requestVideoFrameCallback)return this.trackSettings().frameRate
+  return new Promise(resolve=>{let frames=0,finished=false;const started=performance.now();const finish=()=>{if(finished)return;finished=true;const elapsed=performance.now()-started;resolve(elapsed>0?frames*1000/elapsed:null)};const tick=()=>{if(finished)return;frames++;if(performance.now()-started>=durationMs){finish();return}video.requestVideoFrameCallback!(tick)};video.requestVideoFrameCallback(tick);setTimeout(finish,durationMs+250)})
+ }
  private async openWithConstraint(containerId:string,strict:boolean):Promise<PlatformResult<{facingMode:string}>>{
   if(typeof navigator==='undefined'||!navigator.mediaDevices?.getUserMedia)return normalizedFailure('PLATFORM_UNSUPPORTED','UNSUPPORTED','Camera preview is unavailable in this browser')
   try{
-   this.close();this.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:strict?{exact:this.facingMode}:{ideal:this.facingMode}},audio:false})
+   this.close();this.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:strict?{exact:this.facingMode}:{ideal:this.facingMode},width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:30}},audio:false})
    const host=document.getElementById(containerId);if(!host)throw new Error('Camera preview host is unavailable')
-   const video=document.createElement('video');video.autoplay=true;video.muted=true;video.playsInline=true;video.setAttribute('aria-label','Áõ∏Êú∫ÂÆûÊó∂È¢ÑËßà');video.srcObject=this.stream;host.replaceChildren(video);await video.play();this.video=video
+   const video=document.createElement('video');video.autoplay=true;video.muted=true;video.playsInline=true;video.setAttribute('aria-label','œ‡ª˙ µ ±‘§¿¿');video.srcObject=this.stream;host.replaceChildren(video);await video.play();this.video=video
    const actual=this.stream.getVideoTracks()[0]?.getSettings().facingMode
    return {ok:true,code:'OK',supportLevel:'UNVERIFIED_REAL_DEVICE',value:{facingMode:actual||this.facingMode}}
   }catch(error){this.close();return cameraFailure(error,'PARTIAL')}
@@ -72,10 +81,15 @@ export class H5StillCamera{
  }
  async capture():Promise<PlatformResult<LocalCaptureCandidate>>{
   if(!this.video||!this.video.videoWidth||!this.video.videoHeight)return normalizedFailure('CAMERA_FAILURE','PARTIAL','Camera preview is not ready')
-  const canvas=document.createElement('canvas');canvas.width=this.video.videoWidth;canvas.height=this.video.videoHeight;canvas.getContext('2d')?.drawImage(this.video,0,0)
-  const blob=await new Promise<Blob|null>(resolve=>canvas.toBlob(resolve,'image/jpeg',0.92));if(!blob)return normalizedFailure('CAMERA_FAILURE','PARTIAL','Still image could not be created')
-  const file=new File([blob],`capture-${Date.now()}.jpg`,{type:'image/jpeg'});const previewUrl=URL.createObjectURL(file)
-  return {ok:true,code:'OK',supportLevel:'UNVERIFIED_REAL_DEVICE',value:{id:`local-${Date.now()}`,source:'camera',previewUrl,filePath:previewUrl,file,filename:file.name,orientation:canvas.height>=canvas.width?'PORTRAIT':'LANDSCAPE',confirmed:false}}
+  const track=this.stream?.getVideoTracks()[0];let blob:Blob|null=null;let backend:CaptureDiagnostics['backend']='CANVAS_VIDEO_INTRINSIC';let quality='JPEG_0.95'
+  const ImageCaptureConstructor=(globalThis as any).ImageCapture
+  if(track&&typeof ImageCaptureConstructor==='function')try{blob=await new ImageCaptureConstructor(track).takePhoto();backend='IMAGE_CAPTURE';quality='DEVICE_NATIVE'}catch{}
+  if(!blob){const canvas=document.createElement('canvas');canvas.width=this.video.videoWidth;canvas.height=this.video.videoHeight;const context=canvas.getContext('2d',{alpha:false});if(!context)return normalizedFailure('CAMERA_FAILURE','PARTIAL','Canvas fallback is unavailable');context.drawImage(this.video,0,0,canvas.width,canvas.height);blob=await new Promise<Blob|null>(resolve=>canvas.toBlob(resolve,'image/jpeg',0.95))}
+  if(!blob)return normalizedFailure('CAMERA_FAILURE','PARTIAL','Still image could not be created')
+  let width=this.video.videoWidth,height=this.video.videoHeight
+  if(typeof createImageBitmap==='function')try{const bitmap=await createImageBitmap(blob,{imageOrientation:'from-image'});width=bitmap.width;height=bitmap.height;bitmap.close()}catch{}
+  const extension=blob.type==='image/png'?'png':blob.type==='image/webp'?'webp':'jpg';const file=new File([blob],`capture-${Date.now()}.${extension}`,{type:blob.type||'image/jpeg'});const previewUrl=URL.createObjectURL(file)
+  return {ok:true,code:'OK',supportLevel:'UNVERIFIED_REAL_DEVICE',value:{id:`local-${Date.now()}`,source:'camera',previewUrl,filePath:previewUrl,file,filename:file.name,orientation:height>=width?'PORTRAIT':'LANDSCAPE',confirmed:false,captureDiagnostics:{width,height,bytes:blob.size,quality,backend,track:this.trackSettings(),video:{width:this.video.videoWidth,height:this.video.videoHeight}}}}
  }
  close(){this.stream?.getTracks().forEach(track=>track.stop());this.stream=null;if(this.video){this.video.srcObject=null;this.video.remove();this.video=null}}
 }
@@ -147,7 +161,7 @@ export class PlatformAdapterRegistry{
 
  async share(url:string):Promise<PlatformResult>{
   if(this.platform==='H5'&&typeof navigator!=='undefined'&&typeof navigator.share==='function'){
-   try{await navigator.share({title:'ÂêëÈ£éË°å ¬∑ My Final Photo',url});return {ok:true,code:'OK',supportLevel:'PARTIAL'}}catch(error){return normalizedFailure(error instanceof DOMException&&error.name==='AbortError'?'USER_CANCELLED':'SHARE_FAILURE','PARTIAL',String(error))}
+   try{await navigator.share({title:'œÚ∑Á–– °§ My Final Photo',url});return {ok:true,code:'OK',supportLevel:'PARTIAL'}}catch(error){return normalizedFailure(error instanceof DOMException&&error.name==='AbortError'?'USER_CANCELLED':'SHARE_FAILURE','PARTIAL',String(error))}
   }
   return normalizedFailure('PLATFORM_UNSUPPORTED',this.platform==='WECHAT'?'UNVERIFIED_REAL_DEVICE':'UNSUPPORTED','Share capability is unavailable in this runtime')
  }

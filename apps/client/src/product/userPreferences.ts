@@ -16,7 +16,7 @@ export type UserPreferences={
 export const DEFAULT_USER_PREFERENCES:UserPreferences={
  shooting_relation_default:'FRIEND',device_mode_default:'SINGLE',camera_facing_default:'environment',
  voice_guidance_enabled:true,haptic_enabled:true,composition_grid_enabled:true,
- auto_processing_enabled:true,open_fine_tune_after_processing:false
+ auto_processing_enabled:true,open_fine_tune_after_processing:true
 }
 
 export type PreferenceStorage={read:()=>Promise<unknown>;write:(value:UserPreferences)=>Promise<void>}
@@ -31,7 +31,7 @@ export function normalizePreferences(value:unknown):UserPreferences{
   haptic_enabled:candidate.haptic_enabled!==false,
   composition_grid_enabled:candidate.composition_grid_enabled!==false,
   auto_processing_enabled:candidate.auto_processing_enabled!==false,
-  open_fine_tune_after_processing:candidate.open_fine_tune_after_processing===true
+  open_fine_tune_after_processing:candidate.open_fine_tune_after_processing!==false
  }
 }
 
