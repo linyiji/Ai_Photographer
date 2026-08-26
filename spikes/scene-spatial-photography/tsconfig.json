@@ -9,5 +9,5 @@
     "types": [],
     "skipLibCheck": true
   },
-  "include": ["camera", "motion", "sweep", "spatial", "telemetry", "replay", "fixtures", "p1", "src", "vite.config.ts"]
+  "include": ["camera", "motion", "sweep", "spatial", "telemetry", "replay", "fixtures", "p1", "p2", "src", "vite.config.ts"]
 }

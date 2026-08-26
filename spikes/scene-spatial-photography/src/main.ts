@@ -5,6 +5,11 @@ import type { OrientationSource } from '../motion/orientation-provider.js';
 import { analyzeSceneSweep } from '../p1/analyze-scene-sweep.js';
 import { clonePixelFrame, syntheticVisualFixtures } from '../p1/synthetic-fixtures.js';
 import type { PhotographyViewCandidateV01, PlacementAnchor, SceneSweepAnalysisResult, TransientKeyframePixels } from '../p1/types.js';
+import { GeometryFrameSelector } from '../p2/geometry-frame-selector.js';
+import { analyzeCorrespondence } from '../p2/opencv-correspondence.js';
+import { loadOpenCv } from '../p2/opencv-loader.js';
+import { buildClientSpatialEvidence } from '../p2/spatial-evidence.js';
+import type { CorrespondenceDiagnostics, SpatialEvidenceV01 } from '../p2/types.js';
 import { canonicalManifestJson } from '../spatial/scene-sweep-manifest.js';
 import { YawMap } from '../spatial/yaw-map.js';
 import { metricsFromImageData } from '../sweep/quality-gate.js';
@@ -38,6 +43,7 @@ type P1TrialEvidence = {
   direction_map: { node_count: number; depth: 'UNKNOWN'; metric_geometry: 'NOT_SUPPORTED'; };
   preview_fps_median: number | null; privacy: object; qualitative_pending: true;
 };
+type P2TrialEvidence = { sweep_id: string; geometry_frame_count: number; frame_budget: number; estimated_memory_bytes: number; correspondence: CorrespondenceDiagnostics; spatial_evidence: SpatialEvidenceV01; preview_fps_median: number | null; };
 
 let runtime: SceneSweepRuntime | null = null;
 let latestYaw = 0;
@@ -55,6 +61,11 @@ const transientKeyframes = new Map<string, TransientKeyframePixels>();
 const analyzedSweepIds = new Set<string>();
 const p1Trials: P1TrialEvidence[] = [];
 let latestP1Analysis: SceneSweepAnalysisResult | null = null;
+const geometrySelector = new GeometryFrameSelector();
+const analyzedP2SweepIds = new Set<string>();
+const p2Trials: P2TrialEvidence[] = [];
+let latestP2Evidence: SpatialEvidenceV01 | null = null;
+let latestP2Correspondence: CorrespondenceDiagnostics | null = null;
 
 const currentMode = (): SweepMode => $<HTMLSelectElement>('mode').value as SweepMode;
 const modeTarget = (): number => ({ QUICK_SWEEP: 110, WIDE_SWEEP: 180, FULL_SWEEP: 360 })[currentMode()];
@@ -68,6 +79,7 @@ const stationaryRange = (): number | null => initialYawSamples.length < 2 ? null
 const resetTrialTelemetry = (): void => { firstOrientationAt = null; initialYawSamples = []; previewFpsSamples = []; candidateBlurScores = []; candidateExposureMeans = []; };
 const updateEvidenceText = (): void => { $<HTMLTextAreaElement>('device-evidence').value = JSON.stringify(completedTrials, null, 2); };
 const updateP1EvidenceText = (): void => { $<HTMLTextAreaElement>('p1-device-evidence').value = JSON.stringify(p1Trials, null, 2); };
+const updateP2EvidenceText = (): void => { $<HTMLTextAreaElement>('p2-device-evidence').value = JSON.stringify(p2Trials, null, 2); };
 const reasonLabel: Record<string, string> = {
   BALANCED_EXPOSURE: '曝光可用', GOOD_SHARPNESS: '清晰度可用', PENALTY_LOW_SHARPNESS: '清晰度受限',
   PENALTY_OVEREXPOSED: '高光受限', PENALTY_UNDEREXPOSED: '暗部受限',
@@ -115,6 +127,23 @@ const runP1Analysis = (): void => {
   const trial = completedTrials.find((item) => item.sweep_id === manifest.sweep_id);
   p1Trials.push({ sweep_id: manifest.sweep_id, mode: manifest.mode, descriptor_count: latestP1Analysis.descriptors.length, prepared_frame_count: latestP1Analysis.frame_set.frames.length, region_count: latestP1Analysis.context.angular_regions.length, candidate_count: latestP1Analysis.view_candidates.length, analysis_ms: { descriptor: latestP1Analysis.timings.descriptor_ms, region: latestP1Analysis.timings.region_ms, candidate: latestP1Analysis.timings.candidate_ms, total: latestP1Analysis.timings.total_ms }, view_candidates: latestP1Analysis.view_candidates.map((item) => ({ view_id: item.view_id, yaw_deg: rounded(item.relative_camera_yaw_deg), placement_anchors: item.placement_candidates.map((candidate) => candidate.image_anchor), technical_reason_codes: item.technical_reason_codes })), direction_map: { node_count: latestP1Analysis.direction_map.nodes.length, depth: latestP1Analysis.direction_map.depth, metric_geometry: latestP1Analysis.direction_map.metric_geometry }, preview_fps_median: trial?.preview_fps_median ?? null, privacy: latestP1Analysis.context.privacy, qualitative_pending: true });
   updateP1EvidenceText();
+};
+
+const emptyCorrespondence = (reason: string): CorrespondenceDiagnostics => ({ engine: 'GFTT_PYRLK', detected_feature_count: 0, tracked_feature_count: 0, match_retention: 0, inlier_ratio: 0, median_displacement_px: 0, median_parallax_px: 0, p75_parallax_px: 0, latency_ms: 0, pair_count: 0, failure_reason: reason });
+const runP2Analysis = async (): Promise<void> => {
+  if (!runtime || runtime.session.status !== 'COMPLETE' || analyzedP2SweepIds.has(runtime.session.sweep_id)) return;
+  const sweepId = runtime.session.sweep_id; analyzedP2SweepIds.add(sweepId); setText('p2-status', '分析中'); $('p2-results').hidden = false;
+  const input = geometrySelector.input(sweepId);
+  let correspondence = emptyCorrespondence(input.frames.length < 2 ? 'INSUFFICIENT_FRAMES' : 'OPENCV_WASM_UNAVAILABLE');
+  if (input.frames.length >= 2) {
+    try { correspondence = analyzeCorrespondence(await loadOpenCv(), input, 'GFTT_PYRLK'); }
+    catch (error) { correspondence = emptyCorrespondence(error instanceof Error ? error.message : 'OPENCV_WASM_UNAVAILABLE'); }
+  }
+  if (runtime?.session.sweep_id !== sweepId) return;
+  latestP2Correspondence = correspondence; latestP2Evidence = buildClientSpatialEvidence(input, correspondence, geometrySelector.selection_latency_ms);
+  const trial = completedTrials.find(item => item.sweep_id === sweepId);
+  p2Trials.push({ sweep_id: sweepId, geometry_frame_count: input.frames.length, frame_budget: input.selection_budget, estimated_memory_bytes: input.estimated_memory_bytes, correspondence, spatial_evidence: latestP2Evidence, preview_fps_median: trial?.preview_fps_median ?? null }); updateP2EvidenceText();
+  setText('p2-status', latestP2Evidence.status); setText('p2-frames', `${input.frames.length} / ${input.selection_budget}`); setText('p2-classification', latestP2Evidence.parallax_classification); setText('p2-tracks', String(correspondence.tracked_feature_count)); setText('p2-inliers', correspondence.inlier_ratio.toFixed(3)); setText('p2-parallax', `${correspondence.median_parallax_px.toFixed(2)} px`); setText('p2-latency', `${latestP2Evidence.diagnostics.total_latency_ms.toFixed(1)} ms`); $<HTMLButtonElement>('download-p2').disabled = false;
 };
 
 const recordTrial = (): void => {
@@ -181,7 +210,7 @@ const render = (): void => {
   $('arc-fill').style.width = `${Math.min(100, coverage.span_deg / modeTarget() * 100)}%`;
   setText('hero', runtime.session.status === 'COMPLETE' ? '看完了' : '慢慢转动手机');
   if (runtime.session.status === 'COMPLETE') {
-    recordTrial(); runP1Analysis(); stopAcquisition();
+    recordTrial(); runP1Analysis(); void runP2Analysis(); stopAcquisition();
     $<HTMLButtonElement>('start').disabled = false;
     $<HTMLButtonElement>('start').textContent = '再扫一次';
     $<HTMLButtonElement>('next-sweep').hidden = false;
@@ -199,6 +228,7 @@ const sampleFrame = (): void => {
   const frameMetrics = metricsFromImageData(imageData, performance.now(), latestYaw);
   candidateBlurScores.push(frameMetrics.blur_score); candidateExposureMeans.push(frameMetrics.exposure_mean);
   runtime.setCameraSourceDimensions(video.videoWidth, video.videoHeight);
+  geometrySelector.observe(frameMetrics, { width: imageData.width, height: imageData.height, data: imageData.data }, 'DEVICE_ORIENTATION');
   const selected = runtime.observeFrame(frameMetrics);
   if (selected) { const selectedKeyframe = runtime.sampler.keyframes.at(-1); if (selectedKeyframe) transientKeyframes.set(selectedKeyframe.keyframe_id, imageDataToTransient(imageData, selectedKeyframe.keyframe_id)); }
   telemetry.candidate(performance.now() - started, selected); render();
@@ -208,7 +238,7 @@ $('start').addEventListener('click', async () => {
   $<HTMLButtonElement>('start').disabled = true; $<HTMLButtonElement>('start').textContent = '启动中…';
   $<HTMLButtonElement>('next-sweep').hidden = true; $<HTMLSelectElement>('mode').disabled = true;
   runtime = new SceneSweepRuntime(currentMode(), `sweep-${Date.now()}`, Date.now());
-  telemetry.start(performance.now()); resetTrialTelemetry(); transientKeyframes.clear(); latestP1Analysis = null; $('p1-results').hidden = true; $<HTMLButtonElement>('download-p1').disabled = true; orientation.resetBaseline(); orientationSource = 'DEVICE_ORIENTATION';
+  telemetry.start(performance.now()); resetTrialTelemetry(); transientKeyframes.clear(); geometrySelector.reset(); latestP1Analysis = null; latestP2Evidence = null; latestP2Correspondence = null; $('p1-results').hidden = true; $('p2-results').hidden = true; $<HTMLButtonElement>('download-p1').disabled = true; $<HTMLButtonElement>('download-p2').disabled = true; orientation.resetBaseline(); orientationSource = 'DEVICE_ORIENTATION';
   setText('message', '正在请求相机与方向权限…');
   const [cameraState, orientationState] = await Promise.all([camera.start(), orientation.requestPermission()]);
   if (cameraState.state !== 'ACTIVE') { setText('message', cameraState.message ?? '相机不可用'); $<HTMLButtonElement>('start').disabled = false; $<HTMLButtonElement>('start').textContent = '重试'; $<HTMLSelectElement>('mode').disabled = false; render(); return; }
@@ -229,10 +259,10 @@ $('fixture').addEventListener('click', () => {
   clearInterval(fixtureTimer);
   const target = modeTarget();
   runtime = new SceneSweepRuntime(currentMode(), `fixture-${currentMode().toLowerCase()}-${Date.now()}`, Date.now());
-  telemetry.start(performance.now()); resetTrialTelemetry(); transientKeyframes.clear(); latestP1Analysis = null; $('p1-results').hidden = true; $<HTMLButtonElement>('download-p1').disabled = true; orientationSource = 'CONTROLLED_FIXTURE';
+  telemetry.start(performance.now()); resetTrialTelemetry(); transientKeyframes.clear(); geometrySelector.reset(); latestP1Analysis = null; latestP2Evidence = null; latestP2Correspondence = null; $('p1-results').hidden = true; $('p2-results').hidden = true; $<HTMLButtonElement>('download-p1').disabled = true; $<HTMLButtonElement>('download-p2').disabled = true; orientationSource = 'CONTROLLED_FIXTURE';
   $('empty').style.display = 'none'; $('finish').toggleAttribute('disabled', false); $('cancel').toggleAttribute('disabled', false);
   setText('message', '确定性 Fixture：无相机、无网络、无 Provider。');
-  let yaw = 0;
+  let yaw = 0, fixtureSequence = 0;
   const tick = (): void => {
     if (!runtime || runtime.session.status === 'COMPLETE') { stopAcquisition(); return; }
     latestYaw = yaw; telemetry.orientation();
@@ -242,6 +272,7 @@ $('fixture').addEventListener('click', () => {
     runtime.observeOrientation({ timestamp_ms: timestamp, relative_yaw_deg: yaw, raw_heading_deg: yaw, confidence: 'HIGH', status: 'ACTIVE', screen_orientation: 'PORTRAIT_PRIMARY', source: 'CONTROLLED_FIXTURE' });
     latestYaw = runtime.currentYawDeg() ?? yaw;
     const candidate: FrameMetrics = { timestamp_ms: timestamp, yaw_deg: yaw, width: 640, height: 480, blur_score: 30, exposure_mean: 128, highlight_clipping_ratio: 0, shadow_clipping_ratio: 0, fingerprint: [(yaw % 24) / 24, 1 - (yaw % 24) / 24] };
+    geometrySelector.observe({ ...candidate, timestamp_ms: timestamp + fixtureSequence * 125 }, clonePixelFrame(syntheticVisualFixtures['moderate-balanced']), 'CONTROLLED_FIXTURE'); fixtureSequence++;
     const started = performance.now(); const selected = runtime.observeFrame(candidate);
     if (selected) {
       const selectedKeyframe = runtime.sampler.keyframes.at(-1);
@@ -284,5 +315,14 @@ $('download-p1').addEventListener('click', () => {
 $('copy-p1-evidence').addEventListener('click', async () => {
   try { await navigator.clipboard.writeText($<HTMLTextAreaElement>('p1-device-evidence').value); setText('message', `已复制 ${p1Trials.length} 次 P1 评估证据。`); }
   catch { setText('message', '无法自动复制；请长按 P1 证据文本手动复制。'); }
+});
+$('download-p2').addEventListener('click', () => {
+  if (!runtime || !latestP2Evidence || !latestP2Correspondence) return;
+  const blob = new Blob([JSON.stringify({ correspondence: latestP2Correspondence, spatial_evidence: latestP2Evidence }, null, 2) + '\n'], { type: 'application/json' });
+  const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `${runtime.session.sweep_id}-p2.json`; link.click(); setText('message', `P2 标量结果已导出：${link.download}`); setTimeout(() => URL.revokeObjectURL(link.href), 0);
+});
+$('copy-p2-evidence').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText($<HTMLTextAreaElement>('p2-device-evidence').value); setText('message', `已复制 ${p2Trials.length} 次 P2 评估证据。`); }
+  catch { setText('message', '无法自动复制；请长按 P2 证据文本手动复制。'); }
 });
 window.addEventListener('pagehide', () => { orientation.stop(); camera.stop(); });

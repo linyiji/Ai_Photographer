@@ -6,5 +6,5 @@
     "outDir": ".test-dist",
     "types": ["node"]
   },
-  "include": ["camera", "motion", "sweep", "spatial", "telemetry", "replay", "fixtures", "p1", "tests"]
+  "include": ["camera", "motion", "sweep", "spatial", "telemetry", "replay", "fixtures", "p1", "p2", "tests"]
 }
