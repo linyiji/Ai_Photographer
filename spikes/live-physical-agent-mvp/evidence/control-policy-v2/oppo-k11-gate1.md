@@ -68,3 +68,24 @@ Source fingerprints:
 | 3 | `live-p2-scale-s1_head_shoulders_static-1787733740587.json` | `BD4B0E8383D8C900B87DCC85AAEE82869FB176BBD689EA7F54E0B65F6717663B` |
 | 4 | `live-p2-scale-s1_head_shoulders_static-1787733762195.json` | `AAE00929BA0CE38D3AEB88103D87C3B6828FC721FA935B5A7E6B59FC0BAECEB6` |
 | 8 | `live-p2-scale-s1_head_shoulders_static-178773389.json` | `BEE5E19FA6D91FE3A3745B20562A0BE3DD86D1539DB7AF6E23A0C59E1C504759` |
+
+## Gate 1 attempt 6 — labeled coverage, not yet accepted
+
+- Four correctly labeled V2 downloads: one X, two Scale, and one Combined candidate. All use DEFAULT / center-medium / front mirrored / Worker and declare `raw_media=false`.
+- X: coarse compatibility `MOVE_FARTHER`, then precision `MOVE_LEFT` Episode SUCCESS and READY from EPISODE_SUCCESS.
+- Scale candidates: each performs only coarse compatibility `MOVE_FARTHER`, then passive READY; neither contains a Parent precision Scale Episode.
+- Combined candidate: coarse compatibility `MOVE_FARTHER`, then one precision `MOVE_CLOSER` Episode SUCCESS. It contains no X Episode, so it does not cover combined X+Scale.
+- READY: 4/4; post-READY observation 5.66–6.87 s; post-READY ordinary action 0. Trace action sequences contain no X or Scale direction alternation.
+- Performance recovered versus Attempt 5: scenario-local cadence 6.28–7.01 Hz; cumulative Vision 6.815–6.870 Hz; Preview 29.0–30.1 fps; skipped-busy 4.5%–5.1%. Inference p50 is 78.9–83.8 ms, while p95 is 108.4–142.0 ms; two of four snapshots exceed the 120 ms candidate.
+- User thermal observation: the phone becomes hot after sustained use. The user observed p95 commonly around 140 ms with later periods near 90 ms; VA and Preview remained acceptable. The lower instantaneous period is not substituted for the full-session risk.
+- Privacy/external: Provider, Backend per-frame, Luna, and Raw Upload are all 0.
+- Decision: NOT Gate 1 PASS. Combined X+Scale coverage and the four subjective hard-invariant assertions remain required. Thermal/p95 variability is retained as a warning and blocks escalation to a longer Gate 2 session until bounded revalidation.
+
+Source fingerprints:
+
+| Label | Filename | SHA-256 |
+| --- | --- | --- |
+| X | `live-p2-scale-gate1_x-1787734980126.json` | `7EC5C6859FAE3C3BF49447F53590E3A118F1D46596C49EC25FA8DC05C9FCA521` |
+| Scale | `live-p2-scale-gate1_scale-1787735064276.json` | `BD2DDB10DA8BD2AD4525FCDAE3A43BC52E11A43A4E443D48B60C20F3908C1D33` |
+| Combined | `live-p2-scale-gate1_combined-1787735097010.json` | `5B7B58BD94080E199ECF5EAA11BA44FE0C801BA0023390841C876FCA5426EEE4` |
+| Scale | `live-p2-scale-gate1_scale-1787735126629.json` | `5167E2F38E254C9A0B32AB32D8189CBF52C7F88EB0CF081593DAEB4677B41B76` |

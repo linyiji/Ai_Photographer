@@ -101,6 +101,15 @@ Attempt 5 Inference p50 / p95 = 126.6-171.1 / 261.4-377.5 MS / FAIL
 Attempt 5 Skipped Busy = 35.6-45.8% / FAIL
 Attempt 5 Preview = 27.2-30.0 FPS / PASS
 Attempt 5 External / Raw = 0 / PASS
+OPPO Gate 1 Attempt 6 = 4 LABELED TRACES / NOT ACCEPTED / COMBINED X MISSING
+Attempt 6 Parent Precision Episodes = X SUCCESS 1 / SCALE SUCCESS 1 / COMBINED 0
+Attempt 6 READY / Post-READY Ordinary = 4/4 / 0
+Attempt 6 Direction Alternation = 0 / OBJECTIVE
+Attempt 6 Vision / Preview = 6.815-6.870 HZ / 29.0-30.1 FPS / PASS
+Attempt 6 Inference p50 / p95 = 78.9-83.8 / 108.4-142.0 MS / WARNING
+Attempt 6 Skipped Busy = 4.5-5.1% / PASS_WITH_WARNING
+Attempt 6 Thermal = HOT AFTER SUSTAINED USE / WARNING
+Attempt 6 Subjective Hard Invariants = USER CONFIRMATION REQUIRED
 Attempt 3 Causal Invariants = POST-READY 0 / SIGN MISMATCH 0 / ACTIVE-EPISODE AXIS SWITCH 0
 Attempt 3 Display Latency p50/p95/max = 91.6/248.1/893.4 MS
 Attempt 3 Response = CONTINUATION CUE + 1100 MS READABILITY + MEANINGFUL-MOTION LATENCY / REVALIDATION REQUIRED
@@ -117,4 +126,4 @@ CH-003 = IDENTIFIED / UNCHANGED
 Main / Develop / Fine Tune / AI Visual = UNTOUCHED
 ```
 
-The accepted 33.9% / 59-Episode sample remains the task's starting baseline, not its V2 acceptance result. The mandatory Semantic Measurement and Scale Device Gates are PASS_WITH_WARNING. Parent Gate 1 Attempt 5 is not accepted because Combined coverage is absent and steady device performance fails; its causal READY evidence cannot substitute for a complete passing Gate 1. Gate 2 and the unchanged `>=80%` Correction Success decision may begin only after fresh Gate 1 passes. No next task or Luna work starts automatically.
+The accepted 33.9% / 59-Episode sample remains the task's starting baseline, not its V2 acceptance result. The mandatory Semantic Measurement and Scale Device Gates are PASS_WITH_WARNING. Parent Gate 1 Attempt 6 restores acceptable Vision/Preview cadence and proves zero post-READY ordinary output, but the labeled Combined trial contains no X Episode and sustained-use heat/p95 variability remains a risk. Gate 2 and the unchanged `>=80%` Correction Success decision may begin only after fresh Gate 1 passes. No next task or Luna work starts automatically.
