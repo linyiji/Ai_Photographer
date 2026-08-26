@@ -24,7 +24,7 @@ Amendment start head: `62207ffaf00c542002a6bdd3bbe4911469b853ef`
 - Automated semantic baseline fixtures: 31/31 PASS. Current complete suite after Scale amendment: 208/208 PASS. Typecheck PASS. Build PASS / 29 modules.
 - Provider / Backend per-frame / Luna / Raw Upload: 0 / 0 / 0 / 0.
 
-Semantic Measurement Device Gate: READY_FOR_MANUAL_DEVICE_TEST. Parent OPPO Gate 1 is paused and must not resume until the dedicated OPPO semantic gate passes.
+Semantic Measurement Device Gate was initially READY_FOR_MANUAL_DEVICE_TEST. Its post-fix completion result is recorded in the Scale amendment below.
 
 Fresh OPPO startup evidence reported model loading incomplete after more than 60 seconds. Audit found that the 45-second Worker timeout initiated a second main-thread fallback initialization, amplifying a slow Quick Tunnel cold download. A bounded same-task correction now performs one observable 120-second Worker attempt, does not redownload after timeout, and serves pinned model/WASM assets with browser caching. Automated suite `194/194`, typecheck, and production build / 28 modules pass; cold-start and cached-reload device confirmation are still required before the Semantic Measurement Device Gate can pass.
 
@@ -50,15 +50,15 @@ Start head: `fd337ca8cf3afadb6b006064a7f833d14d7aa1f6`.
 - Device evidence export: direct labeled S1–S6 JSON download includes device/orientation/camera/mirror/target/theme context and the final Preview/Vision/State/inference/frame/memory/privacy telemetry snapshot; no manual HUD transcription is required for those scalar fields.
 - Provider / Backend per-frame / Luna / Raw Upload: 0 / 0 / 0 / 0.
 
-Semantic Scale Device Gate: READY_FOR_MANUAL_DEVICE_TEST. Semantic Measurement Device Gate remains `MANUAL_REVIEW_REQUIRED`, and Parent OPPO Gate 1 remains paused until the Scale Device Gate passes.
+Semantic Scale Device Gate implementation entered READY_FOR_MANUAL_DEVICE_TEST before the two attempts below.
 
 A device revalidation then exposed a cached-mobile `HEAD` response with `Content-Length: 0`; the strict preflight falsely labeled the intact 5,777,746-byte model invalid. The bounded fix treats zero/missing HEAD length as unknown, still rejects explicit nonzero mismatches, and relies on the real model GET/MediaPipe initialization for final validation. Device revalidation remains required.
 
 Fresh OPPO Scale Attempt 1 then completed labeled S1–S6 downloads with no raw media. Preview was 26.3–30.0 fps and no visible freeze, black screen, or crash occurred, but Vision Actual was only 4.157–4.380 Hz, inference p95 was 265.7–304.1 ms, and the user reported obvious device heating. Functionally, the exported scalar was capped near 1.0 in closer scenarios, farther/closer sign evidence was therefore invalid, coarse terminal episodes reopened into repeated cues, S4 had only one stable UPPER_BODY precision row, and S6 never transitioned BodyMode. Attempt 1 is retained as pre-fix FAIL evidence and cannot close the gate.
 
-A bounded correction removes the value cap while keeping uncertainty bounded, prevents automatic same-action coarse reissue after a terminal outcome, adds the compatibility-transition fresh-state barrier even after a terminal coarse episode, and exports explicit zero provider calls. Complete automated verification is now `211/211 PASS`; TypeScript and production build / 29 modules pass. Fresh S1–S6 evidence on a cooled device is required. The Semantic Scale Device Gate remains `MANUAL_REVIEW_REQUIRED`, and Parent OPPO Gate 1 remains paused.
+A bounded correction removes the value cap while keeping uncertainty bounded, prevents automatic same-action coarse reissue after a terminal outcome, adds the compatibility-transition fresh-state barrier even after a terminal coarse episode, and exports explicit zero provider calls. Complete automated verification is `211/211 PASS`; TypeScript and production build / 29 modules pass. Fresh S1–S6 evidence was then collected in Attempt 2.
 
-Post-fix OPPO Scale Attempt 2 supplies fresh labeled S1–S6 traces. S1 DistanceProxy validity is 54/59 stable-present rows (91.5%); S2 farther and S3 closer deliberate segments have correct signs without saturation; S4 stable UPPER_BODY precision Scale is valid 16/16 (100%) and shows both requested signs; S5 emits zero false near/far action in its stable UPPER_BODY arm window with 6.7% P10–P90 proxy spread; S6 performs real metric-family transitions with no instruction on a switch row and no persistent flicker. Every scenario has only one coarse instruction, and all privacy/external counters are zero. Scenario-local cadence is 6.95–7.21 Hz, Preview is 28.4–30.0 fps, and warmed cumulative inference p95 is 86.9–108.0 ms; S1 startup p95 127.6 ms and the cumulative session-Hz denominator remain warnings. Objective result is a PASS_WITH_WARNING candidate, but the Device Gate remains `MANUAL_REVIEW_REQUIRED` until the user confirms thermal state and absence/presence of visible freeze, black screen, or crash for this exact Attempt 2 session. Parent OPPO Gate 1 remains paused.
+Post-fix OPPO Scale Attempt 2 supplies fresh labeled S1–S6 traces. S1 DistanceProxy validity is 54/59 stable-present rows (91.5%); S2 farther and S3 closer deliberate segments have correct signs without saturation; S4 stable UPPER_BODY precision Scale is valid 16/16 (100%) and shows both requested signs; S5 emits zero false near/far action in its stable UPPER_BODY arm window with 6.7% P10–P90 proxy spread; S6 performs real metric-family transitions with no instruction on a switch row and no persistent flicker. Every scenario has only one coarse instruction, and all privacy/external counters are zero. Scenario-local cadence is 6.95–7.21 Hz, Preview is 28.4–30.0 fps, and warmed cumulative inference p95 is 86.9–108.0 ms. The user confirmed no heating and no visible freeze, black screen, or crash. S1 startup p95 127.6 ms, the cumulative session-Hz denominator, and residual static settling remain warnings. Semantic Scale Device Gate and Semantic Measurement Device Gate are `PASS_WITH_WARNING`; Parent OPPO Gate 1 is `READY_TO_RESUME`.
 
 ## Starting evidence reconstruction
 
@@ -118,4 +118,4 @@ CH-003: IDENTIFIED / UNCHANGED
 
 Main / Develop / Fine Tune / AI Visual: UNTOUCHED
 
-Next: complete the OPPO K11 Semantic Scale Device Gate in this same task. Resume Parent OPPO Gate 1 only after that sub-gate passes. Do not start Luna or another task.
+Next: resume Parent OPPO Gate 1 in this same task. Do not start Gate 2 before Gate 1 passes, and do not start Luna or another task.

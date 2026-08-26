@@ -1,6 +1,6 @@
 # OPPO K11 Semantic Scale Device Gate
 
-Status: ATTEMPT_2_OBJECTIVE_PASS_WITH_WARNING_CANDIDATE / SUBJECTIVE_CONFIRMATION_REQUIRED
+Status: PASS_WITH_WARNING
 
 Device: OPPO K11 / ColorOS 15 / Chrome Mobile. Use DEFAULT theme and enable `Semantic Debug`. Do not capture, save, or upload frames/video.
 
@@ -35,7 +35,7 @@ Performance: Preview >=24 fps; Vision actual >=6 Hz; inference p95 <=120 ms cand
 
 Privacy/external: Raw Frame/Video Persistence 0; Raw Upload 0; Provider 0; Backend per-frame 0; Luna 0.
 
-Gate result: MANUAL_REVIEW_REQUIRED / Attempt 1 FAIL. Parent OPPO Gate 1 must not resume until this gate passes.
+Gate result: PASS_WITH_WARNING on post-fix Attempt 2. Parent OPPO Gate 1 is ready to resume.
 
 ## Startup revalidation defect
 
@@ -94,7 +94,7 @@ Date: 2026-08-26. Same OPPO K11 / ColorOS 15 / Chrome Mobile context, portrait f
 
 Scenario-local state-row cadence was 6.95–7.21 Hz, above the 6 Hz steady-state minimum. The cumulative runtime `vision_hz_avg` rose from 1.61 to 4.60 Hz because its denominator includes the pre-sampling startup/idle interval; it is not a steady-state scenario rate and is retained as a telemetry warning. Preview was 28.4–30.0 fps. Cumulative inference p95 was 127.6 ms in S1, then 108.0/92.0/94.1/86.9/98.7 ms; the warmed final snapshot passes the 120 ms candidate. Final scheduled/processed/skipped-busy was 1530/1491/38 with no queued-work evidence.
 
-Objective hard-criterion result: PASS_WITH_WARNING candidate. Final Device Gate decision is withheld pending a fresh user statement for visible freeze/black screen/crash and device heating during this Attempt 2 session.
+Final hard-criterion result: PASS_WITH_WARNING. The user confirmed no device heating and no visible freeze, black screen, or crash during this exact Attempt 2 session. Warnings are limited to S1 startup inference p95, the cumulative-Hz denominator, and residual static settling; steady-state hard criteria pass. Semantic Measurement Device Gate is PASS_WITH_WARNING, and Parent OPPO Gate 1 is ready to resume.
 
 Source fingerprints:
 
