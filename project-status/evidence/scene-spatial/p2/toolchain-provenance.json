@@ -1,0 +1,21 @@
+{
+  "schema": "xfx.p2-toolchain-provenance",
+  "schema_version": "0.1",
+  "recorded_at": "2026-08-26",
+  "opencv_js": {
+    "package": "@techstark/opencv-js",
+    "version": "4.12.0-release.1",
+    "integrity": "sha512-LtTaph9v/HqLPXEg3m1xs2h7QJh10pUpuDT0nj8g77lelWnTwwQrehtd+fXElLOdrkqc4Fea6Z/sJBvEJLYPfw=="
+  },
+  "native_reference": {
+    "opencv_python_headless": "4.12.0.88",
+    "numpy": "2.2.6",
+    "runtime_role": "CONTROLLED_DEVELOPMENT_REFERENCE_ONLY"
+  },
+  "quick_tunnel_client": {
+    "source": "https://github.com/cloudflare/cloudflared/releases/tag/2026.8.2",
+    "version": "2026.8.2",
+    "windows_amd64_sha256": "c29eee2b121f5436a642eed69fd9767da7e7b8c510fa50aaa130337f931357b5"
+  },
+  "runtime_dependency_on_main_or_live": false
+}
