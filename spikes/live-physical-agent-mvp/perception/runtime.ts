@@ -7,7 +7,7 @@ import { PerceptionTelemetry } from './telemetry.js';
 import { extractSemanticRawMeasurement } from '../semantic-framing/measurement.js';
 import { SemanticFramingTracker } from '../semantic-framing/tracker.js';
 import { visibleSensorRectForCover } from '../visual-guidance/viewport.js';
-import { WORKER_INITIALIZATION_TIMEOUT_MS, WorkerInitializationTimeoutError } from './initialization-policy.js';
+import { validateModelContentLength, WORKER_INITIALIZATION_TIMEOUT_MS, WorkerInitializationTimeoutError } from './initialization-policy.js';
 import type {
   PerceptionExecutionMode,
   PerceptionTelemetrySnapshot,
@@ -202,9 +202,9 @@ export class PerceptionRuntime {
     try {
       const response = await fetch(modelUrl, { method: 'HEAD' });
       if (!response.ok) throw new ModelMissingError(`Pose model missing: HTTP ${response.status}. Run npm run setup:model.`);
-      const contentLength = Number(response.headers.get('content-length'));
-      if (contentLength !== POSE_MODEL.sizeBytes) {
-        throw new ModelMissingError(`Pose model missing or invalid: expected ${POSE_MODEL.sizeBytes} bytes, received ${Number.isFinite(contentLength) ? contentLength : 'unknown'}. Run npm run setup:model.`);
+      const contentLengthHeader=response.headers.get('content-length');const contentLength=Number(contentLengthHeader);
+      if (validateModelContentLength(contentLengthHeader,POSE_MODEL.sizeBytes)==='INVALID') {
+        throw new ModelMissingError(`Pose model missing or invalid: expected ${POSE_MODEL.sizeBytes} bytes, received ${contentLength}. Run npm run setup:model.`);
       }
     } catch (error) {
       if (error instanceof ModelMissingError) throw error;

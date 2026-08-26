@@ -36,3 +36,7 @@ Performance: Preview >=24 fps; Vision actual >=6 Hz; inference p95 <=120 ms cand
 Privacy/external: Raw Frame/Video Persistence 0; Raw Upload 0; Provider 0; Backend per-frame 0; Luna 0.
 
 Gate result: MANUAL_REVIEW_REQUIRED. Parent OPPO Gate 1 must not resume until this gate passes.
+
+## Startup revalidation defect
+
+One device attempt reported `Pose model missing or invalid: expected 5777746 bytes, received 0`. The cached mobile `HEAD` response exposed no representation length and was falsely treated as a zero-byte model. The public model remained 5,777,746 bytes. The bounded correction treats zero/missing `HEAD` length as `UNKNOWN`, rejects only an explicit nonzero mismatch, and lets the real MediaPipe GET/init validate the asset. Automated regression and complete suite `210/210 PASS`; device revalidation is required.

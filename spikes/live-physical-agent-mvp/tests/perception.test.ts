@@ -5,7 +5,7 @@ import { PERCEPTION_CONFIG } from '../perception/config.js';
 import { extractPoseMeasurement } from '../perception/geometry.js';
 import { BoundedFrameScheduler } from '../perception/scheduler.js';
 import { PerceptionStateTracker } from '../perception/state-tracker.js';
-import { WORKER_INITIALIZATION_TIMEOUT_MS, WorkerInitializationTimeoutError } from '../perception/initialization-policy.js';
+import { validateModelContentLength, WORKER_INITIALIZATION_TIMEOUT_MS, WorkerInitializationTimeoutError } from '../perception/initialization-policy.js';
 
 test('slow cold start gets one bounded 120s attempt instead of a 45s fallback restart', () => {
   assert.equal(WORKER_INITIALIZATION_TIMEOUT_MS, 120_000);
@@ -13,6 +13,13 @@ test('slow cold start gets one bounded 120s attempt instead of a 45s fallback re
   assert.equal(error.name, 'WorkerInitializationTimeoutError');
   assert.match(error.message, /120s/);
   assert.match(error.message, /not restarted/);
+});
+
+test('cached mobile HEAD length zero is unknown, not a false missing model',()=>{
+  assert.equal(validateModelContentLength('5777746',5777746),'VALID');
+  assert.equal(validateModelContentLength('0',5777746),'UNKNOWN');
+  assert.equal(validateModelContentLength(null,5777746),'UNKNOWN');
+  assert.equal(validateModelContentLength('123',5777746),'INVALID');
 });
 
 const measurement = (name: string, index = 0) => {

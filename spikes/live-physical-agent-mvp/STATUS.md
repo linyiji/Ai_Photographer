@@ -28,7 +28,7 @@ DEFAULT Theme = PASS
 LINE_DOG = IMPLEMENTED_CANDIDATE
 Theme Semantic Diff = 0
 
-Automated Tests = 209/209 PASS
+Automated Tests = 210/210 PASS
 Typecheck = PASS
 Production Build = PASS / 29 MODULES
 Browser Replay = PASS
@@ -64,6 +64,7 @@ Repeated Coarse While Improving = 0 / AUTOMATED
 Coarse To Precision Handoff = FRESH STATE BARRIER PASS
 Semantic Scale Device Gate = MANUAL_REVIEW_REQUIRED
 Scale Trace Direct Download = PASS / LABELED SCENARIO + DEVICE + PERFORMANCE CONTEXT
+Cached HEAD Content-Length 0 = BOUNDED FIX IMPLEMENTED / DEVICE REVALIDATION REQUIRED
 Semantic Measurement Device Gate = MANUAL_REVIEW_REQUIRED
 OPPO Gate 1 = MANUAL_REVIEW_REQUIRED
 OPPO Gate 1 Attempt 1 = FRONT SWITCH DEFECT / BOUNDED FIX IMPLEMENTED / REVALIDATION REQUIRED
