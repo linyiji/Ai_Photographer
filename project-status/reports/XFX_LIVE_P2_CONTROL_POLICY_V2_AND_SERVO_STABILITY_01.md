@@ -28,6 +28,8 @@ Semantic Measurement Device Gate: READY_FOR_MANUAL_DEVICE_TEST. Parent OPPO Gate
 
 Fresh OPPO startup evidence reported model loading incomplete after more than 60 seconds. Audit found that the 45-second Worker timeout initiated a second main-thread fallback initialization, amplifying a slow Quick Tunnel cold download. A bounded same-task correction now performs one observable 120-second Worker attempt, does not redownload after timeout, and serves pinned model/WASM assets with browser caching. Automated suite `194/194`, typecheck, and production build / 28 modules pass; cold-start and cached-reload device confirmation are still required before the Semantic Measurement Device Gate can pass.
 
+Post-fix scalar evidence set 1 contains 676 rows over three exports from one continuous session, with `raw_media=false`. First perception occurred at page timestamp about 18.3 seconds, so cold-start revalidation passes and the prior >60-second failure did not reproduce. The exports do not include a page reload, so cached-reload remains pending. The opening 50.73-second segment had 315/342 `HEAD_SHOULDERS` rows and zero BodyMode flicker; however precision Scale was valid in only 31/676 rows, labeled scenarios B–H and cadence telemetry are missing, and no READY occurred. This set is not Parent Gate 1 evidence; the Semantic Measurement Device Gate remains `MANUAL_REVIEW_REQUIRED`.
+
 ## Starting evidence reconstruction
 
 - Historical baseline: `33.9%`, 59 terminal Episodes, 20/31/8 SUCCESS/NO_EFFECT/WRONG_DIRECTION. It is not a V2 result.
