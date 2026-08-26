@@ -33,7 +33,7 @@ export default function Index(){
  const refreshHome=async()=>{const [runtime,sessions]=await Promise.all([api.readiness(__XFX_PRODUCT_MODE__),api.list()]);setReadiness(runtime);setActive(sessions.filter(item=>item.status==='ACTIVE'));setCompleted(sessions.filter(item=>item.status==='COMPLETED'))}
  useLoad(()=>{Promise.all([refreshHome(),loadPreferences(preferenceStorage).then(value=>{setPreferences(value);setDraftPreferences(value)})]).catch(e=>setError(friendlyError(e)))})
  useUnload(()=>camera.current.close());useEffect(()=>()=>camera.current.close(),[])
- const disposeCandidate=()=>{if(candidate?.previewUrl.startsWith('blob:'))URL.revokeObjectURL(candidate.previewUrl);setCandidate(null);setUploaded(null);setUploadState('LOCAL_CAPTURE_READY');setUploadRetryCount(0)}
+ const disposeCandidate=()=>{if(candidate?.previewUrl.startsWith('blob:'))URL.revokeObjectURL(candidate.previewUrl);if(candidate?.previewReference?.blobUrl.startsWith('blob:'))URL.revokeObjectURL(candidate.previewReference.blobUrl);setCandidate(null);setUploaded(null);setUploadState('LOCAL_CAPTURE_READY');setUploadRetryCount(0)}
  const effective=effectivePreferences(preferences,sessionOverride)
  const actionFor=(sessionId:string)=>(action:string,payload:Record<string,any>={})=>api.action(sessionId,action,payload)
  const prepareToShoot=async(value:Session)=>{setSessionOverride(resetSessionOverride());setFallbackRequested(false);setCameraFailed(false);setSession(value);setSurface('FLOW');const result=await advanceNewSessionToShoot(value,preferences,actionFor(value.session_id));setSession(result.session as Session);if(result.status==='STOPPED')setError(`拍摄准备暂停在 ${result.session.workflow_stage}，可以安全重试。`)}

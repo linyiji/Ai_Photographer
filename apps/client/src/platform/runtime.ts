@@ -4,6 +4,7 @@ import {AdapterDescriptor,CapabilityName,CapabilitySelection,PlatformResult,Runt
 import {centeredAspectCrop,estimateCentralCropByLuma,projectObjectFit,rectToPixels,type NormalizedRect,type TransformEstimate} from '../diagnostics/cameraGeometry'
 import {CameraGeometryTracker,cameraVideoConstraints,captureViewportForVideo,normalizeCameraGeometry,type CaptureViewport,type CameraOrientation,type NormalizedCameraGeometry} from './captureViewport'
 import type {UploadAttemptTelemetry,UploadContext} from './captureUpload'
+import {classifyPreviewStillAlignment,fullViewport,type PreviewStillAlignmentResultV01} from './previewStillAlignment'
 
 const ALL:CapabilityName[]=['CameraAdapter','FrameAdapter','AlbumAdapter','ShareAdapter','HapticAdapter','VoiceOutputAdapter','AuthAdapter','PaymentAdapter','DeviceMotionAdapter','StorageAdapter','NetworkAdapter']
 
@@ -42,7 +43,8 @@ export type CameraGeometryInventory={
  devices:Array<{deviceId:string;label:string;groupId:string}>
 }
 export type CameraDiagnosticCapture={inventory:CameraGeometryInventory;intrinsicVideoUrl:string;visibleCoverUrl:string;centerThreeFourUrl:string;nativeStillUrl:string;nativeStill:{width:number;height:number;bytes:number;mimeType:string};estimatedPreviewToStillTransform:TransformEstimate}
-export type LocalCaptureCandidate={id:string;source:CaptureSource;previewUrl:string;filePath:string;file?:File;filename:string;orientation:'PORTRAIT'|'LANDSCAPE'|'UNKNOWN';confirmed:false;captureDiagnostics?:CaptureDiagnostics}
+export type PreviewReferenceFrame={id:string;capturedAt:string;width:number;height:number;orientation:CameraOrientation;viewport:CaptureViewport;blobUrl:string;localOnly:true}
+export type LocalCaptureCandidate={id:string;source:CaptureSource;previewUrl:string;filePath:string;file?:File;filename:string;orientation:'PORTRAIT'|'LANDSCAPE'|'UNKNOWN';confirmed:false;captureDiagnostics?:CaptureDiagnostics;previewReference?:PreviewReferenceFrame;previewStillAlignment?:PreviewStillAlignmentResultV01}
 
 function cameraFailure(error:unknown,supportLevel:'PARTIAL'|'UNVERIFIED_REAL_DEVICE'):PlatformResult<never>{
  const message=error instanceof Error?error.message:String(error);const lowered=message.toLowerCase()
@@ -121,8 +123,20 @@ export class H5StillCamera{
    return normalizedFailure('CAMERA_FAILURE','PARTIAL','CAMERA_SWITCH_FAILED_CLOSED')
   }finally{this.switching=false}
  }
+ private async capturePreviewReference():Promise<PreviewReferenceFrame|null>{
+  if(!this.video?.videoWidth||!this.video.videoHeight)return null
+  const orientation=this.orientation(),geometry=normalizeCameraGeometry({width:this.video.videoWidth,height:this.video.videoHeight,deviceOrientation:orientation.device,presentationOrientation:orientation.presentation})
+  const normalized=document.createElement('canvas');normalized.width=geometry.normalized.width;normalized.height=geometry.normalized.height;const normalizedContext=normalized.getContext('2d',{alpha:false});if(!normalizedContext)return null
+  if(geometry.normalized.rotation==='LOGICAL_90'){normalizedContext.translate(normalized.width,0);normalizedContext.rotate(Math.PI/2);normalizedContext.drawImage(this.video,0,0,this.video.videoWidth,this.video.videoHeight)}else normalizedContext.drawImage(this.video,0,0,normalized.width,normalized.height)
+  const viewport=geometry.previewViewport,sourceX=Math.round(viewport.x*normalized.width),sourceY=Math.round(viewport.y*normalized.height),sourceWidth=Math.max(1,Math.round(viewport.width*normalized.width)),sourceHeight=Math.max(1,Math.round(viewport.height*normalized.height))
+  const canvas=document.createElement('canvas');canvas.width=sourceWidth;canvas.height=sourceHeight;const context=canvas.getContext('2d',{alpha:false});if(!context)return null
+  context.drawImage(normalized,sourceX,sourceY,sourceWidth,sourceHeight,0,0,sourceWidth,sourceHeight)
+  const blob=await new Promise<Blob|null>(resolve=>canvas.toBlob(resolve,'image/jpeg',.86));if(!blob)return null
+  return {id:`preview-reference-${Date.now()}`,capturedAt:new Date().toISOString(),width:canvas.width,height:canvas.height,orientation:orientation.presentation,viewport,blobUrl:URL.createObjectURL(blob),localOnly:true}
+ }
  async capture():Promise<PlatformResult<LocalCaptureCandidate>>{
   if(!this.video||!this.video.videoWidth||!this.video.videoHeight)return normalizedFailure('CAMERA_FAILURE','PARTIAL','Camera preview is not ready')
+  const previewReference=await this.capturePreviewReference()
   const track=this.stream?.getVideoTracks()[0];let blob:Blob|null=null;let backend:CaptureDiagnostics['backend']='CANVAS_VIDEO_INTRINSIC';let quality='JPEG_0.95'
   const ImageCaptureConstructor=(globalThis as any).ImageCapture
   if(track&&typeof ImageCaptureConstructor==='function')try{blob=await new ImageCaptureConstructor(track).takePhoto();backend='IMAGE_CAPTURE';quality='DEVICE_NATIVE'}catch{}
@@ -130,9 +144,10 @@ export class H5StillCamera{
   if(!blob)return normalizedFailure('CAMERA_FAILURE','PARTIAL','Still image could not be created')
   let width=this.video.videoWidth,height=this.video.videoHeight
   if(typeof createImageBitmap==='function')try{const bitmap=await createImageBitmap(blob,{imageOrientation:'from-image'});width=bitmap.width;height=bitmap.height;bitmap.close()}catch{}
-  const extension=blob.type==='image/png'?'png':blob.type==='image/webp'?'webp':'jpg';const file=new File([blob],`capture-${Date.now()}.${extension}`,{type:blob.type||'image/jpeg'});const previewUrl=URL.createObjectURL(file)
+  const candidateId=`local-${Date.now()}`,extension=blob.type==='image/png'?'png':blob.type==='image/webp'?'webp':'jpg';const file=new File([blob],`capture-${Date.now()}.${extension}`,{type:blob.type||'image/jpeg'});const previewUrl=URL.createObjectURL(file)
   const orientation=this.orientation(),geometry=normalizeCameraGeometry({width:this.video.videoWidth,height:this.video.videoHeight,deviceOrientation:orientation.device,presentationOrientation:orientation.presentation,stillWidth:width,stillHeight:height,relation:'UNKNOWN'})
-  return {ok:true,code:'OK',supportLevel:'UNVERIFIED_REAL_DEVICE',value:{id:`local-${Date.now()}`,source:'camera',previewUrl,filePath:previewUrl,file,filename:file.name,orientation:height>=width?'PORTRAIT':'LANDSCAPE',confirmed:false,captureDiagnostics:{width,height,bytes:blob.size,quality,backend,track:this.trackSettings(),video:{width:this.video.videoWidth,height:this.video.videoHeight,aspectRatio:this.video.videoWidth/this.video.videoHeight},geometry,captureViewportInVideo:geometry.previewViewport,nativeStillPreserved:true,userFacingDerivedDimensions:null}}}
+  const stillOrientation:CameraOrientation=height>=width?'PORTRAIT':'LANDSCAPE',previewStillAlignment=previewReference?classifyPreviewStillAlignment({previewReferenceId:previewReference.id,nativeStillId:candidateId,alignmentMode:'UNSUPPORTED',previewWidth:previewReference.width,previewHeight:previewReference.height,stillWidth:width,stillHeight:height,normalizedPreviewOrientation:previewReference.orientation,normalizedStillOrientation:stillOrientation,cropRectNormalized:fullViewport(width/height),scaleX:1,scaleY:1,translationX:0,translationY:0,mirrorX:false,mirrorY:false,confidence:0,residualError:1,generation:1,source:'CAPTURE_TIME_REFERENCE'}):undefined
+  return {ok:true,code:'OK',supportLevel:'UNVERIFIED_REAL_DEVICE',value:{id:candidateId,source:'camera',previewUrl,filePath:previewUrl,file,filename:file.name,orientation:stillOrientation,confirmed:false,previewReference:previewReference||undefined,previewStillAlignment,captureDiagnostics:{width,height,bytes:blob.size,quality,backend,track:this.trackSettings(),video:{width:this.video.videoWidth,height:this.video.videoHeight,aspectRatio:this.video.videoWidth/this.video.videoHeight},geometry,captureViewportInVideo:geometry.previewViewport,nativeStillPreserved:true,userFacingDerivedDimensions:null}}}
  }
  close(){this.stream?.getTracks().forEach(track=>track.stop());this.stream=null;this.geometryTracker.invalidate();if(this.video){this.video.srcObject=null;this.video.remove();this.video=null}}
 }
