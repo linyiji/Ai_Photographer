@@ -71,4 +71,6 @@ User-supplied on 2026-08-26; scalar-only files were analyzed in place and were n
 - The armed portion produced 21 coarse `MOVE_FARTHER` events but only one denominator Episode, terminal `NO_EFFECT`. This is consistent with two-stage coarse framing separation and is not claimed as precision correction success.
 - No READY occurred. These traces cannot be used as Parent OPPO Gate 1 or Correction Success evidence.
 
-Evidence decision: cold-start correction `PASS`; cached-reload `PENDING`; Semantic Measurement Device Gate remains `MANUAL_REVIEW_REQUIRED` because labeled scenarios B–H, cadence telemetry, and cached reload are not yet supplied.
+Follow-up user observation: after refreshing the updated page, Camera/Model startup completed within a few seconds. This is accepted as qualitative cached-reload confirmation; no invented exact duration is recorded.
+
+Evidence decision: cold-start correction `PASS`; cached reload `PASS`; startup sub-gate `PASS`. Semantic Measurement Device Gate remains `MANUAL_REVIEW_REQUIRED` because labeled scenarios B–H, multi-mode Scale/anchor behavior, and cadence telemetry are not yet supplied.
