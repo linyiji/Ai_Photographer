@@ -3,7 +3,7 @@ import type { StructuredPerceptionState } from '../perception/types.js';
 export type IssueKind = 'SUBJECT_MISSING' | 'X_POSITION' | 'Y_POSITION' | 'SCALE';
 export type DirectionalAction = 'MOVE_LEFT' | 'MOVE_RIGHT' | 'MOVE_CLOSER' | 'MOVE_FARTHER';
 export type LocalAction = DirectionalAction | 'STOP_HERE' | 'HOLD';
-export type RuntimeState = 'IDLE' | 'SEARCHING' | 'ANALYZING' | 'INSTRUCTING' | 'WAITING_FOR_MOTION' | 'TRACKING_MOTION' | 'BRAKING' | 'VERIFYING' | 'SATISFIED_PENDING_CONFIRMATION' | 'READY' | 'LOCAL_RECOVERY_REQUIRED';
+export type RuntimeState = 'IDLE' | 'SEARCHING' | 'ANALYZING' | 'MEASUREMENT_UNCERTAIN' | 'FRAMING_COMPATIBILITY' | 'INSTRUCTING' | 'WAITING_FOR_MOTION' | 'TRACKING_MOTION' | 'BRAKING' | 'VERIFYING' | 'SATISFIED_PENDING_CONFIRMATION' | 'READY' | 'LOCAL_RECOVERY_REQUIRED';
 export type VerificationResult = 'NONE' | 'SUCCESS' | 'IMPROVING' | 'NO_EFFECT' | 'WRONG_DIRECTION';
 export type TerminalOutcome = 'SUCCESS' | 'NO_EFFECT' | 'WRONG_DIRECTION';
 export type EpisodeState = 'WAITING_FOR_MOTION' | 'TRACKING_MOTION' | 'VERIFYING' | 'TERMINAL';
@@ -27,7 +27,7 @@ export interface ControlObservation {
   measurement_age_ms: number;
   guidance_decision_age_ms: number;
   fresh: boolean;
-  suppression_reason: 'NONE' | 'SUBJECT_MISSING' | 'COORDINATE_BASIS' | 'MEASUREMENT_STALE' | 'DECISION_STALE' | 'REACQUISITION_BARRIER';
+  suppression_reason: 'NONE' | 'SUBJECT_MISSING' | 'COORDINATE_BASIS' | 'MEASUREMENT_STALE' | 'DECISION_STALE' | 'REACQUISITION_BARRIER' | 'MEASUREMENT_UNCERTAIN' | 'FRAMING_INCOMPATIBLE';
 }
 
 export interface ControlEpoch {
@@ -47,6 +47,9 @@ export interface ControlEpoch {
   canonical_axis_sign: CanonicalAxisSign;
   display_axis_sign: CanonicalAxisSign;
   state_version: number;
+  body_mode: string;
+  scale_metric_type: string | null;
+  scale_baseline: number | null;
 }
 
 export interface TargetState {
@@ -165,6 +168,9 @@ export interface ClosedLoopMetrics {
   recovery_count: number;
   stale_suppressed_count: number;
   post_terminal_suppressed_count: number;
+  uncertainty_suppressed_x: number;
+  uncertainty_suppressed_scale: number;
+  framing_compatibility_instruction_count: number;
   control_observation_age_ms_p50: number;
   control_observation_age_ms_p95: number;
   control_observation_age_ms_max: number;

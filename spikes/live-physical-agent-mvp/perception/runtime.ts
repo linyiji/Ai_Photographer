@@ -4,6 +4,9 @@ import { extractPoseMeasurement } from './geometry.js';
 import { BoundedFrameScheduler } from './scheduler.js';
 import { PerceptionStateTracker } from './state-tracker.js';
 import { PerceptionTelemetry } from './telemetry.js';
+import { extractSemanticRawMeasurement } from '../semantic-framing/measurement.js';
+import { SemanticFramingTracker } from '../semantic-framing/tracker.js';
+import { visibleSensorRectForCover } from '../visual-guidance/viewport.js';
 import type {
   PerceptionExecutionMode,
   PerceptionTelemetrySnapshot,
@@ -34,6 +37,7 @@ export class PerceptionRuntime {
   private worker: Worker | null = null;
   private fallbackLandmarker: PoseLandmarker | null = null;
   private fallbackTracker = new PerceptionStateTracker(PERCEPTION_CONFIG);
+  private fallbackFramingTracker = new SemanticFramingTracker();
   private scheduler = new BoundedFrameScheduler(PERCEPTION_CONFIG.visionTargetHz);
   private telemetry = new PerceptionTelemetry(PERCEPTION_CONFIG.visionTargetHz, PERCEPTION_CONFIG.inferenceHistoryLimit);
   private mode: PerceptionExecutionMode = 'UNINITIALIZED';
@@ -48,6 +52,7 @@ export class PerceptionRuntime {
 
   get currentMode(): PerceptionExecutionMode { return this.mode; }
   get currentModelStatus(): PoseModelStatus { return this.modelStatus; }
+  setVisionTargetHz(targetHz:number):void{if(![8,10,12].includes(targetHz))throw new Error('Semantic cadence candidate must be 8, 10, or 12 Hz');this.scheduler=new BoundedFrameScheduler(targetHz);this.telemetry=new PerceptionTelemetry(targetHz,PERCEPTION_CONFIG.inferenceHistoryLimit);this.telemetry.start(performance.now());}
 
   initialize(): Promise<void> {
     if (this.ready) return Promise.resolve();
@@ -76,6 +81,8 @@ export class PerceptionRuntime {
     const decision = this.scheduler.decide(timestampMs, this.busy);
     if (!decision.accepted) return;
     this.busy = true;
+    const rect=video.getBoundingClientRect();
+    const visibleSensorRect=visibleSensorRectForCover({container_width:rect.width,container_height:rect.height,source_width:video.videoWidth||rect.width,source_height:video.videoHeight||rect.height});
 
     if (this.mode === 'WORKER' && this.worker) {
       void createImageBitmap(video).then((frame) => {
@@ -84,7 +91,7 @@ export class PerceptionRuntime {
           this.busy = false;
           return;
         }
-        this.worker.postMessage({ type: 'process', frame, timestamp: timestampMs }, [frame]);
+        this.worker.postMessage({ type: 'process', frame, timestamp: timestampMs, visibleSensorRect }, [frame]);
       }).catch((error: unknown) => {
         this.busy = false;
         this.callbacks.onError(`Frame transfer failed: ${error instanceof Error ? error.message : String(error)}`);
@@ -96,8 +103,11 @@ export class PerceptionRuntime {
       if (!this.fallbackLandmarker) throw new Error('Main-thread Pose fallback is not initialized');
       const startedAt = performance.now();
       const result = this.fallbackLandmarker.detectForVideo(video, timestampMs);
-      const measurement = extractPoseMeasurement(result.landmarks[0] ?? [], timestampMs, PERCEPTION_CONFIG);
+      const landmarks=result.landmarks[0] ?? [];
+      const measurement = extractPoseMeasurement(landmarks, timestampMs, PERCEPTION_CONFIG);
       const state = this.fallbackTracker.update(measurement, timestampMs);
+      const semanticRawMeasurement=landmarks.length?extractSemanticRawMeasurement(landmarks,timestampMs,PERCEPTION_CONFIG,visibleSensorRect,measurement):null;
+      state.framing=this.fallbackFramingTracker.update(semanticRawMeasurement,timestampMs,state.sequence);
       this.recordResult(performance.now() - startedAt, state, measurement);
     } catch (error) {
       this.callbacks.onError(`Pose inference failed: ${error instanceof Error ? error.message : String(error)}`);
@@ -111,6 +121,7 @@ export class PerceptionRuntime {
     this.scheduler.reset();
     this.telemetry.start(nowMs);
     this.fallbackTracker.reset();
+    this.fallbackFramingTracker.reset();
     this.worker?.postMessage({ type: 'reset' });
   }
 

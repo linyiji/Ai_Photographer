@@ -36,6 +36,11 @@
           <div id="stop-visual" class="stop-visual" aria-hidden="true"><strong id="stop-icon">◎</strong><span>好，停一下</span></div>
           <div id="ready-visual" class="ready-visual" aria-hidden="true"><strong id="ready-icon">✓</strong><span>好，就这里</span></div>
           <div id="tracking-visual" class="tracking-visual">正在寻找人物</div>
+          <div id="debug-pose-box" class="visual-box debug-pose-box" aria-hidden="true"><span>DEBUG POSE EXTENT</span></div>
+          <div id="semantic-anchor" class="semantic-anchor" aria-hidden="true"><span>TORSO</span></div>
+          <div id="semantic-debug-card" class="semantic-debug-card" hidden>
+            <strong id="semantic-mode">MODE · —</strong><span id="semantic-metrics">ANCHOR / SCALE / UNCERTAINTY · —</span>
+          </div>
         </div>
 
         <div id="hud" class="hud" aria-label="Debug HUD">
@@ -96,6 +101,7 @@
             <h2>Perception Debug HUD</h2>
           </div>
           <button id="pose-init-button" class="button" type="button">初始化 Pose</button>
+          <label class="target-picker">VISION HZ<select id="vision-cadence" aria-label="Vision cadence"><option value="8" selected>8 Hz</option><option value="10">10 Hz</option><option value="12">12 Hz</option></select></label>
         </div>
         <div class="perception-status">
           <span id="pose-model-status" class="status-pill">MODEL · LAZY</span>
@@ -154,6 +160,7 @@
               <select id="guidance-theme" aria-label="Guidance theme"></select>
             </label>
             <label class="toggle-setting"><input id="guidance-grid" type="checkbox" /> 九宫格（调试）</label>
+            <label class="toggle-setting"><input id="semantic-debug" type="checkbox" /> Semantic Debug</label>
             <button id="closed-loop-reset" class="button button--quiet" type="button">重置本机引导</button>
             <button id="closed-loop-arm" class="button" type="button">ARM 新试验</button>
             <button id="closed-loop-trace" class="button button--quiet" type="button">下载标量 Trace</button>

@@ -1,3 +1,5 @@
+import type { FramingMeasurement, SemanticRawMeasurement, VisibleSensorRect } from '../semantic-framing/types.js';
+
 export interface PerceptionConfig {
   visionTargetHz: number;
   visibilityThreshold: number;
@@ -57,6 +59,7 @@ export interface StructuredPerceptionState {
   measurement_age_ms: number | null;
   subject_loss_count: number;
   reacquisition_count: number;
+  framing?: FramingMeasurement | null;
 }
 
 export type PerceptionExecutionMode = 'UNINITIALIZED' | 'WORKER' | 'BOUNDED_MAIN_THREAD_FALLBACK' | 'FAILED';
@@ -98,6 +101,7 @@ export interface WorkerProcessMessage {
   type: 'process';
   frame: ImageBitmap;
   timestamp: number;
+  visibleSensorRect: VisibleSensorRect;
 }
 
 export interface WorkerResetMessage { type: 'reset' }
@@ -107,5 +111,5 @@ export type PerceptionWorkerRequest = WorkerInitMessage | WorkerProcessMessage |
 
 export type PerceptionWorkerResponse =
   | { type: 'ready'; mode: 'WORKER' }
-  | { type: 'result'; state: StructuredPerceptionState; rawMeasurement: PoseMeasurement | null; inferenceMs: number }
+  | { type: 'result'; state: StructuredPerceptionState; rawMeasurement: PoseMeasurement | null; semanticRawMeasurement: SemanticRawMeasurement | null; inferenceMs: number }
   | { type: 'error'; stage: 'init' | 'inference'; message: string };

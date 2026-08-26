@@ -98,6 +98,7 @@ export class PerceptionStateTracker {
       measurement_age_ms: age,
       subject_loss_count: this.lossCount,
       reacquisition_count: this.reacquisitionCount,
+      framing: null,
     };
   }
 
@@ -132,6 +133,7 @@ export class PerceptionStateTracker {
       measurement_age_ms: measurementAgeMs,
       subject_loss_count: this.lossCount,
       reacquisition_count: this.reacquisitionCount,
+      framing: null,
     };
   }
 }

@@ -1,5 +1,6 @@
 import { ACTION_COPY, CLOSED_LOOP_CONFIG, DEFAULT_TARGET, ISSUE_WEIGHTS } from './config.js';
 import type { StructuredPerceptionState } from '../perception/types.js';
+import { profileFor } from '../semantic-framing/profiles.js';
 import type { ActionEpisode, CameraFacing, CanonicalAxisSign, ClosedLoopConfig, ClosedLoopMetrics, ClosedLoopSnapshot, ControlEpoch, ControlObservation, ControlUpdateContext, DeltaState, DimensionDelta, DirectionalAction, InstructionEvent, IssueCandidate, IssueKind, LocalAction, NoEffectSubtype, PreviewMirrorState, ReadySource, RuntimeState, TargetState, TerminalOutcome, TrialState, VerificationResult } from './types.js';
 
 const finite = (v: number | null | undefined): v is number => typeof v === 'number' && Number.isFinite(v);
@@ -14,7 +15,8 @@ const dimension = (target: number, current: number | null | undefined, tolerance
 
 export function computeDelta(state: StructuredPerceptionState, target: TargetState): DeltaState {
   if (!state.subject.present) { const m: DimensionDelta = { delta: null, normalized_error: null, status: 'MISSING' }; return { x: m, y: target.y_exempt ? { delta: null, normalized_error: null, status: 'EXEMPT' } : m, scale: m }; }
-  return { x: dimension(target.center_x, state.subject.center_x, target.tolerance_x), y: dimension(target.center_y, state.subject.center_y, target.tolerance_y, target.y_exempt), scale: dimension(target.height_ratio, state.subject.height_ratio, target.tolerance_height) };
+  const framing=state.framing; const x=framing?(framing.valid_for_precision_x?framing.anchor_x:null):state.subject.center_x; const scale=framing?(framing.valid_for_precision_scale?framing.scale:null):state.subject.height_ratio;
+  return { x: dimension(target.center_x,x,target.tolerance_x), y: dimension(target.center_y,state.subject.center_y,target.tolerance_y,target.y_exempt), scale: dimension(target.height_ratio,scale,target.tolerance_height) };
 }
 
 // Sensor X grows image-right. Preview mirroring is CSS-only and never enters this mapping.
@@ -38,7 +40,7 @@ export function rankIssues(state: StructuredPerceptionState, delta: DeltaState):
   return result.sort((a, b) => b.score - a.score || a.kind.localeCompare(b.kind));
 }
 
-const initialMetrics = (): ClosedLoopMetrics => ({ instruction_count: 0, ordinary_instruction_count: 0, hold_count: 0, stop_cue_count: 0, episode_count: 0, terminal_episode_count: 0, successful_corrections: 0, improving_count: 0, no_effect_count: 0, wrong_direction_count: 0, oscillation_count: 0, local_decisions: 0, time_to_target_ms: null, correction_success_rate: null, action_compliance_count: 0, action_compliance_rate: null, axis_completion_count: 0, axis_completion_rate: null, recovery_count: 0, stale_suppressed_count: 0, post_terminal_suppressed_count: 0, control_observation_age_ms_p50: 0, control_observation_age_ms_p95: 0, control_observation_age_ms_max: 0, luna_calls: 0, backend_per_frame_calls: 0, provider_calls: 0, raw_video_upload: 0 });
+const initialMetrics = (): ClosedLoopMetrics => ({ instruction_count: 0, ordinary_instruction_count: 0, hold_count: 0, stop_cue_count: 0, episode_count: 0, terminal_episode_count: 0, successful_corrections: 0, improving_count: 0, no_effect_count: 0, wrong_direction_count: 0, oscillation_count: 0, local_decisions: 0, time_to_target_ms: null, correction_success_rate: null, action_compliance_count: 0, action_compliance_rate: null, axis_completion_count: 0, axis_completion_rate: null, recovery_count: 0, stale_suppressed_count: 0, post_terminal_suppressed_count: 0, uncertainty_suppressed_x:0, uncertainty_suppressed_scale:0, framing_compatibility_instruction_count:0, control_observation_age_ms_p50: 0, control_observation_age_ms_p95: 0, control_observation_age_ms_max: 0, luna_calls: 0, backend_per_frame_calls: 0, provider_calls: 0, raw_video_upload: 0 });
 interface Observation { timestamp: number; signed: number; error: number }
 
 export class LocalClosedLoopEngine {
@@ -54,6 +56,7 @@ export class LocalClosedLoopEngine {
   private recoveryStableSince: number | null = null;
   private settled: Observation[] = []; private localFailureStreak = 0; private lastIssueSwitchAt = 0; private lastIssuedAction: DirectionalAction | null = null; private sameActionRetries = 0;
   private metrics = initialMetrics();
+  private lastUncertaintyStateVersion:number|null=null; private coarseCandidateSince=0; private lastCoarseInstructionAt:number|null=null;
   constructor(target: TargetState = DEFAULT_TARGET, private readonly config: ClosedLoopConfig = CLOSED_LOOP_CONFIG) { this.target = target; }
   setTarget(target: TargetState): void { this.target = target; this.reset(); }
   armTrial(now: number): void {
@@ -61,7 +64,7 @@ export class LocalClosedLoopEngine {
     this.firstInstructionAt = this.readyAt = null; this.candidateKind = null; this.candidateIssue = null;
     this.candidateSince = this.activeIssueSince = now; this.episode = this.lastTerminalEpisode = null;
     this.lastOrdinaryInstructionAt = this.readyStableSince = this.passiveConfirmationSince = this.recoveryStableSince = null;
-    this.readySource = null; this.verification = 'NONE'; this.settled = []; this.localFailureStreak = 0; this.lastIssuedAction = null; this.sameActionRetries = 0; this.lastTerminalStateVersion = this.lastSuppressedStateVersion = null;
+    this.readySource = null; this.verification = 'NONE'; this.settled = []; this.localFailureStreak = 0; this.lastIssuedAction = null; this.sameActionRetries = 0; this.lastTerminalStateVersion = this.lastSuppressedStateVersion = this.lastUncertaintyStateVersion = null; this.coarseCandidateSince=now;this.lastCoarseInstructionAt=null;
   }
   resumeAfterLocalRecovery(now: number): boolean {
     if (this.runtimeState !== 'LOCAL_RECOVERY_REQUIRED') return false;
@@ -69,27 +72,37 @@ export class LocalClosedLoopEngine {
     this.candidateSince = this.activeIssueSince = now; this.readyStableSince = this.passiveConfirmationSince = null; this.verification = 'NONE';
     return true;
   }
-  reset(): void { this.runtimeState = 'IDLE'; this.trialState = 'DISARMED'; this.trialSequence = 0; this.trialArmedAt = this.firstInstructionAt = this.readyAt = null; this.candidateKind = null; this.candidateIssue = null; this.candidateSince = this.activeIssueSince = 0; this.episode = this.lastTerminalEpisode = null; this.episodeSequence = this.instructionSequence = this.epochSequence = 0; this.lastTerminalStateVersion = this.lastSuppressedStateVersion = null; this.previousReacquisitionCount = 0; this.controlAgeHistory = []; this.lastOrdinaryInstructionAt = this.readyStableSince = this.passiveConfirmationSince = this.recoveryStableSince = null; this.readySource = null; this.verification = 'NONE'; this.settled = []; this.localFailureStreak = this.lastIssueSwitchAt = this.sameActionRetries = 0; this.lastIssuedAction = null; this.metrics = initialMetrics(); }
+  reset(): void { this.runtimeState = 'IDLE'; this.trialState = 'DISARMED'; this.trialSequence = 0; this.trialArmedAt = this.firstInstructionAt = this.readyAt = null; this.candidateKind = null; this.candidateIssue = null; this.candidateSince = this.activeIssueSince = 0; this.episode = this.lastTerminalEpisode = null; this.episodeSequence = this.instructionSequence = this.epochSequence = 0; this.lastTerminalStateVersion = this.lastSuppressedStateVersion = this.lastUncertaintyStateVersion = null; this.previousReacquisitionCount = 0; this.controlAgeHistory = []; this.lastOrdinaryInstructionAt = this.readyStableSince = this.passiveConfirmationSince = this.recoveryStableSince = this.lastCoarseInstructionAt = null; this.coarseCandidateSince=0; this.readySource = null; this.verification = 'NONE'; this.settled = []; this.localFailureStreak = this.lastIssueSwitchAt = this.sameActionRetries = 0; this.lastIssuedAction = null; this.metrics = initialMetrics(); }
 
   update(state: StructuredPerceptionState, context: ControlUpdateContext = {}): ClosedLoopSnapshot {
-    const now = state.timestamp_ms; const decisionNow = context.decision_timestamp_ms ?? now; this.controlObservation = this.observeControl(state, decisionNow); const delta = computeDelta(state, this.target); const candidates = rankIssues(state, delta); const best = candidates[0] ?? null; let instruction: InstructionEvent | null = null; this.metrics.local_decisions += 1;
+    const now = state.timestamp_ms; const stable=state.framing?.stable??state.subject.stable; const decisionNow = context.decision_timestamp_ms ?? now; this.controlObservation = this.observeControl(state, decisionNow); const delta = computeDelta(state, this.target); const candidates = rankIssues(state, delta); const best = candidates[0] ?? null; let instruction: InstructionEvent | null = null; this.metrics.local_decisions += 1;
     if (this.trialState === 'DISARMED') { this.runtimeState = 'IDLE'; return this.snapshot(now, state, delta, null, instruction); }
     if (!state.subject.present) { this.runtimeState = 'SEARCHING'; this.readyStableSince = this.passiveConfirmationSince = null; this.settled = []; this.trackCandidate(best, now); return this.snapshot(now, state, delta, best, instruction); }
     // READY closes the armed trial. Further movement is observation-only until an explicit re-ARM,
     // so post-ready user motion cannot contaminate the accepted episode denominator.
     if (this.trialState === 'READY_LATCHED') { this.runtimeState = 'READY'; return this.snapshot(now, state, delta, null, instruction); }
-    if (this.episode) { this.observeEpisode(now, state, delta); if (this.episode && !this.episode.terminal_outcome) instruction = this.maybeIssueStop(now, state, delta); if (this.episode?.stop_cue_issued_at !== null && !state.subject.stable && !this.episode.terminal_outcome) this.runtimeState = 'BRAKING'; if (this.episode?.terminal_outcome) { const outcome = this.episode.terminal_outcome; this.finishEpisode(outcome, now, state.sequence); const geometrySatisfied = delta.x.status === 'SATISFIED' && delta.scale.status === 'SATISFIED' && (delta.y.status === 'SATISFIED' || delta.y.status === 'EXEMPT'); if (outcome === 'SUCCESS' && geometrySatisfied && state.subject.stable) this.readyStableSince = now; if (this.runtimeState === 'LOCAL_RECOVERY_REQUIRED' && state.subject.stable) this.recoveryStableSince = now; return this.snapshot(now, state, delta, null, instruction); } if (this.episode) return this.snapshot(now, state, delta, this.issueForEpisode(candidates), instruction); }
+    if (this.episode) { this.observeEpisode(now, state, delta); if (this.episode && !this.episode.terminal_outcome) instruction = this.maybeIssueStop(now, state, delta); if (this.episode?.stop_cue_issued_at !== null && !stable && !this.episode.terminal_outcome) this.runtimeState = 'BRAKING'; if (this.episode?.terminal_outcome) { const outcome = this.episode.terminal_outcome; this.finishEpisode(outcome, now, state.sequence); const geometrySatisfied = delta.x.status === 'SATISFIED' && delta.scale.status === 'SATISFIED' && (delta.y.status === 'SATISFIED' || delta.y.status === 'EXEMPT'); if (outcome === 'SUCCESS' && geometrySatisfied && stable) this.readyStableSince = now; if (this.runtimeState === 'LOCAL_RECOVERY_REQUIRED' && stable) this.recoveryStableSince = now; return this.snapshot(now, state, delta, null, instruction); } if (this.episode) return this.snapshot(now, state, delta, this.issueForEpisode(candidates), instruction); }
     if (this.runtimeState === 'LOCAL_RECOVERY_REQUIRED') {
-      if (state.subject.stable) this.recoveryStableSince ??= now; else this.recoveryStableSince = null;
+      if (stable) this.recoveryStableSince ??= now; else this.recoveryStableSince = null;
       const recoveryStableMs = this.recoveryStableSince === null ? 0 : now - this.recoveryStableSince;
       if (recoveryStableMs < this.config.local_recovery_auto_resume_ms) return this.snapshot(now, state, delta, best, instruction);
       this.resumeAfterLocalRecovery(now);
     }
+    const profile=state.framing?profileFor(this.target.id):null;
+    if(state.framing&&profile&&!profile.compatible_modes.includes(state.framing.body_mode)){
+      const coarse=profile.incompatible_action(state.framing.body_mode);this.readyStableSince=this.passiveConfirmationSince=null;
+      if(!coarse){this.runtimeState='MEASUREMENT_UNCERTAIN';this.recordUncertainty(state);return this.snapshot(now,state,delta,null,instruction);}
+      this.runtimeState='FRAMING_COMPATIBILITY';if(this.coarseCandidateSince===0)this.coarseCandidateSince=now;
+      if(now-this.coarseCandidateSince>=this.config.issue_persistence_ms&&(this.lastCoarseInstructionAt===null||now-this.lastCoarseInstructionAt>=this.config.instruction_gap_ms)){this.instructionSequence+=1;this.metrics.framing_compatibility_instruction_count+=1;this.lastCoarseInstructionAt=now;instruction=this.event(now,coarse,'SCALE');}
+      return this.snapshot(now,state,delta,{kind:'SCALE',score:ISSUE_WEIGHTS.SCALE,normalized_error:1,action:coarse,action_mapping:'LOCAL_LIBRARY'},instruction);
+    }
+    this.coarseCandidateSince=now;
+    if(state.framing&&(delta.x.status==='MISSING'||delta.scale.status==='MISSING')){this.runtimeState='MEASUREMENT_UNCERTAIN';this.recordUncertainty(state);return this.snapshot(now,state,delta,null,instruction);}
     const allSatisfied = delta.x.status === 'SATISFIED' && delta.scale.status === 'SATISFIED' && (delta.y.status === 'SATISFIED' || delta.y.status === 'EXEMPT');
     if (allSatisfied) {
-      this.candidateKind = null; this.candidateIssue = null; if (state.subject.stable) this.readyStableSince ??= now; else { this.readyStableSince = null; this.passiveConfirmationSince = null; }
+      this.candidateKind = null; this.candidateIssue = null; if (stable) this.readyStableSince ??= now; else { this.readyStableSince = null; this.passiveConfirmationSince = null; }
       const successfulCause = this.lastTerminalEpisode?.terminal_outcome === 'SUCCESS';
-      if (state.subject.stable && !successfulCause) this.passiveConfirmationSince ??= now;
+      if (stable && !successfulCause) this.passiveConfirmationSince ??= now;
       const duration = this.readyStableSince === null ? 0 : now - this.readyStableSince;
       const required = successfulCause ? this.target.ready_stable_ms : this.config.passive_confirmation_ms;
       if (duration >= required) instruction = this.latchReady(now, successfulCause ? 'EPISODE_SUCCESS' : 'PASSIVE_CONFIRMATION');
@@ -111,12 +124,12 @@ export class LocalClosedLoopEngine {
   }
 
   private observeEpisode(now: number, state: StructuredPerceptionState, delta: DeltaState): void {
-    const e = this.episode; if (!e) return; const signed = this.deltaFor(e.issue, delta); const error = this.errorFor(e.issue, delta); if (!finite(signed) || !finite(error)) return;
+    const e = this.episode; if (!e) return; const signed = this.deltaFor(e.issue, delta); const error = this.errorFor(e.issue, delta); if (!finite(signed) || !finite(error)) { if(now-e.issued_at>=this.config.episode_timeout_ms){e.warning_flags.push('MEASUREMENT_UNCERTAIN_METRIC_SWITCH');e.terminal_outcome='NO_EFFECT';e.terminal_at=now;e.state='TERMINAL';this.verification='NO_EFFECT';} return; }
     e.current_signed_delta = signed; e.current_normalized_error = error; if (error < e.best_normalized_error) { e.best_normalized_error = error; e.best_abs_error = Math.abs(signed); e.best_signed_delta = signed; }
     if (e.baseline_signed_delta * signed < 0) e.target_crossed = true; if (error <= 1) e.entered_deadband = true;
     const progress = e.baseline_normalized_error - error; const meaningful = Math.abs(progress) >= this.config.minimum_meaningful_movement_normalized; if (!e.motion_detected_at && meaningful) e.motion_detected_at = now;
     if (!e.motion_detected_at) { e.state = 'WAITING_FOR_MOTION'; this.runtimeState = 'WAITING_FOR_MOTION'; this.verification = 'NONE'; if (now - e.issued_at < this.config.action_response_grace_ms) return; }
-    else if (!state.subject.stable) { e.state = 'TRACKING_MOTION'; this.runtimeState = 'TRACKING_MOTION'; this.verification = progress > this.config.verification_jitter_normalized ? 'IMPROVING' : 'NONE'; this.settled = []; return; }
+    else if (!(state.framing?.stable??state.subject.stable)) { e.state = 'TRACKING_MOTION'; this.runtimeState = 'TRACKING_MOTION'; this.verification = progress > this.config.verification_jitter_normalized ? 'IMPROVING' : 'NONE'; this.settled = []; return; }
     e.state = 'VERIFYING'; this.runtimeState = 'VERIFYING'; this.settled.push({ timestamp: now, signed, error });
     const span = this.settled.length < 2 ? 0 : this.settled.at(-1)!.timestamp - this.settled[0].timestamp; const timedOut = now - e.issued_at >= this.config.episode_timeout_ms;
     if (span < this.config.settled_window_ms && !timedOut) { this.verification = meaningful ? 'IMPROVING' : 'NONE'; return; }
@@ -124,8 +137,8 @@ export class LocalClosedLoopEngine {
   }
   private classifyEpisode(e: ActionEpisode, signed: number, error: number): TerminalOutcome { if (error <= 1 || (e.entered_deadband && error <= 1.25)) return 'SUCCESS'; if (e.target_crossed || e.baseline_signed_delta * signed < 0) { e.warning_flags.push('OVERSHOOT_OUTSIDE_DEADBAND'); return 'NO_EFFECT'; } const increase = error - e.baseline_normalized_error; if (increase >= Math.max(this.config.verification_jitter_normalized, e.baseline_normalized_error * this.config.wrong_direction_increase_ratio)) return 'WRONG_DIRECTION'; return 'NO_EFFECT'; }
   private maybeIssueStop(now: number, state: StructuredPerceptionState, delta: DeltaState): InstructionEvent | null {
-    const e = this.episode; if (!e || !e.motion_detected_at || e.stop_cue_issued_at !== null || state.subject.stable) return null;
-    const signed = this.deltaFor(e.issue, delta); const error = this.errorFor(e.issue, delta); const velocity = e.issue === 'X_POSITION' ? state.subject.velocity_x : e.issue === 'SCALE' ? state.subject.velocity_scale : null;
+    const e = this.episode; if (!e || !e.motion_detected_at || e.stop_cue_issued_at !== null || (state.framing?.stable??state.subject.stable)) return null;
+    const signed = this.deltaFor(e.issue, delta); const error = this.errorFor(e.issue, delta); const velocity = e.issue === 'X_POSITION' ? state.framing?.velocity_x??state.subject.velocity_x : e.issue === 'SCALE' ? state.framing?.velocity_scale??state.subject.velocity_scale : null;
     const tolerance = e.issue === 'X_POSITION' ? this.target.tolerance_x : e.issue === 'SCALE' ? this.target.tolerance_height : this.target.tolerance_y;
     if (!finite(signed) || !finite(error) || !finite(velocity) || e.baseline_signed_delta * velocity <= 0) return null;
     const predictedDelta = signed - velocity * (this.config.braking_prediction_horizon_ms / 1000); const predictedError = Math.abs(predictedDelta) / tolerance;
@@ -175,7 +188,7 @@ export class LocalClosedLoopEngine {
   }
   private createControlEpoch(state: StructuredPerceptionState, action: DirectionalAction, issue: IssueKind, context: ControlUpdateContext): Readonly<ControlEpoch> {
     const cameraFacing = context.camera_facing ?? 'UNKNOWN'; const previewMirror = context.preview_mirror_state ?? 'UNKNOWN'; const signs = canonicalDirectionTransform(action, cameraFacing, previewMirror); this.epochSequence += 1;
-    return Object.freeze({ epoch_id: this.epochSequence, trial_id: this.trialSequence, episode_id: this.episodeSequence, issued_at: state.timestamp_ms, action, axis: issue === 'SCALE' ? 'SCALE' : 'X', target_snapshot: Object.freeze({ id: this.target.id, center_x: this.target.center_x, height_ratio: this.target.height_ratio, tolerance_x: this.target.tolerance_x, tolerance_height: this.target.tolerance_height }), measurement_snapshot: Object.freeze({ center_x: state.subject.center_x, height_ratio: state.subject.height_ratio, velocity_x: state.subject.velocity_x, velocity_scale: state.subject.velocity_scale }), measurement_timestamp: this.controlObservation.measurement_timestamp, measurement_age_ms: this.controlObservation.measurement_age_ms, guidance_decision_age_ms: this.controlObservation.guidance_decision_age_ms, camera_facing: cameraFacing, preview_mirror_state: previewMirror, canonical_axis_sign: signs.canonical_axis_sign, display_axis_sign: signs.display_axis_sign, state_version: state.sequence });
+    const framing=state.framing;return Object.freeze({ epoch_id: this.epochSequence, trial_id: this.trialSequence, episode_id: this.episodeSequence, issued_at: state.timestamp_ms, action, axis: issue === 'SCALE' ? 'SCALE' : 'X', target_snapshot: Object.freeze({ id: this.target.id, center_x: this.target.center_x, height_ratio: this.target.height_ratio, tolerance_x: this.target.tolerance_x, tolerance_height: this.target.tolerance_height }), measurement_snapshot: Object.freeze({ center_x: framing?.anchor_x??state.subject.center_x, height_ratio: framing?.scale??state.subject.height_ratio, velocity_x: framing?.velocity_x??state.subject.velocity_x, velocity_scale: framing?.velocity_scale??state.subject.velocity_scale }), measurement_timestamp: this.controlObservation.measurement_timestamp, measurement_age_ms: this.controlObservation.measurement_age_ms, guidance_decision_age_ms: this.controlObservation.guidance_decision_age_ms, camera_facing: cameraFacing, preview_mirror_state: previewMirror, canonical_axis_sign: signs.canonical_axis_sign, display_axis_sign: signs.display_axis_sign, state_version: state.sequence,body_mode:framing?.body_mode??'LEGACY_FIXTURE',scale_metric_type:framing?.scale_metric_type??null,scale_baseline:framing?.scale??state.subject.height_ratio });
   }
   private selectWithHysteresis(best: IssueCandidate | null, candidates: IssueCandidate[], now: number): IssueCandidate | null { const latched = this.candidateIssue; if (!best || !latched) return best; const current = candidates.find((c) => c.kind === latched.kind); if (!current) return best; if (best.kind === current.kind || best.score <= current.score * this.config.dominance_ratio) return current; if ((current.kind === 'X_POSITION' && best.kind === 'SCALE') || (current.kind === 'SCALE' && best.kind === 'X_POSITION')) { if (this.lastIssueSwitchAt > 0 && now - this.lastIssueSwitchAt <= this.config.oscillation_window_ms) this.metrics.oscillation_count += 1; this.lastIssueSwitchAt = now; } return best; }
   private trackCandidate(issue: IssueCandidate | null, now: number): void { if (issue?.kind !== this.candidateKind) { this.candidateKind = issue?.kind ?? null; this.candidateSince = now; if (issue) this.activeIssueSince = now; } this.candidateIssue = issue; }
@@ -184,11 +197,12 @@ export class LocalClosedLoopEngine {
   private deltaFor(k: IssueKind | null, d: DeltaState): number | null { return k === 'X_POSITION' ? d.x.delta : k === 'Y_POSITION' ? d.y.delta : k === 'SCALE' ? d.scale.delta : null; }
   private event(t: number, action: LocalAction, issue: IssueKind | null): InstructionEvent { return { sequence: this.instructionSequence, timestamp_ms: t, action, copy_zh: ACTION_COPY[action], issue }; }
   private snapshot(now: number, state: StructuredPerceptionState, delta: DeltaState, issue: IssueCandidate | null, instruction: InstructionEvent | null): ClosedLoopSnapshot {
-    const ep = this.episode ?? this.lastTerminalEpisode; const currentError = this.errorFor(this.episode?.issue ?? null, delta); const currentDelta = this.deltaFor(this.episode?.issue ?? null, delta); const velocity = this.episode?.issue === 'X_POSITION' ? state.subject.velocity_x : this.episode?.issue === 'SCALE' ? state.subject.velocity_scale : null;
+    const ep = this.episode ?? this.lastTerminalEpisode; const currentError = this.errorFor(this.episode?.issue ?? null, delta); const currentDelta = this.deltaFor(this.episode?.issue ?? null, delta); const velocity = this.episode?.issue === 'X_POSITION' ? state.framing?.velocity_x??state.subject.velocity_x : this.episode?.issue === 'SCALE' ? state.framing?.velocity_scale??state.subject.velocity_scale : null;
     const predictedDelta = finite(currentDelta) && finite(velocity) ? currentDelta - velocity * (this.config.braking_prediction_horizon_ms / 1000) : null;
     const geometrySatisfied = delta.x.status === 'SATISFIED' && delta.scale.status === 'SATISFIED' && (delta.y.status === 'SATISFIED' || delta.y.status === 'EXEMPT');
     const passiveElapsed = this.passiveConfirmationSince === null ? 0 : now - this.passiveConfirmationSince;
     const recoveryElapsed = this.recoveryStableSince === null ? 0 : now - this.recoveryStableSince;
     return { timestamp_ms: now, target: this.target, current: state.subject, delta, issue, issue_age_ms: issue ? Math.max(0, now - this.activeIssueSince) : 0, active_action: this.episode?.stop_cue_issued_at !== null && this.episode?.stop_cue_issued_at !== undefined ? 'STOP_HERE' : this.episode?.action ?? (this.runtimeState === 'READY' ? 'HOLD' : null), action_age_ms: this.episode ? Math.max(0, now - this.episode.issued_at) : null, instruction, runtime_state: this.runtimeState, waiting_remaining_ms: this.episode ? Math.max(0, this.config.action_response_grace_ms - (now - this.episode.issued_at)) : 0, verification: this.verification, episode: ep ? { ...ep, warning_flags: [...ep.warning_flags] } : null, trial_id: this.trialState === 'DISARMED' ? null : this.trialSequence, trial_state: this.trialState, trial_armed_at: this.trialArmedAt, first_instruction_at: this.firstInstructionAt, ready_at: this.readyAt, trial_elapsed_ms: this.firstInstructionAt === null ? null : (this.readyAt ?? now) - this.firstInstructionAt, stable_duration_ms: this.readyStableSince === null ? 0 : Math.max(0, now - this.readyStableSince), ready: this.trialState === 'READY_LATCHED', geometry_satisfied: geometrySatisfied, ready_source: this.readySource, passive_confirmation_remaining_ms: this.runtimeState === 'SATISFIED_PENDING_CONFIRMATION' ? Math.max(0, this.config.passive_confirmation_ms - passiveElapsed) : 0, local_recovery_remaining_ms: this.runtimeState === 'LOCAL_RECOVERY_REQUIRED' ? Math.max(0, this.config.local_recovery_auto_resume_ms - recoveryElapsed) : 0, near_target_corridor: finite(currentError) && currentError <= this.config.braking_corridor_normalized, predicted_delta: predictedDelta, control_observation: { ...this.controlObservation }, control_epoch: ep?.control_epoch ?? null, metrics: { ...this.metrics } };
   }
+  private recordUncertainty(state:StructuredPerceptionState):void{if(this.lastUncertaintyStateVersion===state.sequence)return;this.lastUncertaintyStateVersion=state.sequence;const framing=state.framing;if(!framing)return;if(!framing.valid_for_precision_x)this.metrics.uncertainty_suppressed_x+=1;if(!framing.valid_for_precision_scale)this.metrics.uncertainty_suppressed_scale+=1;}
 }

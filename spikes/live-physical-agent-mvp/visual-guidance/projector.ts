@@ -16,6 +16,9 @@ const boxFromValues = (centerX: number, centerY: number, width: number, height: 
 };
 
 const boxFromState = (state: StructuredPerceptionState, raw?: PoseMeasurement | null): NormalizedBox | null => {
+  const semantic=state.framing?.display_box;
+  if(semantic)return boxFromValues(semantic.center_x,semantic.center_y,semantic.width_ratio,semantic.height_ratio);
+  if(Object.prototype.hasOwnProperty.call(state,'framing'))return null;
   if (raw) return boxFromValues(raw.center_x, raw.center_y, raw.width_ratio, raw.height_ratio);
   const subject = state.subject;
   if (!subject.present || !finite(subject.center_x) || !finite(subject.center_y) || !finite(subject.width_ratio) || !finite(subject.height_ratio)) return null;

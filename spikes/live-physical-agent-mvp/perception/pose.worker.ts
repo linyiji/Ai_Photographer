@@ -2,10 +2,13 @@ import { FilesetResolver, PoseLandmarker } from '@mediapipe/tasks-vision';
 import { PERCEPTION_CONFIG, POSE_OPTIONS } from './config.js';
 import { extractPoseMeasurement } from './geometry.js';
 import { PerceptionStateTracker } from './state-tracker.js';
+import { extractSemanticRawMeasurement } from '../semantic-framing/measurement.js';
+import { SemanticFramingTracker } from '../semantic-framing/tracker.js';
 import type { PerceptionWorkerRequest, PerceptionWorkerResponse } from './types.js';
 
 let landmarker: PoseLandmarker | null = null;
 let tracker: PerceptionStateTracker | null = null;
+let framingTracker: SemanticFramingTracker | null = null;
 
 const send = (message: PerceptionWorkerResponse): void => self.postMessage(message);
 
@@ -27,6 +30,7 @@ self.onmessage = async (event: MessageEvent<PerceptionWorkerRequest>) => {
         outputSegmentationMasks: POSE_OPTIONS.outputSegmentationMasks,
       });
       tracker = new PerceptionStateTracker(message.config);
+      framingTracker = new SemanticFramingTracker();
       send({ type: 'ready', mode: 'WORKER' });
     } catch (error) {
       send({ type: 'error', stage: 'init', message: error instanceof Error ? error.message : String(error) });
@@ -36,6 +40,7 @@ self.onmessage = async (event: MessageEvent<PerceptionWorkerRequest>) => {
 
   if (message.type === 'reset') {
     tracker?.reset();
+    framingTracker?.reset();
     return;
   }
 
@@ -43,21 +48,26 @@ self.onmessage = async (event: MessageEvent<PerceptionWorkerRequest>) => {
     landmarker?.close();
     landmarker = null;
     tracker = null;
+    framingTracker = null;
     self.close();
     return;
   }
 
-  const { frame, timestamp } = message;
+  const { frame, timestamp, visibleSensorRect } = message;
   const startedAt = performance.now();
   try {
-    if (!landmarker || !tracker) throw new Error('Pose worker is not initialized');
+    if (!landmarker || !tracker || !framingTracker) throw new Error('Pose worker is not initialized');
     const result = landmarker.detectForVideo(frame, timestamp);
-    const measurement = extractPoseMeasurement(result.landmarks[0] ?? [], timestamp, PERCEPTION_CONFIG);
+    const landmarks=result.landmarks[0] ?? [];
+    const measurement = extractPoseMeasurement(landmarks, timestamp, PERCEPTION_CONFIG);
     const state = tracker.update(measurement, timestamp);
+    const semanticRawMeasurement=landmarks.length?extractSemanticRawMeasurement(landmarks,timestamp,PERCEPTION_CONFIG,visibleSensorRect,measurement):null;
+    state.framing=framingTracker.update(semanticRawMeasurement,timestamp,state.sequence);
     send({
       type: 'result',
       state,
       rawMeasurement: measurement,
+      semanticRawMeasurement,
       inferenceMs: performance.now() - startedAt,
     });
   } catch (error) {

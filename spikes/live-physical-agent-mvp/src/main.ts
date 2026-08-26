@@ -48,6 +48,7 @@ const schedulerBadge = requireElement<HTMLElement>('scheduler-badge');
 const capabilityList = requireElement<HTMLDListElement>('capability-list');
 const perceptionHud = requireElement<HTMLElement>('perception-hud');
 const poseInitButton = requireElement<HTMLButtonElement>('pose-init-button');
+const visionCadence=requireElement<HTMLSelectElement>('vision-cadence');
 const poseMessage = requireElement<HTMLParagraphElement>('pose-message');
 const poseModelStatus = requireElement<HTMLElement>('pose-model-status');
 const executionMode = requireElement<HTMLElement>('execution-mode');
@@ -60,6 +61,7 @@ const closedLoopArm = requireElement<HTMLButtonElement>('closed-loop-arm');
 const closedLoopTrace = requireElement<HTMLButtonElement>('closed-loop-trace');
 const guidanceMode = requireElement<HTMLSelectElement>('guidance-mode');
 const guidanceGrid = requireElement<HTMLInputElement>('guidance-grid');
+const semanticDebug = requireElement<HTMLInputElement>('semantic-debug');
 const guidanceTheme = requireElement<HTMLSelectElement>('guidance-theme');
 const visualOverlay = requireElement<HTMLElement>('visual-servo-overlay');
 const visualGrid = requireElement<HTMLElement>('visual-grid');
@@ -75,6 +77,7 @@ const readyVisual = requireElement<HTMLElement>('ready-visual');
 const stopIcon = requireElement<HTMLElement>('stop-icon');
 const readyIcon = requireElement<HTMLElement>('ready-icon');
 const trackingVisual = requireElement<HTMLElement>('tracking-visual');
+const debugPoseBox=requireElement<HTMLElement>('debug-pose-box'); const semanticAnchor=requireElement<HTMLElement>('semantic-anchor'); const semanticDebugCard=requireElement<HTMLElement>('semantic-debug-card'); const semanticMode=requireElement<HTMLElement>('semantic-mode'); const semanticMetrics=requireElement<HTMLElement>('semantic-metrics');
 const closedLoopFields = {
   runtimeState: requireElement<HTMLElement>('cl-runtime-state'), ready: requireElement<HTMLElement>('cl-ready'),
   instruction: requireElement<HTMLElement>('cl-instruction'), target: requireElement<HTMLElement>('cl-target'),
@@ -231,6 +234,7 @@ function renderVisualGuidance(): void {
   visualOverlay.dataset.theme = renderedTheme.theme.theme_id; visualOverlay.style.setProperty('--guide',renderedTheme.theme.visual_tokens.guide); visualOverlay.style.setProperty('--target',renderedTheme.theme.visual_tokens.target); visualOverlay.style.setProperty('--near',renderedTheme.theme.visual_tokens.near); visualOverlay.style.setProperty('--danger',renderedTheme.theme.visual_tokens.danger); visualOverlay.style.setProperty('--line',renderedTheme.theme.visual_tokens.line_width); visualOverlay.style.setProperty('--corner',renderedTheme.theme.visual_tokens.corner_radius);
   const zoneBox: NormalizedBox = { left: visual.acceptable_zone.left, top: visual.acceptable_zone.top, width: visual.acceptable_zone.right-visual.acceptable_zone.left, height: visual.acceptable_zone.bottom-visual.acceptable_zone.top, center_x:(visual.acceptable_zone.left+visual.acceptable_zone.right)/2, center_y:(visual.acceptable_zone.top+visual.acceptable_zone.bottom)/2 };
   applyProjectedBox(acceptableZone, zoneBox); targetBox.classList.remove('is-visible'); applyProjectedBox(subjectBox, visual.tracked_subject_box);
+  renderSemanticDebug();
   subjectLockLabel.textContent = visual.tracking_status === 'LOCKED' ? '人物已锁定' : visual.tracking_status === 'HELD' ? '人物暂时遮挡' : '人物锁定中';
   const direction = visual.direction_hint; const directionPresentation = direction === 'MOVE_LEFT' ? [visual.display_axis_sign < 0 ? '←' : '→','持续往左 · 看到“停一下”再停'] : direction === 'MOVE_RIGHT' ? [visual.display_axis_sign < 0 ? '←' : '→','持续往右 · 看到“停一下”再停'] : direction === 'MOVE_CLOSER' ? ['⊕','持续靠近 · 看到“停一下”再停'] : direction === 'MOVE_FARTHER' ? ['⊖','持续退后 · 看到“停一下”再停'] : null;
   directionVisual.classList.toggle('is-visible', Boolean(directionPresentation) && !visual.braking && !visual.ready); if (directionPresentation) { directionIcon.textContent=renderedTheme.direction_glyph??directionPresentation[0]; directionLabel.textContent=directionPresentation[1]; }
@@ -238,6 +242,14 @@ function renderVisualGuidance(): void {
   stopVisual.classList.toggle('is-visible', visual.braking && !visual.ready); readyVisual.classList.toggle('is-visible', visual.ready);
   trackingVisual.textContent = visual.tracking_status === 'LOCKED' ? (visual.inside_target ? '人物已在目标框内' : visual.near_target ? '接近目标框' : '跟随箭头，把人物移进目标框') : visual.tracking_status === 'HELD' ? '暂时未识别 · 请保持位置' : visual.tracking_status === 'UNLOCKED' ? '请让人物进入画面' : '把人物放进目标框';
   closedLoopFields.theme.textContent=`${renderedTheme.theme.theme_id} / ${semanticDiff}`;
+}
+
+function renderSemanticDebug():void{
+  const framing=latestPerceptionState?.framing;const enabled=semanticDebug.checked&&Boolean(framing);semanticDebugCard.hidden=!enabled;
+  if(!enabled||!framing){debugPoseBox.classList.remove('is-visible');semanticAnchor.classList.remove('is-visible');return;}
+  const raw=framing.raw_pose_box;applyProjectedBox(debugPoseBox,raw?{left:raw.min_x,top:raw.min_y,width:raw.width_ratio,height:raw.height_ratio,center_x:raw.center_x,center_y:raw.center_y}:null);
+  if(framing.anchor_x!==null){const shoulder=framing.groups.SHOULDERS.pair_center,hip=framing.groups.HIPS.pair_center;const y=shoulder&&hip?(shoulder.y+hip.y)/2:shoulder?.y??hip?.y??framing.display_box?.center_y??.5;const rect=cameraStage.getBoundingClientRect();const projected=projectBoxToCover({left:framing.anchor_x,top:y,width:.001,height:.001,center_x:framing.anchor_x,center_y:y},{container_width:rect.width,container_height:rect.height,source_width:video.videoWidth||rect.width,source_height:video.videoHeight||rect.height,mirrored:activeFacingMode==='user'});semanticAnchor.style.left=`${projected.left}px`;semanticAnchor.style.top=`${projected.top}px`;semanticAnchor.classList.add('is-visible');}
+  semanticMode.textContent=`MODE · ${framing.body_mode} · ${(framing.body_mode_confidence*100).toFixed(0)}% · ${framing.filter_type}`;semanticMetrics.textContent=`ANCHOR ${formatMetric(framing.anchor_x)} (${framing.anchor_x_source}) · SCALE ${formatMetric(framing.scale)} (${framing.scale_metric_type??'—'}) · U ${formatMetric(framing.uncertainty_x)}/${formatMetric(framing.uncertainty_scale)} · CROP ${Object.entries(framing.cropped_edges).filter(([,v])=>v).map(([k])=>k).join(',')||'NONE'}`;
 }
 
 function renderCapabilities(): void {
@@ -330,7 +342,7 @@ function renderClosedLoop(): void {
     closedLoopFields.theme.textContent = `${guidanceTheme.value||'DEFAULT'} / 0`;
     return;
   }
-  const subject = snapshot.current; const metrics = snapshot.metrics;
+  const subject = snapshot.current; const framing=latestPerceptionState?.framing; const metrics = snapshot.metrics;
   closedLoopFields.runtimeState.textContent = `STATE · ${snapshot.runtime_state}`;
   closedLoopReset.textContent = snapshot.runtime_state === 'LOCAL_RECOVERY_REQUIRED' ? '继续本机引导' : '重置本机引导';
   closedLoopFields.ready.textContent = `READY · ${String(snapshot.ready).toUpperCase()}`;
@@ -338,7 +350,7 @@ function renderClosedLoop(): void {
   closedLoopFields.instruction.textContent = presentation.text;
   guidanceOverlayState.textContent = presentation.state;
   guidanceOverlayText.textContent = presentation.text;
-  closedLoopFields.current.textContent = `${formatMetric(subject.center_x)} / ${formatMetric(subject.center_y)} / ${formatMetric(subject.height_ratio)}`;
+  closedLoopFields.current.textContent = `${formatMetric(framing?.anchor_x??subject.center_x)} / ${formatMetric(subject.center_y)} / ${formatMetric(framing?.scale??subject.height_ratio)}`;
   closedLoopFields.delta.textContent = `${formatMetric(snapshot.delta.x.delta)} / ${formatMetric(snapshot.delta.y.delta)} / ${formatMetric(snapshot.delta.scale.delta)}`;
   closedLoopFields.error.textContent = `${formatMetric(snapshot.delta.x.normalized_error)} / ${formatMetric(snapshot.delta.y.normalized_error)} / ${formatMetric(snapshot.delta.scale.normalized_error)}`;
   closedLoopFields.issue.textContent = `${snapshot.issue?.kind ?? 'NONE'} / ${formatMetric(snapshot.issue?.score, 2)}`;
@@ -346,7 +358,7 @@ function renderClosedLoop(): void {
   closedLoopFields.action.textContent = `${snapshot.active_action ?? 'NONE'} / ${snapshot.action_age_ms === null ? '—' : `${snapshot.action_age_ms.toFixed(0)} ms`}`;
   closedLoopFields.waiting.textContent = `${snapshot.waiting_remaining_ms.toFixed(0)} / ${CLOSED_LOOP_CONFIG.instruction_gap_ms} ms`;
   closedLoopFields.verification.textContent = snapshot.verification;
-  closedLoopFields.stable.textContent = `${String(subject.stable).toUpperCase()} / ${snapshot.stable_duration_ms.toFixed(0)} ms`;
+  closedLoopFields.stable.textContent = `${String(framing?.stable??subject.stable).toUpperCase()} / ${snapshot.stable_duration_ms.toFixed(0)} ms`;
   const episode = snapshot.episode;
   closedLoopFields.trial.textContent = `${snapshot.trial_state} / ${snapshot.trial_elapsed_ms === null ? '—' : `${(snapshot.trial_elapsed_ms / 1000).toFixed(1)} s`}`;
   closedLoopFields.episode.textContent = `${episode?.episode_id ?? '—'} / ${episode?.state ?? '—'}`;
@@ -380,6 +392,8 @@ function renderClosedLoop(): void {
 function closedLoopPresentation(snapshot: ClosedLoopSnapshot): { state: string; text: string } {
   if (snapshot.trial_state === 'DISARMED') return { state: 'P2 LOCAL · DISARMED', text: '模型已就绪 · 点击“ARM 新试验”开始' };
   if (snapshot.runtime_state === 'SEARCHING') return { state: 'P2 LOCAL · SEARCHING', text: '请进入画面' };
+  if(snapshot.runtime_state==='MEASUREMENT_UNCERTAIN')return {state:'P2 LOCAL · MEASUREMENT UNCERTAIN',text:'保持片刻 · 正在确认人物构图'};
+  if(snapshot.runtime_state==='FRAMING_COMPATIBILITY')return {state:`P2 LOCAL · FRAMING COMPATIBILITY · ${latestPerceptionState?.framing?.body_mode??'—'}`,text:snapshot.instruction?.copy_zh??'正在确认可见身体范围'};
   if (snapshot.runtime_state === 'INSTRUCTING' && snapshot.instruction) {
     return { state: `P2 LOCAL · ${snapshot.issue?.kind ?? 'ACTION'}`, text: snapshot.instruction.copy_zh };
   }
@@ -387,7 +401,7 @@ function closedLoopPresentation(snapshot: ClosedLoopSnapshot): { state: string; 
     return { state: `P2 LOCAL · ACTION · ${snapshot.active_action ?? 'LOCAL'}`, text: displayedActionCopy };
   }
   if (snapshot.runtime_state === 'WAITING_FOR_MOTION' || snapshot.runtime_state === 'TRACKING_MOTION') {
-    return snapshot.current.stable
+    return (latestPerceptionState?.framing?.stable??snapshot.current.stable)
       ? { state: `P2 LOCAL · VERIFY IN ${snapshot.waiting_remaining_ms.toFixed(0)} ms`, text: '保持不动 · 正在确认' }
       : { state: 'P2 LOCAL · WAITING / SILENT', text: '移动中 · 暂停新指令' };
   }
@@ -669,6 +683,7 @@ poseInitButton.addEventListener('click', () => {
     // Status and the explicit model/runtime error are rendered by the runtime.
   });
 });
+visionCadence.addEventListener('change',()=>{const hz=Number(visionCadence.value);perceptionRuntime.setVisionTargetHz(hz);poseMessage.textContent=`Vision cadence switched to ${hz} Hz · one inference in flight · no backlog`;});
 
 targetPreset.addEventListener('change', () => {
   const selected = TARGET_PRESETS.find((preset) => preset.id === targetPreset.value) ?? TARGET_PRESETS[0];
@@ -679,6 +694,7 @@ targetPreset.addEventListener('change', () => {
 
 guidanceMode.addEventListener('change',()=>{ if(latestPerceptionState&&latestClosedLoop) latestVisualGuidance=visualProjector.update(latestPerceptionState,latestClosedLoop,latestRawMeasurement,{mode:guidanceMode.value as VisualServoMode,grid:guidanceGrid.checked,now:performance.now()}); renderVisualGuidance(); renderClosedLoop(); });
 guidanceGrid.addEventListener('change',()=>{ if(latestPerceptionState&&latestClosedLoop) latestVisualGuidance=visualProjector.update(latestPerceptionState,latestClosedLoop,latestRawMeasurement,{mode:guidanceMode.value as VisualServoMode,grid:guidanceGrid.checked,now:performance.now()}); renderVisualGuidance(); });
+semanticDebug.addEventListener('change',renderSemanticDebug);
 guidanceTheme.addEventListener('change',()=>renderVisualGuidance());
 
 closedLoopReset.addEventListener('click', () => {
