@@ -2,7 +2,7 @@ import './style.css';
 import { PERCEPTION_CONFIG } from '../perception/config.js';
 import { PerceptionRuntime } from '../perception/runtime.js';
 import type { PoseMeasurement, StructuredPerceptionState } from '../perception/types.js';
-import { ACTION_COPY, CLOSED_LOOP_CONFIG, TARGET_PRESETS } from '../closed-loop/config.js';
+import { ACTION_COPY, CLOSED_LOOP_CONFIG, FRAMING_COMPATIBILITY_COPY, TARGET_PRESETS } from '../closed-loop/config.js';
 import { LocalClosedLoopEngine } from '../closed-loop/engine.js';
 import type { ClosedLoopSnapshot } from '../closed-loop/types.js';
 import { ScalarTraceRecorder } from '../closed-loop/trace.js';
@@ -394,7 +394,7 @@ function closedLoopPresentation(snapshot: ClosedLoopSnapshot): { state: string; 
   if (snapshot.trial_state === 'DISARMED') return { state: 'P2 LOCAL · DISARMED', text: '模型已就绪 · 点击“ARM 新试验”开始' };
   if (snapshot.runtime_state === 'SEARCHING') return { state: 'P2 LOCAL · SEARCHING', text: '请进入画面' };
   if(snapshot.runtime_state==='MEASUREMENT_UNCERTAIN')return {state:'P2 LOCAL · MEASUREMENT UNCERTAIN',text:'保持片刻 · 正在确认人物构图'};
-  if(snapshot.runtime_state==='FRAMING_COMPATIBILITY')return {state:`P2 LOCAL · FRAMING COMPATIBILITY · ${latestPerceptionState?.framing?.body_mode??'—'}`,text:snapshot.instruction?.copy_zh??'正在确认可见身体范围'};
+  if(snapshot.runtime_state==='FRAMING_COMPATIBILITY')return {state:`P2 LOCAL · FRAMING COMPATIBILITY · ${latestPerceptionState?.framing?.body_mode??'—'}`,text:snapshot.instruction?.copy_zh??FRAMING_COMPATIBILITY_COPY[snapshot.framing_compatibility??'UNCERTAIN']};
   if (snapshot.runtime_state === 'INSTRUCTING' && snapshot.instruction) {
     return { state: `P2 LOCAL · ${snapshot.issue?.kind ?? 'ACTION'}`, text: snapshot.instruction.copy_zh };
   }

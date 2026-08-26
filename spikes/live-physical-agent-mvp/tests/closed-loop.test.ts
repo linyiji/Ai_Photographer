@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'; import test from 'node:test';
 import { CLOSED_LOOP_TRAJECTORIES, frame } from '../fixtures/closed-loop/trajectories.js';
-import { CLOSED_LOOP_CONFIG, DEFAULT_TARGET } from '../closed-loop/config.js';
+import { CLOSED_LOOP_CONFIG, DEFAULT_TARGET, FRAMING_COMPATIBILITY_COPY } from '../closed-loop/config.js';
 import { actionForIssue, canonicalDirectionTransform, computeDelta, LocalClosedLoopEngine, rankIssues } from '../closed-loop/engine.js';
 import { replayScalarStates, ScalarTraceRecorder } from '../closed-loop/trace.js';
 const run=(name:keyof typeof CLOSED_LOOP_TRAJECTORIES,armed=true)=>{const e=new LocalClosedLoopEngine();if(armed)e.armTrial(0);return CLOSED_LOOP_TRAJECTORIES[name].map(s=>e.update(s));};
@@ -13,6 +13,11 @@ test('deadband and missing values remain explicit',()=>{assert.equal(computeDelt
 test('physical X mapping ignores preview mirroring',()=>{assert.equal(actionForIssue('X_POSITION',computeDelta(frame(0,.2,.35),DEFAULT_TARGET)),'MOVE_LEFT');assert.equal(actionForIssue('X_POSITION',computeDelta(frame(0,.8,.35),DEFAULT_TARGET)),'MOVE_RIGHT');});
 test('scale mapping is directional',()=>{assert.equal(actionForIssue('SCALE',computeDelta(frame(0,.5,.1),DEFAULT_TARGET)),'MOVE_CLOSER');assert.equal(actionForIssue('SCALE',computeDelta(frame(0,.5,.7),DEFAULT_TARGET)),'MOVE_FARTHER');});
 test('priority chooses X for combined large error',()=>assert.equal(rankIssues(frame(0,.2,.1),computeDelta(frame(0,.2,.1),DEFAULT_TARGET))[0].kind,'X_POSITION'));
+test('persistent framing compatibility copy remains actionable without repeating an instruction event',()=>{
+  assert.match(FRAMING_COMPATIBILITY_COPY.TOO_TIGHT,/退后/);
+  assert.match(FRAMING_COMPATIBILITY_COPY.TOO_WIDE,/靠近/);
+  assert.match(FRAMING_COMPATIBILITY_COPY.TOO_TIGHT,/随后调整左右/);
+});
 
 for(const fixture of [
   {name:'rear physical left',action:'MOVE_LEFT',facing:'REAR',mirror:'NON_MIRRORED',canonical:1,display:1},

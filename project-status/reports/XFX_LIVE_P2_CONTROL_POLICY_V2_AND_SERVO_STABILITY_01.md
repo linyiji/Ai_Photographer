@@ -102,6 +102,8 @@ Gate 1 attempt 3 supplied five valid V2 traces with 5 READY trials and 45 termin
 
 The bounded response preserves target/deadband/success semantics: action copy now requests continuous movement until STOP, remains readable for 1100 ms, and display latency is calculated only for meaningful motion. V2 rows now include trial state and READY source. Automated verification passes; fresh OPPO revalidation is required.
 
+Gate 1 revalidation then exposed a presentation blocker while the `center-medium` target remained in incompatible `HEAD_SHOULDERS`: after the single anti-spam coarse instruction terminated, the persistent UI fell back to the non-actionable text `正在确认可见身体范围`, making the required farther movement and the later X gate invisible. The bounded fix does not bypass BodyMode compatibility, widen the target, or repeat/count another instruction event. It persistently explains the required farther/closer action and that X precision follows after compatible framing. Complete automated verification is now `212/212 PASS`; TypeScript and production build / 29 modules pass. Fresh Gate 1 revalidation is required.
+
 OPPO Gate 2: NOT_STARTED; only after Gate 1 PASS. Requires >=10 fresh trials and >=30 naturally produced terminal Episodes.
 
 Correction Success remains `>=80%`. Attempt 3 is fresh V2 diagnostic evidence but is pre-fix and non-passing; LIVE-P2 is therefore not re-evaluated and no PASS is claimed.

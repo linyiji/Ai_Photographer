@@ -1,4 +1,5 @@
 import type { ClosedLoopConfig, LocalAction, TargetState } from './types.js';
+import type { FramingCompatibilityState } from '../semantic-framing/types.js';
 
 export const CLOSED_LOOP_CONFIG: Readonly<ClosedLoopConfig> = Object.freeze({
   issue_persistence_ms: 250,
@@ -35,6 +36,13 @@ export const ACTION_COPY: Readonly<Record<LocalAction, string>> = Object.freeze(
   MOVE_FARTHER: '持续退后，看到“停一下”再停',
   STOP_HERE: '好，停一下',
   HOLD: '好，就这里',
+});
+
+export const FRAMING_COMPATIBILITY_COPY: Readonly<Record<FramingCompatibilityState, string>> = Object.freeze({
+  TOO_TIGHT: '请继续退后 · 让上半身进入画面，随后调整左右',
+  TOO_WIDE: '请继续靠近 · 让人物回到自然中景，随后调整左右',
+  UNCERTAIN: '请正对镜头并保持片刻 · 正在确认可见身体范围',
+  COMPATIBLE: '身体范围已确认 · 正在准备精细调整',
 });
 
 export const TARGET_PRESETS: readonly TargetState[] = Object.freeze([
