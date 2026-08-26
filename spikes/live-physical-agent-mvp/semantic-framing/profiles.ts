@@ -1,12 +1,18 @@
-import type { DirectionalAction } from '../closed-loop/types.js';
-import type { BodyMode, ScaleMetricType } from './types.js';
+import type { DirectionalAction, TargetState } from '../closed-loop/types.js';
+import type { BodyMode, FramingCompatibilityState, ScaleMetricType } from './types.js';
 
-export interface FramingTargetProfile { target_id:string; intent:string; compatible_modes:readonly BodyMode[]; precision_metrics:readonly ScaleMetricType[]; incompatible_action:(mode:BodyMode)=>DirectionalAction|null; calibration:'SEMANTIC_VISIBLE_OCCUPANCY_EQUIVALENT'; }
-const mediumModes=Object.freeze<BodyMode[]>(['UPPER_BODY','THREE_QUARTER','FULL_BODY']); const closeModes=Object.freeze<BodyMode[]>(['HEAD_SHOULDERS','UPPER_BODY']);
-const metrics=Object.freeze<ScaleMetricType[]>(['HEAD_SHOULDER_SCALE','TORSO_COMPOSITE_SCALE','THREE_QUARTER_COMPOSITE_SCALE','FULL_BODY_ROBUST_SCALE']);
+export interface PrecisionScaleCalibration { metric_type:ScaleMetricType; target_scale_value:number; target_scale_tolerance:number; }
+export interface FramingTargetProfile { target_id:string; intent:string; compatibility:Readonly<Record<BodyMode,FramingCompatibilityState>>; precision_calibration:Readonly<Partial<Record<BodyMode,PrecisionScaleCalibration>>>; calibration:'SPIKE_LOCAL_SEMANTIC_SCALE_V2'; }
+const compatibility=(values:Partial<Record<BodyMode,FramingCompatibilityState>>):Readonly<Record<BodyMode,FramingCompatibilityState>>=>Object.freeze({HEAD_ONLY:'UNCERTAIN',HEAD_SHOULDERS:'UNCERTAIN',UPPER_BODY:'UNCERTAIN',THREE_QUARTER:'UNCERTAIN',FULL_BODY:'UNCERTAIN',PARTIAL_OR_AMBIGUOUS:'UNCERTAIN',...values});
+const calibration=(metric_type:ScaleMetricType,target_scale_value:number,target_scale_tolerance:number):PrecisionScaleCalibration=>Object.freeze({metric_type,target_scale_value,target_scale_tolerance});
 export const FRAMING_TARGET_PROFILES:Readonly<Record<string,FramingTargetProfile>>=Object.freeze({
-  'center-medium':Object.freeze({target_id:'center-medium',intent:'居中自然中景；至少稳定上半身语义',compatible_modes:mediumModes,precision_metrics:metrics,incompatible_action:(mode:BodyMode)=>['HEAD_ONLY','HEAD_SHOULDERS'].includes(mode)?'MOVE_FARTHER':null,calibration:'SEMANTIC_VISIBLE_OCCUPANCY_EQUIVALENT'}),
-  'left-composition':Object.freeze({target_id:'left-composition',intent:'左侧构图自然中景；至少稳定上半身语义',compatible_modes:mediumModes,precision_metrics:metrics,incompatible_action:(mode:BodyMode)=>['HEAD_ONLY','HEAD_SHOULDERS'].includes(mode)?'MOVE_FARTHER':null,calibration:'SEMANTIC_VISIBLE_OCCUPANCY_EQUIVALENT'}),
-  'center-close':Object.freeze({target_id:'center-close',intent:'居中近景；头肩或上半身语义',compatible_modes:closeModes,precision_metrics:metrics,incompatible_action:(mode:BodyMode)=>['THREE_QUARTER','FULL_BODY'].includes(mode)?'MOVE_CLOSER':null,calibration:'SEMANTIC_VISIBLE_OCCUPANCY_EQUIVALENT'}),
+  'center-medium':Object.freeze({target_id:'center-medium',intent:'居中自然中景；稳定上半身或三分之四身语义',compatibility:compatibility({HEAD_ONLY:'TOO_TIGHT',HEAD_SHOULDERS:'TOO_TIGHT',UPPER_BODY:'COMPATIBLE',THREE_QUARTER:'COMPATIBLE',FULL_BODY:'TOO_WIDE'}),precision_calibration:Object.freeze({UPPER_BODY:calibration('UPPER_BODY_SCALE',.52,.07),THREE_QUARTER:calibration('THREE_QUARTER_SCALE',.64,.07)}),calibration:'SPIKE_LOCAL_SEMANTIC_SCALE_V2'}),
+  'left-composition':Object.freeze({target_id:'left-composition',intent:'左侧构图自然中景；稳定上半身或三分之四身语义',compatibility:compatibility({HEAD_ONLY:'TOO_TIGHT',HEAD_SHOULDERS:'TOO_TIGHT',UPPER_BODY:'COMPATIBLE',THREE_QUARTER:'COMPATIBLE',FULL_BODY:'TOO_WIDE'}),precision_calibration:Object.freeze({UPPER_BODY:calibration('UPPER_BODY_SCALE',.52,.07),THREE_QUARTER:calibration('THREE_QUARTER_SCALE',.64,.07)}),calibration:'SPIKE_LOCAL_SEMANTIC_SCALE_V2'}),
+  'center-close':Object.freeze({target_id:'center-close',intent:'居中近景；头肩或上半身语义',compatibility:compatibility({HEAD_ONLY:'TOO_TIGHT',HEAD_SHOULDERS:'COMPATIBLE',UPPER_BODY:'COMPATIBLE',THREE_QUARTER:'TOO_WIDE',FULL_BODY:'TOO_WIDE'}),precision_calibration:Object.freeze({HEAD_SHOULDERS:calibration('HEAD_SHOULDERS_SCALE',.43,.07),UPPER_BODY:calibration('UPPER_BODY_SCALE',.62,.07)}),calibration:'SPIKE_LOCAL_SEMANTIC_SCALE_V2'}),
 });
 export const profileFor=(targetId:string):FramingTargetProfile|null=>FRAMING_TARGET_PROFILES[targetId]??null;
+export const framingCompatibilityFor=(targetId:string,mode:BodyMode):FramingCompatibilityState=>profileFor(targetId)?.compatibility[mode]??'UNCERTAIN';
+export const coarseActionForCompatibility=(state:FramingCompatibilityState):DirectionalAction|null=>state==='TOO_TIGHT'?'MOVE_FARTHER':state==='TOO_WIDE'?'MOVE_CLOSER':null;
+export const precisionScaleCalibrationFor=(target:Pick<TargetState,'id'>,mode:BodyMode,metric:ScaleMetricType|null):PrecisionScaleCalibration|null=>{const value=profileFor(target.id)?.precision_calibration[mode]??null;return value&&value.metric_type===metric?value:null;};
+const visibilityRank:Readonly<Record<BodyMode,number>>=Object.freeze({HEAD_ONLY:0,HEAD_SHOULDERS:1,UPPER_BODY:2,THREE_QUARTER:3,FULL_BODY:4,PARTIAL_OR_AMBIGUOUS:-1});
+export const bodyModeProgressionDelta=(start:BodyMode,current:BodyMode,action:DirectionalAction):number=>{const raw=visibilityRank[current]-visibilityRank[start];return action==='MOVE_FARTHER'?raw:action==='MOVE_CLOSER'?-raw:0;};

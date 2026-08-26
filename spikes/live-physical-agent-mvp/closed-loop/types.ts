@@ -1,4 +1,5 @@
 import type { StructuredPerceptionState } from '../perception/types.js';
+import type { CoarseFramingEpisode, FramingCompatibilityState } from '../semantic-framing/types.js';
 
 export type IssueKind = 'SUBJECT_MISSING' | 'X_POSITION' | 'Y_POSITION' | 'SCALE';
 export type DirectionalAction = 'MOVE_LEFT' | 'MOVE_RIGHT' | 'MOVE_CLOSER' | 'MOVE_FARTHER';
@@ -171,6 +172,12 @@ export interface ClosedLoopMetrics {
   uncertainty_suppressed_x: number;
   uncertainty_suppressed_scale: number;
   framing_compatibility_instruction_count: number;
+  coarse_episode_count: number;
+  coarse_success_count: number;
+  coarse_no_effect_count: number;
+  coarse_wrong_direction_count: number;
+  coarse_measurement_uncertain_count: number;
+  coarse_to_precision_handoff_count: number;
   control_observation_age_ms_p50: number;
   control_observation_age_ms_p95: number;
   control_observation_age_ms_max: number;
@@ -210,5 +217,8 @@ export interface ClosedLoopSnapshot {
   predicted_delta: number | null;
   control_observation: ControlObservation;
   control_epoch: Readonly<ControlEpoch> | null;
+  framing_compatibility: FramingCompatibilityState | null;
+  coarse_episode: Readonly<CoarseFramingEpisode> | null;
+  coarse_to_precision_handoff_count: number;
   metrics: ClosedLoopMetrics;
 }
