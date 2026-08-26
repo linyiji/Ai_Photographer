@@ -4,6 +4,8 @@ Status: READY_FOR_MANUAL_DEVICE_TEST
 
 Device: OPPO K11 / ColorOS 15 / Chrome Mobile. Use DEFAULT theme and enable `Semantic Debug`. Do not capture, save, or upload frames/video.
 
+Before each scenario, select its `SCALE GATE` label and click `ARM 新试验`. After the scenario, click `下载标量 Trace` before starting another ARM. The file directly includes the scenario label, device/browser context, orientation/camera/mirror, performance snapshot, semantic/control rows, and zero-valued privacy/external counters.
+
 ## Labeled scenarios
 
 | Scenario | Required action | Result |

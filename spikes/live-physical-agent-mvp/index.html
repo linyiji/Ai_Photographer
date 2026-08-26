@@ -161,6 +161,16 @@
             </label>
             <label class="toggle-setting"><input id="guidance-grid" type="checkbox" /> 九宫格（调试）</label>
             <label class="toggle-setting"><input id="semantic-debug" type="checkbox" /> Semantic Debug</label>
+            <label class="target-picker">SCALE GATE
+              <select id="scale-gate-scenario" aria-label="Scale Gate scenario">
+                <option value="S1_HEAD_SHOULDERS_STATIC">S1 · 头肩静止</option>
+                <option value="S2_HEAD_SHOULDERS_MOVE_FARTHER">S2 · 头肩退后</option>
+                <option value="S3_MOVE_CLOSER">S3 · 靠近</option>
+                <option value="S4_UPPER_BODY_PRECISION">S4 · 上半身精调</option>
+                <option value="S5_ARM_MOTION_INVARIANCE">S5 · 手臂不变量</option>
+                <option value="S6_BODY_MODE_TRANSITION">S6 · BodyMode 转换</option>
+              </select>
+            </label>
             <button id="closed-loop-reset" class="button button--quiet" type="button">重置本机引导</button>
             <button id="closed-loop-arm" class="button" type="button">ARM 新试验</button>
             <button id="closed-loop-trace" class="button button--quiet" type="button">下载标量 Trace</button>

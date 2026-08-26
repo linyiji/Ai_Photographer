@@ -62,6 +62,7 @@ const closedLoopTrace = requireElement<HTMLButtonElement>('closed-loop-trace');
 const guidanceMode = requireElement<HTMLSelectElement>('guidance-mode');
 const guidanceGrid = requireElement<HTMLInputElement>('guidance-grid');
 const semanticDebug = requireElement<HTMLInputElement>('semantic-debug');
+const scaleGateScenario = requireElement<HTMLSelectElement>('scale-gate-scenario');
 const guidanceTheme = requireElement<HTMLSelectElement>('guidance-theme');
 const visualOverlay = requireElement<HTMLElement>('visual-servo-overlay');
 const visualGrid = requireElement<HTMLElement>('visual-grid');
@@ -711,8 +712,10 @@ closedLoopArm.addEventListener('click', () => {
   visualProjector.reset(); latestVisualGuidance = null; renderClosedLoop(); renderVisualGuidance(); setMessage('试验已 ARM；请从目标外位置开始，首个普通指令发出时开始计时。');
 });
 closedLoopTrace.addEventListener('click', () => {
-  const blob = new Blob([scalarTrace.json()], { type: 'application/json' }); const url = URL.createObjectURL(blob);
-  const link = document.createElement('a'); link.href = url; link.download = `live-p2-scalar-trace-${Date.now()}.json`; link.click();
+  const previewFps=Number.parseFloat(fpsValue.textContent??'0')||0;const runtimeTelemetry=perceptionRuntime.snapshot(previewFps);const scenario=scaleGateScenario.value;
+  const context={scenario_label:scenario,generated_at_iso:new Date().toISOString(),runtime_telemetry:runtimeTelemetry,session:{user_agent:navigator.userAgent,viewport_width:window.innerWidth,viewport_height:window.innerHeight,orientation:screen.orientation?.type??(window.innerHeight>=window.innerWidth?'portrait':'landscape'),camera_facing:activeFacingMode==='user'?'FRONT':activeFacingMode==='environment'?'REAR':'UNKNOWN',preview_mirror_state:activeFacingMode==='user'?'MIRRORED':activeFacingMode==='environment'?'NON_MIRRORED':'UNKNOWN',target_id:currentTarget.id,theme_id:guidanceTheme.value,vision_target_hz:runtimeTelemetry.vision_target_hz,scheduler}};
+  const blob = new Blob([scalarTrace.json(context)], { type: 'application/json' }); const url = URL.createObjectURL(blob);
+  const link = document.createElement('a'); link.href = url; link.download = `live-p2-scale-${scenario.toLowerCase()}-${Date.now()}.json`; link.click();
   window.setTimeout(() => URL.revokeObjectURL(url), 0);
 });
 

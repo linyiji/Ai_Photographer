@@ -104,7 +104,7 @@ Current Control Policy V2 state:
 Status = READY_FOR_MANUAL_DEVICE_TEST
 LIVE-P1 = PASS
 P2 Implementation Gate = PASS
-Automated Gate = PASS / 208 of 208 tests
+Automated Gate = PASS / 209 of 209 tests
 Browser Replay = PASS
 P2 Real Device Gate = MANUAL_REVIEW_REQUIRED
 LIVE-P2 Final Gate = NOT_YET_REEVALUATED
@@ -113,6 +113,8 @@ LIVE-P2 Final Gate = NOT_YET_REEVALUATED
 The accepted 59-Episode / 33.9% sample remains preserved only as this task's starting baseline. It is not a V2 result and cannot satisfy Gate 1 or Gate 2.
 
 Before the next OPPO Gate 1 rerun, complete `evidence/semantic-framing-v2/oppo-semantic-scale.md`. Startup has passed, but the Scale Device Gate remains mandatory. Live control now separates a continuous shoulder/torso `DistanceProxy` from target-specific precision Scale, records explicit validity reasons, and uses one measured `CoarseFramingEpisode` instead of repeating open-loop distance text. Enable `Semantic Debug` for the labeled S1–S6 device scenarios. Do not resume correction-success sampling until the Scale Device Gate and Semantic Measurement Device Gate pass.
+
+For S1–S6, select the labeled `SCALE GATE` scenario before ARM. `下载标量 Trace` directly downloads one JSON containing the scalar rows plus scenario label, user agent, viewport/orientation, camera/mirror, target/theme/cadence, Preview/Vision/State rates, inference current/p50/p95, scheduled/processed/skipped counts, memory availability, and zero-valued external/raw-upload counters. Starting another ARM clears the current trace, so download each scenario before arming the next one.
 
 ## Stop boundary
 

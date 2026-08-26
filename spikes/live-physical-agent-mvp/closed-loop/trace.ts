@@ -1,4 +1,4 @@
-import type { StructuredPerceptionState } from '../perception/types.js';
+import type { PerceptionTelemetrySnapshot, StructuredPerceptionState } from '../perception/types.js';
 import type { ClosedLoopSnapshot } from './types.js';
 import { LocalClosedLoopEngine } from './engine.js';
 import type { VisualGuidanceState } from '../visual-guidance/types.js';
@@ -23,6 +23,13 @@ export interface ScalarTraceRow {
   };
 }
 
+export interface ScalarTraceExportContext {
+  scenario_label:string;
+  generated_at_iso:string;
+  runtime_telemetry:PerceptionTelemetrySnapshot;
+  session:{user_agent:string;viewport_width:number;viewport_height:number;orientation:string;camera_facing:string;preview_mirror_state:string;target_id:string;theme_id:string;vision_target_hz:number;scheduler:string};
+}
+
 export const scalarTraceRow = (state: StructuredPerceptionState, snapshot: ClosedLoopSnapshot, visual?: VisualGuidanceState | null, themeId?: string): ScalarTraceRow => ({
   timestamp: state.timestamp_ms, sequence: state.sequence, subject_present: state.subject.present,
   center_x: state.subject.center_x, height_ratio: state.subject.height_ratio, velocity_x: state.subject.velocity_x,
@@ -42,7 +49,7 @@ export class ScalarTraceRecorder {
   readonly rows: ScalarTraceRow[] = [];
   clear(): void { this.rows.length = 0; }
   append(state: StructuredPerceptionState, snapshot: ClosedLoopSnapshot, visual?: VisualGuidanceState | null, themeId?: string): void { this.rows.push(scalarTraceRow(state, snapshot, visual, themeId)); }
-  json(): string { return JSON.stringify({ format: 'xfx-live-p2-scalar-trace-v2', raw_media: false, rows: this.rows }, null, 2); }
+  json(context?:ScalarTraceExportContext): string { return JSON.stringify({ format: 'xfx-live-p2-scalar-trace-v2', raw_media: false, ...(context?{evidence_context:context}:{}), rows: this.rows }, null, 2); }
 }
 
 export function replayScalarStates(states: readonly StructuredPerceptionState[], armed = true): ClosedLoopSnapshot[] {
