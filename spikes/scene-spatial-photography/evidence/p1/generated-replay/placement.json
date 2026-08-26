@@ -91,14 +91,15 @@
     "analysis_capabilities": [
       "LOCAL_VISUAL_DESCRIPTORS",
       "ANGULAR_REGIONS",
-      "IMAGE_PLANE_PLACEMENT",
-      "DETERMINISTIC_RANKING"
+      "SCENE_DIRECTION_MAP",
+      "MULTI_VIEW_CANDIDATE_GENERATION"
     ],
     "limitations": [
       "RELATIVE_ANGULAR_ORGANIZATION_ONLY",
       "NO_SEMANTIC_OBJECT_LABELS",
       "NO_DEPTH_OR_METRIC_3D",
       "NO_PHYSICAL_SUBJECT_OR_CAMERA_POSITION",
+      "NO_FINAL_PHOTOGRAPHY_DECISION",
       "SAFETY_REQUIRES_USER_CONFIRMATION"
     ],
     "privacy": {
@@ -110,116 +111,345 @@
       "luna_calls": 0
     }
   },
-  "opportunities": [
+  "frame_set": {
+    "schema": "xfx.scene-frame-set",
+    "schema_version": "0.1",
+    "source_sweep_id": "placement",
+    "frames": [
+      {
+        "frame_id": "frame-p1-kf-001",
+        "keyframe_id": "p1-kf-001",
+        "relative_yaw_deg": 0,
+        "width": 96,
+        "height": 72,
+        "quality_status": "PREPARED",
+        "technical_usability": 0.728674,
+        "transient_pixels_available": true,
+        "transient_thumbnail_available": false,
+        "descriptor_id": "p1-kf-001:descriptor:0.1",
+        "evidence_class": "FACT"
+      },
+      {
+        "frame_id": "frame-p1-kf-002",
+        "keyframe_id": "p1-kf-002",
+        "relative_yaw_deg": 35,
+        "width": 96,
+        "height": 72,
+        "quality_status": "PREPARED",
+        "technical_usability": 0.668379,
+        "transient_pixels_available": true,
+        "transient_thumbnail_available": false,
+        "descriptor_id": "p1-kf-002:descriptor:0.1",
+        "evidence_class": "FACT"
+      },
+      {
+        "frame_id": "frame-p1-kf-003",
+        "keyframe_id": "p1-kf-003",
+        "relative_yaw_deg": 70,
+        "width": 96,
+        "height": 72,
+        "quality_status": "PREPARED",
+        "technical_usability": 0.668678,
+        "transient_pixels_available": true,
+        "transient_thumbnail_available": false,
+        "descriptor_id": "p1-kf-003:descriptor:0.1",
+        "evidence_class": "FACT"
+      },
+      {
+        "frame_id": "frame-p1-kf-004",
+        "keyframe_id": "p1-kf-004",
+        "relative_yaw_deg": 110,
+        "width": 96,
+        "height": 72,
+        "quality_status": "PREPARED",
+        "technical_usability": 0.693434,
+        "transient_pixels_available": true,
+        "transient_thumbnail_available": false,
+        "descriptor_id": "p1-kf-004:descriptor:0.1",
+        "evidence_class": "FACT"
+      }
+    ],
+    "raw_media_persisted": false,
+    "raw_media_uploaded": false,
+    "image_bytes_in_export": false,
+    "lifecycle": "TRANSIENT_BROWSER_MEMORY"
+  },
+  "direction_map": {
+    "schema": "xfx.scene-direction-map",
+    "schema_version": "0.1",
+    "source_sweep_id": "placement",
+    "basis": "RELATIVE_YAW",
+    "coverage": {
+      "start_relative_yaw_deg": 0,
+      "end_relative_yaw_deg": 110,
+      "span_deg": 110
+    },
+    "nodes": [
+      {
+        "frame_id": "frame-p1-kf-001",
+        "keyframe_id": "p1-kf-001",
+        "relative_yaw_deg": 0,
+        "arc_position": 0,
+        "region_id": "region-01",
+        "evidence_class": "FACT"
+      },
+      {
+        "frame_id": "frame-p1-kf-002",
+        "keyframe_id": "p1-kf-002",
+        "relative_yaw_deg": 35,
+        "arc_position": 0.318182,
+        "region_id": "region-01",
+        "evidence_class": "FACT"
+      },
+      {
+        "frame_id": "frame-p1-kf-003",
+        "keyframe_id": "p1-kf-003",
+        "relative_yaw_deg": 70,
+        "arc_position": 0.636364,
+        "region_id": "region-02",
+        "evidence_class": "FACT"
+      },
+      {
+        "frame_id": "frame-p1-kf-004",
+        "keyframe_id": "p1-kf-004",
+        "relative_yaw_deg": 110,
+        "arc_position": 1,
+        "region_id": "region-02",
+        "evidence_class": "FACT"
+      }
+    ],
+    "depth": "UNKNOWN",
+    "metric_geometry": "NOT_SUPPORTED",
+    "spatial_evidence_status": "NOT_EVALUATED_P1",
+    "limitations": [
+      "RELATIVE_YAW_ARC_NOT_3D_RECONSTRUCTION",
+      "NO_DEPTH",
+      "NO_METRIC_CAMERA_POSE"
+    ]
+  },
+  "view_candidates": [
     {
       "schema_version": "0.1",
-      "opportunity_id": "opportunity-01",
-      "relative_camera_yaw_deg": 0,
-      "yaw_window": {
-        "start_deg": 0,
-        "end_deg": 35
-      },
-      "scene_region_id": "region-01",
+      "view_id": "view-01",
       "representative_keyframe_id": "p1-kf-001",
-      "framing_profile": "ENVIRONMENTAL",
-      "subject_placement_zone": {
-        "zone_id": "p1-kf-001-environmental-left_third",
-        "normalized_rect": {
-          "x": 0.15500000000000003,
-          "y": 0.35,
-          "width": 0.23,
-          "height": 0.58
+      "relative_camera_yaw_deg": 0,
+      "direction_node_id": "frame-p1-kf-001",
+      "region_id": "region-01",
+      "evidence_class": "CANDIDATE",
+      "selection_basis": [
+        "ANGULAR_DIVERSITY",
+        "TECHNICAL_USABILITY"
+      ],
+      "technical_usability": 0.728674,
+      "technical_reason_codes": [
+        "BALANCED_EXPOSURE"
+      ],
+      "placement_candidates": [
+        {
+          "schema_version": "0.1",
+          "candidate_id": "view-01-left_third",
+          "view_id": "view-01",
+          "action": "STAND",
+          "image_anchor": "LEFT_THIRD",
+          "framing_profile": "ENVIRONMENTAL",
+          "evidence_class": "CANDIDATE",
+          "technical_usability": 0.880786,
+          "reason_codes": [
+            "CLEAN_LEFT_PLACEMENT"
+          ],
+          "confidence": 0.76938,
+          "physical_position": "UNKNOWN",
+          "safety": "UNKNOWN_REQUIRES_USER_CONFIRMATION"
         },
-        "anchor": "LEFT_THIRD",
-        "framing_profile": "ENVIRONMENTAL",
-        "clutter_score": 0.005977,
-        "exposure_score": 0.895455,
-        "clearance_score": 0.5,
-        "edge_conflict_score": 0,
-        "placement_score": 0.880786,
-        "confidence": 0.76938
-      },
-      "score": 0.817732,
-      "score_breakdown": {
-        "frame_quality": 0.728674,
-        "region_quality": 0.768931,
-        "clutter": 0.818837,
-        "placement_clearance": 0.880786,
-        "edge_conflict": 1,
-        "exposure": 0.95696,
-        "confidence": 0.756406
-      },
-      "reason_codes": [
-        "BALANCED_EXPOSURE",
-        "LOW_BACKGROUND_CLUTTER",
-        "CLEAN_LEFT_PLACEMENT",
-        "REGION_VISUALLY_STABLE"
+        {
+          "schema_version": "0.1",
+          "candidate_id": "view-01-right_third",
+          "view_id": "view-01",
+          "action": "STAND",
+          "image_anchor": "RIGHT_THIRD",
+          "framing_profile": "ENVIRONMENTAL",
+          "evidence_class": "CANDIDATE",
+          "technical_usability": 0.880786,
+          "reason_codes": [
+            "CLEAN_RIGHT_PLACEMENT"
+          ],
+          "confidence": 0.76938,
+          "physical_position": "UNKNOWN",
+          "safety": "UNKNOWN_REQUIRES_USER_CONFIRMATION"
+        },
+        {
+          "schema_version": "0.1",
+          "candidate_id": "view-01-center",
+          "view_id": "view-01",
+          "action": "STAND",
+          "image_anchor": "CENTER",
+          "framing_profile": "ENVIRONMENTAL",
+          "evidence_class": "CANDIDATE",
+          "technical_usability": 0.659173,
+          "reason_codes": [
+            "CLEAN_CENTER_PLACEMENT"
+          ],
+          "confidence": 0.76938,
+          "physical_position": "UNKNOWN",
+          "safety": "UNKNOWN_REQUIRES_USER_CONFIRMATION"
+        }
       ],
+      "final_photography_decision": "NOT_P1_RESPONSIBILITY",
       "limitations": [
-        "RELATIVE_YAW_ONLY",
-        "IMAGE_PLANE_COMPOSITION_PROXY",
-        "NO_SEMANTIC_SCENE_UNDERSTANDING",
-        "NO_PHYSICAL_POSITION_OR_DEPTH"
-      ],
-      "physical_subject_position": "NOT_SUPPORTED",
-      "physical_camera_position": "NOT_SUPPORTED",
-      "safety": "UNKNOWN_REQUIRES_USER_CONFIRMATION",
-      "confidence": 0.756406
+        "NOT_AN_AESTHETIC_RANKING",
+        "IMAGE_PLANE_ANCHORS_ONLY",
+        "NO_PHYSICAL_POSITION",
+        "NO_SEMANTIC_SCENE_UNDERSTANDING"
+      ]
     },
     {
       "schema_version": "0.1",
-      "opportunity_id": "opportunity-02",
-      "relative_camera_yaw_deg": 110,
-      "yaw_window": {
-        "start_deg": 70,
-        "end_deg": 110
-      },
-      "scene_region_id": "region-02",
-      "representative_keyframe_id": "p1-kf-004",
-      "framing_profile": "ENVIRONMENTAL",
-      "subject_placement_zone": {
-        "zone_id": "p1-kf-004-environmental-center",
-        "normalized_rect": {
-          "x": 0.385,
-          "y": 0.35,
-          "width": 0.23,
-          "height": 0.58
-        },
-        "anchor": "CENTER",
-        "framing_profile": "ENVIRONMENTAL",
-        "clutter_score": 0.213372,
-        "exposure_score": 0.93258,
-        "clearance_score": 0.5,
-        "edge_conflict_score": 0.267826,
-        "placement_score": 0.761003,
-        "confidence": 0.76938
-      },
-      "score": 0.71359,
-      "score_breakdown": {
-        "frame_quality": 0.693434,
-        "region_quality": 0.639036,
-        "clutter": 0.715936,
-        "placement_clearance": 0.761003,
-        "edge_conflict": 0.732174,
-        "exposure": 0.917179,
-        "confidence": 0.76799
-      },
-      "reason_codes": [
+      "view_id": "view-02",
+      "representative_keyframe_id": "p1-kf-003",
+      "relative_camera_yaw_deg": 70,
+      "direction_node_id": "frame-p1-kf-003",
+      "region_id": "region-02",
+      "evidence_class": "CANDIDATE",
+      "selection_basis": [
+        "ANGULAR_DIVERSITY",
+        "TECHNICAL_USABILITY"
+      ],
+      "technical_usability": 0.668678,
+      "technical_reason_codes": [
         "BALANCED_EXPOSURE",
-        "LOW_BACKGROUND_CLUTTER",
-        "CLEAN_CENTER_PLACEMENT",
-        "REGION_VISUALLY_STABLE"
+        "GOOD_SHARPNESS"
       ],
+      "placement_candidates": [
+        {
+          "schema_version": "0.1",
+          "candidate_id": "view-02-right_third",
+          "view_id": "view-02",
+          "action": "STAND",
+          "image_anchor": "RIGHT_THIRD",
+          "framing_profile": "ENVIRONMENTAL",
+          "evidence_class": "CANDIDATE",
+          "technical_usability": 0.907845,
+          "reason_codes": [
+            "CLEAN_RIGHT_PLACEMENT"
+          ],
+          "confidence": 0.76938,
+          "physical_position": "UNKNOWN",
+          "safety": "UNKNOWN_REQUIRES_USER_CONFIRMATION"
+        },
+        {
+          "schema_version": "0.1",
+          "candidate_id": "view-02-center",
+          "view_id": "view-02",
+          "action": "STAND",
+          "image_anchor": "CENTER",
+          "framing_profile": "ENVIRONMENTAL",
+          "evidence_class": "CANDIDATE",
+          "technical_usability": 0.588756,
+          "reason_codes": [
+            "CLEAN_CENTER_PLACEMENT"
+          ],
+          "confidence": 0.76938,
+          "physical_position": "UNKNOWN",
+          "safety": "UNKNOWN_REQUIRES_USER_CONFIRMATION"
+        },
+        {
+          "schema_version": "0.1",
+          "candidate_id": "view-02-left_third",
+          "view_id": "view-02",
+          "action": "STAND",
+          "image_anchor": "LEFT_THIRD",
+          "framing_profile": "ENVIRONMENTAL",
+          "evidence_class": "CANDIDATE",
+          "technical_usability": 0.533788,
+          "reason_codes": [
+            "CLEAN_LEFT_PLACEMENT"
+          ],
+          "confidence": 0.76938,
+          "physical_position": "UNKNOWN",
+          "safety": "UNKNOWN_REQUIRES_USER_CONFIRMATION"
+        }
+      ],
+      "final_photography_decision": "NOT_P1_RESPONSIBILITY",
       "limitations": [
-        "RELATIVE_YAW_ONLY",
-        "IMAGE_PLANE_COMPOSITION_PROXY",
-        "NO_SEMANTIC_SCENE_UNDERSTANDING",
-        "NO_PHYSICAL_POSITION_OR_DEPTH"
+        "NOT_AN_AESTHETIC_RANKING",
+        "IMAGE_PLANE_ANCHORS_ONLY",
+        "NO_PHYSICAL_POSITION",
+        "NO_SEMANTIC_SCENE_UNDERSTANDING"
+      ]
+    },
+    {
+      "schema_version": "0.1",
+      "view_id": "view-03",
+      "representative_keyframe_id": "p1-kf-004",
+      "relative_camera_yaw_deg": 110,
+      "direction_node_id": "frame-p1-kf-004",
+      "region_id": "region-02",
+      "evidence_class": "CANDIDATE",
+      "selection_basis": [
+        "ANGULAR_DIVERSITY",
+        "TECHNICAL_USABILITY"
       ],
-      "physical_subject_position": "NOT_SUPPORTED",
-      "physical_camera_position": "NOT_SUPPORTED",
-      "safety": "UNKNOWN_REQUIRES_USER_CONFIRMATION",
-      "confidence": 0.76799
+      "technical_usability": 0.693434,
+      "technical_reason_codes": [
+        "BALANCED_EXPOSURE"
+      ],
+      "placement_candidates": [
+        {
+          "schema_version": "0.1",
+          "candidate_id": "view-03-center",
+          "view_id": "view-03",
+          "action": "STAND",
+          "image_anchor": "CENTER",
+          "framing_profile": "ENVIRONMENTAL",
+          "evidence_class": "CANDIDATE",
+          "technical_usability": 0.761003,
+          "reason_codes": [
+            "CLEAN_CENTER_PLACEMENT"
+          ],
+          "confidence": 0.76938,
+          "physical_position": "UNKNOWN",
+          "safety": "UNKNOWN_REQUIRES_USER_CONFIRMATION"
+        },
+        {
+          "schema_version": "0.1",
+          "candidate_id": "view-03-right_third",
+          "view_id": "view-03",
+          "action": "STAND",
+          "image_anchor": "RIGHT_THIRD",
+          "framing_profile": "ENVIRONMENTAL",
+          "evidence_class": "CANDIDATE",
+          "technical_usability": 0.74206,
+          "reason_codes": [
+            "CLEAN_RIGHT_PLACEMENT"
+          ],
+          "confidence": 0.76938,
+          "physical_position": "UNKNOWN",
+          "safety": "UNKNOWN_REQUIRES_USER_CONFIRMATION"
+        },
+        {
+          "schema_version": "0.1",
+          "candidate_id": "view-03-left_third",
+          "view_id": "view-03",
+          "action": "STAND",
+          "image_anchor": "LEFT_THIRD",
+          "framing_profile": "ENVIRONMENTAL",
+          "evidence_class": "CANDIDATE",
+          "technical_usability": 0.699588,
+          "reason_codes": [
+            "CLEAN_LEFT_PLACEMENT"
+          ],
+          "confidence": 0.76938,
+          "physical_position": "UNKNOWN",
+          "safety": "UNKNOWN_REQUIRES_USER_CONFIRMATION"
+        }
+      ],
+      "final_photography_decision": "NOT_P1_RESPONSIBILITY",
+      "limitations": [
+        "NOT_AN_AESTHETIC_RANKING",
+        "IMAGE_PLANE_ANCHORS_ONLY",
+        "NO_PHYSICAL_POSITION",
+        "NO_SEMANTIC_SCENE_UNDERSTANDING"
+      ]
     }
   ],
   "descriptors": [

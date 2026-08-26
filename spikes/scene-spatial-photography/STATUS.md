@@ -8,5 +8,6 @@
 - P0 disposition: `ACTIVE_ACCEPTED_P0`; accepted runtime head `1e7b6b4889e13104f23c9a3e13902177740ca612`
 - Warnings: exact Chrome version unavailable; absolute heading not globally calibrated; FULL sweep experimental; one isolated FPS estimator low interval without visible jank; stationary window movement-contaminated
 - Future integration readiness: `P0_RUNTIME_ACCEPTED_ONLY`; Main integration not started
-- P1 SceneSpatialContext / PhotographyOpportunity: not implemented
+- P1 V1 deterministic opportunity: `CHECKPOINT / NOT_ACCEPTED` after 4 OPPO sweeps collapsed to 1 region / 1 opportunity
+- P1 V2 SceneFrameSet / SceneDirectionMap / multi-view and multi-anchor candidate runtime: implemented; automated/replay/browser PASS; OPPO V2 pending
 - Panorama stitching / AI provider: off

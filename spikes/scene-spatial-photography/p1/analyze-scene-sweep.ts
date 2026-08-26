@@ -2,7 +2,7 @@ import type { SceneSweepManifest } from '../spatial/scene-sweep-manifest.js';
 import type { YawMapData } from '../spatial/types.js';
 import { segmentAngularRegions } from './angular-regions.js';
 import { DEFAULT_PHOTOGRAPHY_INTENT } from './config.js';
-import { rankPhotographyOpportunities } from './opportunity-ranker.js';
+import { createSceneDirectionMap, createSceneFrameSet, generatePhotographyViewCandidates } from './candidate-generator.js';
 import { evaluatePlacementZones } from './placement.js';
 import type { PhotographyIntent, SceneSpatialContextV01, SceneSweepAnalysisResult, TransientKeyframePixels } from './types.js';
 import { describeKeyframe } from './visual-descriptor.js';
@@ -21,7 +21,11 @@ export const analyzeSceneSweep = (manifest: SceneSweepManifest, yawMap: YawMapDa
   const descriptorMs = clock() - descriptorStarted;
   const placements = new Map(descriptors.map((descriptor) => [descriptor.keyframe_id, evaluatePlacementZones(descriptor, pixelsById.get(descriptor.keyframe_id)!, intent.preferred_framing)]));
   const regionStarted = clock(), regions = segmentAngularRegions(descriptors, placements), regionMs = clock() - regionStarted;
-  const rankingStarted = clock(), opportunities = rankPhotographyOpportunities(regions, descriptors, placements, intent), rankingMs = clock() - rankingStarted;
+  const candidateStarted = clock();
+  const frameSet = createSceneFrameSet(manifest, descriptors, transientKeyframes);
+  const directionMap = createSceneDirectionMap(manifest, frameSet, regions);
+  const viewCandidates = generatePhotographyViewCandidates(descriptors, directionMap, regions, placements);
+  const candidateMs = clock() - candidateStarted;
   const orderedYaw = yawMap.ordered_yaws_deg;
   const context: SceneSpatialContextV01 = {
     schema: 'xfx.scene-spatial-context', schema_version: '0.1', source_sweep_id: manifest.sweep_id, source_manifest_version: manifest.version,
@@ -29,16 +33,16 @@ export const analyzeSceneSweep = (manifest: SceneSweepManifest, yawMap: YawMapDa
     sweep_mode: manifest.mode, camera: { facing: 'environment', frame_width: manifest.camera.source_width, frame_height: manifest.camera.source_height }, angular_regions: regions,
     representative_directions: regions.map((region) => ({ relative_yaw_deg: region.yaw_center_deg, region_id: region.region_id, representative_keyframe_id: region.representative_keyframe_id })),
     global_quality_summary: { mean_frame_quality: round(average(descriptors.map((item) => item.photography_frame_quality_score))), mean_clutter: round(average(descriptors.map((item) => item.visual_clutter_score))), descriptor_count: descriptors.length },
-    analysis_capabilities: ['LOCAL_VISUAL_DESCRIPTORS', 'ANGULAR_REGIONS', 'IMAGE_PLANE_PLACEMENT', 'DETERMINISTIC_RANKING'],
-    limitations: ['RELATIVE_ANGULAR_ORGANIZATION_ONLY', 'NO_SEMANTIC_OBJECT_LABELS', 'NO_DEPTH_OR_METRIC_3D', 'NO_PHYSICAL_SUBJECT_OR_CAMERA_POSITION', 'SAFETY_REQUIRES_USER_CONFIRMATION'],
+    analysis_capabilities: ['LOCAL_VISUAL_DESCRIPTORS', 'ANGULAR_REGIONS', 'SCENE_DIRECTION_MAP', 'MULTI_VIEW_CANDIDATE_GENERATION'],
+    limitations: ['RELATIVE_ANGULAR_ORGANIZATION_ONLY', 'NO_SEMANTIC_OBJECT_LABELS', 'NO_DEPTH_OR_METRIC_3D', 'NO_PHYSICAL_SUBJECT_OR_CAMERA_POSITION', 'NO_FINAL_PHOTOGRAPHY_DECISION', 'SAFETY_REQUIRES_USER_CONFIRMATION'],
     privacy: { raw_keyframes_transient: true, raw_media_persisted: false, raw_media_uploaded: false, provider_calls: 0, backend_per_frame_calls: 0, luna_calls: 0 },
   };
-  return { context, opportunities, descriptors, timings: { descriptor_ms: round(descriptorMs), region_ms: round(regionMs), ranking_ms: round(rankingMs), total_ms: round(clock() - totalStarted) } };
+  return { context, frame_set: frameSet, direction_map: directionMap, view_candidates: viewCandidates, descriptors, timings: { descriptor_ms: round(descriptorMs), region_ms: round(regionMs), candidate_ms: round(candidateMs), total_ms: round(clock() - totalStarted) } };
 };
 export const canonicalSceneSpatialContextJson = (context: SceneSpatialContextV01): string => JSON.stringify(context, null, 2) + '\n';
-export const canonicalPhotographyOpportunitiesJson = (opportunities: readonly SceneSweepAnalysisResult['opportunities'][number][]): string => JSON.stringify(opportunities, null, 2) + '\n';
+export const canonicalViewCandidatesJson = (candidates: readonly SceneSweepAnalysisResult['view_candidates'][number][]): string => JSON.stringify(candidates, null, 2) + '\n';
 export const opportunityStabilityScore = (first: SceneSweepAnalysisResult, second: SceneSweepAnalysisResult, toleranceDeg = 18): number => {
-  if (!first.opportunities.length && !second.opportunities.length) return 1;
-  const matches = first.opportunities.filter((a) => second.opportunities.some((b) => Math.abs(a.relative_camera_yaw_deg - b.relative_camera_yaw_deg) <= toleranceDeg)).length;
-  return round(matches / Math.max(first.opportunities.length, second.opportunities.length, 1));
+  if (!first.view_candidates.length && !second.view_candidates.length) return 1;
+  const matches = first.view_candidates.filter((a) => second.view_candidates.some((b) => Math.abs(a.relative_camera_yaw_deg - b.relative_camera_yaw_deg) <= toleranceDeg)).length;
+  return round(matches / Math.max(first.view_candidates.length, second.view_candidates.length, 1));
 };

@@ -3,6 +3,7 @@ import type { YawMapData } from '../spatial/types.js';
 
 export type FramingProfile = 'CLOSE' | 'MEDIUM' | 'ENVIRONMENTAL' | 'FULL_BODY';
 export type PlacementAnchor = 'LEFT_THIRD' | 'CENTER' | 'RIGHT_THIRD';
+export type EvidenceClass = 'FACT' | 'CANDIDATE' | 'UNKNOWN';
 export type PhotographyReasonCode =
   | 'BALANCED_EXPOSURE' | 'GOOD_SHARPNESS' | 'LOW_BACKGROUND_CLUTTER'
   | 'CLEAN_LEFT_PLACEMENT' | 'CLEAN_CENTER_PLACEMENT' | 'CLEAN_RIGHT_PLACEMENT'
@@ -46,16 +47,6 @@ export interface PhotographyIntent {
   subject_type: 'SINGLE_PERSON' | 'SCENE_ONLY' | 'UNKNOWN';
   preferred_framing: FramingProfile; composition_preference: 'AUTO';
 }
-export interface PhotographyOpportunityV01 {
-  schema_version: '0.1'; opportunity_id: string; relative_camera_yaw_deg: number;
-  yaw_window: { start_deg: number; end_deg: number; }; scene_region_id: string;
-  representative_keyframe_id: string; framing_profile: FramingProfile;
-  subject_placement_zone: SubjectPlacementZone; score: number;
-  score_breakdown: { frame_quality: number; region_quality: number; clutter: number; placement_clearance: number; edge_conflict: number; exposure: number; confidence: number; };
-  reason_codes: PhotographyReasonCode[]; limitations: string[];
-  physical_subject_position: 'NOT_SUPPORTED'; physical_camera_position: 'NOT_SUPPORTED';
-  safety: 'UNKNOWN_REQUIRES_USER_CONFIRMATION'; confidence: number;
-}
 export interface SceneSpatialContextV01 {
   schema: 'xfx.scene-spatial-context'; schema_version: '0.1'; source_sweep_id: string; source_manifest_version: string;
   coverage: { start_relative_yaw_deg: number; end_relative_yaw_deg: number; span_deg: number; };
@@ -63,13 +54,49 @@ export interface SceneSpatialContextV01 {
   angular_regions: SceneAngularRegion[];
   representative_directions: { relative_yaw_deg: number; region_id: string; representative_keyframe_id: string; }[];
   global_quality_summary: { mean_frame_quality: number; mean_clutter: number; descriptor_count: number; };
-  analysis_capabilities: ['LOCAL_VISUAL_DESCRIPTORS', 'ANGULAR_REGIONS', 'IMAGE_PLANE_PLACEMENT', 'DETERMINISTIC_RANKING'];
+  analysis_capabilities: ['LOCAL_VISUAL_DESCRIPTORS', 'ANGULAR_REGIONS', 'SCENE_DIRECTION_MAP', 'MULTI_VIEW_CANDIDATE_GENERATION'];
   limitations: string[];
   privacy: { raw_keyframes_transient: true; raw_media_persisted: false; raw_media_uploaded: false; provider_calls: 0; backend_per_frame_calls: 0; luna_calls: 0; };
 }
-export interface P1AnalysisTimings { descriptor_ms: number; region_ms: number; ranking_ms: number; total_ms: number; }
+export interface SceneFrameV01 {
+  frame_id: string; keyframe_id: string; relative_yaw_deg: number;
+  width: number; height: number; quality_status: 'PREPARED' | 'TECHNICALLY_LIMITED';
+  technical_usability: number; transient_pixels_available: boolean; transient_thumbnail_available: boolean;
+  descriptor_id: string; evidence_class: 'FACT';
+}
+export interface SceneFrameSetV01 {
+  schema: 'xfx.scene-frame-set'; schema_version: '0.1'; source_sweep_id: string;
+  frames: SceneFrameV01[]; raw_media_persisted: false; raw_media_uploaded: false;
+  image_bytes_in_export: false; lifecycle: 'TRANSIENT_BROWSER_MEMORY';
+}
+export interface SceneDirectionNodeV01 {
+  frame_id: string; keyframe_id: string; relative_yaw_deg: number; arc_position: number;
+  region_id: string | null; evidence_class: 'FACT';
+}
+export interface SceneDirectionMapV01 {
+  schema: 'xfx.scene-direction-map'; schema_version: '0.1'; source_sweep_id: string;
+  basis: 'RELATIVE_YAW'; coverage: { start_relative_yaw_deg: number; end_relative_yaw_deg: number; span_deg: number; };
+  nodes: SceneDirectionNodeV01[]; depth: 'UNKNOWN'; metric_geometry: 'NOT_SUPPORTED';
+  spatial_evidence_status: 'NOT_EVALUATED_P1'; limitations: string[];
+}
+export interface PlacementCandidateV01 {
+  schema_version: '0.1'; candidate_id: string; view_id: string; action: 'STAND';
+  image_anchor: PlacementAnchor; framing_profile: FramingProfile; evidence_class: 'CANDIDATE';
+  technical_usability: number; reason_codes: PhotographyReasonCode[]; confidence: number;
+  physical_position: 'UNKNOWN'; safety: 'UNKNOWN_REQUIRES_USER_CONFIRMATION';
+}
+export interface PhotographyViewCandidateV01 {
+  schema_version: '0.1'; view_id: string; representative_keyframe_id: string;
+  relative_camera_yaw_deg: number; direction_node_id: string; region_id: string | null;
+  evidence_class: 'CANDIDATE'; selection_basis: ['ANGULAR_DIVERSITY', 'TECHNICAL_USABILITY'];
+  technical_usability: number; technical_reason_codes: PhotographyReasonCode[];
+  placement_candidates: PlacementCandidateV01[]; final_photography_decision: 'NOT_P1_RESPONSIBILITY';
+  limitations: string[];
+}
+export interface P1AnalysisTimings { descriptor_ms: number; region_ms: number; candidate_ms: number; total_ms: number; }
 export interface SceneSweepAnalysisResult {
-  context: SceneSpatialContextV01; opportunities: PhotographyOpportunityV01[];
+  context: SceneSpatialContextV01; frame_set: SceneFrameSetV01; direction_map: SceneDirectionMapV01;
+  view_candidates: PhotographyViewCandidateV01[];
   descriptors: KeyframeVisualDescriptor[]; timings: P1AnalysisTimings;
 }
 export interface P1ReplayInput { manifest: SceneSweepManifest; yaw_map: YawMapData; transient_keyframes: TransientKeyframePixels[]; intent: PhotographyIntent; }

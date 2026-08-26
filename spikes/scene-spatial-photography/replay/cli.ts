@@ -11,6 +11,6 @@ const p1Output = resolve(process.cwd(), 'evidence/p1/generated-replay');
 await mkdir(p1Output, { recursive: true });
 for (const [name, fixture] of Object.entries(p1ReplayFixtures)) {
   const result = analyzeSceneSweep(fixture.manifest, fixture.yaw_map, fixture.transient_keyframes, fixture.intent);
-  await writeFile(resolve(p1Output, `${name}.json`), JSON.stringify({ context: result.context, opportunities: result.opportunities, descriptors: result.descriptors }, null, 2) + '\n');
+  await writeFile(resolve(p1Output, `${name}.json`), JSON.stringify({ context: result.context, frame_set: result.frame_set, direction_map: result.direction_map, view_candidates: result.view_candidates, descriptors: result.descriptors }, null, 2) + '\n');
 }
 console.log(`Replay PASS: P0 ${Object.keys(replayFixtures).length} + P1 ${Object.keys(p1ReplayFixtures).length} deterministic fixtures`);

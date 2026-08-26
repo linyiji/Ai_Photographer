@@ -4,7 +4,7 @@ import { DeviceOrientationProvider } from '../motion/device-orientation-provider
 import type { OrientationSource } from '../motion/orientation-provider.js';
 import { analyzeSceneSweep } from '../p1/analyze-scene-sweep.js';
 import { clonePixelFrame, syntheticVisualFixtures } from '../p1/synthetic-fixtures.js';
-import type { PhotographyOpportunityV01, SceneSweepAnalysisResult, TransientKeyframePixels } from '../p1/types.js';
+import type { PhotographyViewCandidateV01, PlacementAnchor, SceneSweepAnalysisResult, TransientKeyframePixels } from '../p1/types.js';
 import { canonicalManifestJson } from '../spatial/scene-sweep-manifest.js';
 import { YawMap } from '../spatial/yaw-map.js';
 import { metricsFromImageData } from '../sweep/quality-gate.js';
@@ -32,9 +32,10 @@ type TrialEvidence = {
   exposure_mean_min_p50_max: number[]; queue_length: number; privacy: object; network: object;
 };
 type P1TrialEvidence = {
-  sweep_id: string; mode: SweepMode; descriptor_count: number; region_count: number; opportunity_count: number;
-  analysis_ms: { descriptor: number; region: number; ranking: number; total: number; };
-  top_opportunities: { yaw_deg: number; score: number; placement_anchor: string; reason_codes: string[]; }[];
+  sweep_id: string; mode: SweepMode; descriptor_count: number; prepared_frame_count: number; region_count: number; candidate_count: number;
+  analysis_ms: { descriptor: number; region: number; candidate: number; total: number; };
+  view_candidates: { view_id: string; yaw_deg: number; placement_anchors: PlacementAnchor[]; technical_reason_codes: string[]; }[];
+  direction_map: { node_count: number; depth: 'UNKNOWN'; metric_geometry: 'NOT_SUPPORTED'; };
   preview_fps_median: number | null; privacy: object; qualitative_pending: true;
 };
 
@@ -68,10 +69,8 @@ const resetTrialTelemetry = (): void => { firstOrientationAt = null; initialYawS
 const updateEvidenceText = (): void => { $<HTMLTextAreaElement>('device-evidence').value = JSON.stringify(completedTrials, null, 2); };
 const updateP1EvidenceText = (): void => { $<HTMLTextAreaElement>('p1-device-evidence').value = JSON.stringify(p1Trials, null, 2); };
 const reasonLabel: Record<string, string> = {
-  BALANCED_EXPOSURE: '曝光较均衡', GOOD_SHARPNESS: '画面较清晰', LOW_BACKGROUND_CLUTTER: '背景较简洁',
-  CLEAN_LEFT_PLACEMENT: '左侧留人更干净', CLEAN_CENTER_PLACEMENT: '中间留人更干净', CLEAN_RIGHT_PLACEMENT: '右侧留人更干净',
-  GOOD_EDGE_CLEARANCE: '画面边缘余量较好', REGION_VISUALLY_STABLE: '方向画面较稳定', PENALTY_HIGH_CLUTTER: '背景较繁杂',
-  PENALTY_EDGE_CONFLICT: '人物区域边缘干扰', PENALTY_LOW_SHARPNESS: '清晰度偏低', PENALTY_OVEREXPOSED: '高光偏多', PENALTY_UNDEREXPOSED: '暗部偏多',
+  BALANCED_EXPOSURE: '曝光可用', GOOD_SHARPNESS: '清晰度可用', PENALTY_LOW_SHARPNESS: '清晰度受限',
+  PENALTY_OVEREXPOSED: '高光受限', PENALTY_UNDEREXPOSED: '暗部受限',
 };
 const directionLabel = (yaw: number): string => Math.abs(yaw) < 1 ? '相对起点 0°' : yaw > 0 ? `相对起点向右 ${Math.abs(yaw).toFixed(0)}°` : `相对起点向左 ${Math.abs(yaw).toFixed(0)}°`;
 const pixelFrameThumbnail = (width: number, height: number, data: Uint8ClampedArray): string => {
@@ -82,18 +81,24 @@ const pixelFrameThumbnail = (width: number, height: number, data: Uint8ClampedAr
 const imageDataToTransient = (imageData: ImageData, keyframeId: string): TransientKeyframePixels => {
   return { keyframe_id: keyframeId, pixels: { width: imageData.width, height: imageData.height, data: new Uint8ClampedArray(imageData.data) }, thumbnail_url: pixelFrameThumbnail(imageData.width, imageData.height, imageData.data) };
 };
-const renderOpportunityCard = (opportunity: PhotographyOpportunityV01, index: number): HTMLElement => {
+const renderViewCandidateCard = (candidate: PhotographyViewCandidateV01, index: number): HTMLElement => {
   const article = document.createElement('article'); article.className = 'opportunity-card';
-  const transient = transientKeyframes.get(opportunity.representative_keyframe_id), zone = opportunity.subject_placement_zone.normalized_rect;
+  const transient = transientKeyframes.get(candidate.representative_keyframe_id);
   const visual = document.createElement('div'); visual.className = 'opportunity-visual';
   if (transient?.thumbnail_url) { const image = document.createElement('img'); image.src = transient.thumbnail_url; image.alt = `候选方向 ${index + 1}`; visual.append(image); }
-  const overlay = document.createElement('div'); overlay.className = 'placement-overlay'; overlay.style.left = `${zone.x * 100}%`; overlay.style.top = `${zone.y * 100}%`; overlay.style.width = `${zone.width * 100}%`; overlay.style.height = `${zone.height * 100}%`; overlay.textContent = '人物'; visual.append(overlay);
+  for (const placement of candidate.placement_candidates) { const marker = document.createElement('div'); marker.className = `placement-marker ${placement.image_anchor.toLowerCase()}`; marker.textContent = '候选'; marker.title = `${placement.image_anchor} · 仅为画面候选标记`; visual.append(marker); }
   const body = document.createElement('div'); body.className = 'opportunity-body';
-  const title = document.createElement('h3'); title.textContent = `${index + 1}. ${directionLabel(opportunity.relative_camera_yaw_deg)}`;
-  const meta = document.createElement('p'); meta.textContent = `评分 ${Math.round(opportunity.score * 100)} · 建议人物在画面${({ LEFT_THIRD: '左侧', CENTER: '中间', RIGHT_THIRD: '右侧' } as const)[opportunity.subject_placement_zone.anchor]}`;
+  const title = document.createElement('h3'); title.textContent = `候选视角 ${index + 1} · ${directionLabel(candidate.relative_camera_yaw_deg)}`;
+  const meta = document.createElement('p'); meta.textContent = '候选人物位置：左侧 / 中间 / 右侧 · 留待后续 AI 或用户选择';
   const reasons = document.createElement('div'); reasons.className = 'reason-list';
-  for (const code of opportunity.reason_codes.filter((code) => !code.startsWith('PENALTY_')).slice(0, 3)) { const tag = document.createElement('span'); tag.textContent = reasonLabel[code] ?? code; reasons.append(tag); }
+  for (const code of candidate.technical_reason_codes.slice(0, 3)) { const tag = document.createElement('span'); tag.textContent = reasonLabel[code] ?? '技术质量已记录'; reasons.append(tag); }
+  const status = document.createElement('span'); status.textContent = '角度分散候选'; reasons.prepend(status);
   body.append(title, meta, reasons); article.append(visual, body); return article;
+};
+
+const renderDirectionMap = (analysis: SceneSweepAnalysisResult): void => {
+  const map = $('direction-map'); map.replaceChildren();
+  for (const node of analysis.direction_map.nodes) { const dot = document.createElement('span'); dot.className = 'direction-node'; dot.style.left = `${node.arc_position * 100}%`; dot.title = directionLabel(node.relative_yaw_deg); map.append(dot); }
 };
 
 const runP1Analysis = (): void => {
@@ -101,13 +106,14 @@ const runP1Analysis = (): void => {
   const manifest = runtime.manifest(), yawMap = new YawMap(manifest.ordered_keyframes).serialize();
   latestP1Analysis = analyzeSceneSweep(manifest, yawMap, [...transientKeyframes.values()]);
   analyzedSweepIds.add(runtime.session.sweep_id);
-  const cards = $('opportunity-cards'); cards.replaceChildren(...latestP1Analysis.opportunities.map(renderOpportunityCard));
+  renderDirectionMap(latestP1Analysis);
+  const cards = $('opportunity-cards'); cards.replaceChildren(...latestP1Analysis.view_candidates.map(renderViewCandidateCard));
   $('p1-results').hidden = false; setText('p1-latency', `${latestP1Analysis.timings.total_ms.toFixed(1)} ms`);
-  setText('p1-regions', String(latestP1Analysis.context.angular_regions.length)); setText('p1-opportunities', String(latestP1Analysis.opportunities.length));
-  setText('p1-timings', `${latestP1Analysis.timings.descriptor_ms.toFixed(1)} / ${latestP1Analysis.timings.region_ms.toFixed(1)} / ${latestP1Analysis.timings.ranking_ms.toFixed(1)} ms`);
+  setText('p1-regions', String(latestP1Analysis.context.angular_regions.length)); setText('p1-opportunities', String(latestP1Analysis.view_candidates.length));
+  setText('p1-timings', `${latestP1Analysis.timings.descriptor_ms.toFixed(1)} / ${latestP1Analysis.timings.region_ms.toFixed(1)} / ${latestP1Analysis.timings.candidate_ms.toFixed(1)} ms`);
   $<HTMLButtonElement>('download-p1').disabled = false;
   const trial = completedTrials.find((item) => item.sweep_id === manifest.sweep_id);
-  p1Trials.push({ sweep_id: manifest.sweep_id, mode: manifest.mode, descriptor_count: latestP1Analysis.descriptors.length, region_count: latestP1Analysis.context.angular_regions.length, opportunity_count: latestP1Analysis.opportunities.length, analysis_ms: { descriptor: latestP1Analysis.timings.descriptor_ms, region: latestP1Analysis.timings.region_ms, ranking: latestP1Analysis.timings.ranking_ms, total: latestP1Analysis.timings.total_ms }, top_opportunities: latestP1Analysis.opportunities.map((item) => ({ yaw_deg: rounded(item.relative_camera_yaw_deg), score: rounded(item.score, 3), placement_anchor: item.subject_placement_zone.anchor, reason_codes: item.reason_codes })), preview_fps_median: trial?.preview_fps_median ?? null, privacy: latestP1Analysis.context.privacy, qualitative_pending: true });
+  p1Trials.push({ sweep_id: manifest.sweep_id, mode: manifest.mode, descriptor_count: latestP1Analysis.descriptors.length, prepared_frame_count: latestP1Analysis.frame_set.frames.length, region_count: latestP1Analysis.context.angular_regions.length, candidate_count: latestP1Analysis.view_candidates.length, analysis_ms: { descriptor: latestP1Analysis.timings.descriptor_ms, region: latestP1Analysis.timings.region_ms, candidate: latestP1Analysis.timings.candidate_ms, total: latestP1Analysis.timings.total_ms }, view_candidates: latestP1Analysis.view_candidates.map((item) => ({ view_id: item.view_id, yaw_deg: rounded(item.relative_camera_yaw_deg), placement_anchors: item.placement_candidates.map((candidate) => candidate.image_anchor), technical_reason_codes: item.technical_reason_codes })), direction_map: { node_count: latestP1Analysis.direction_map.nodes.length, depth: latestP1Analysis.direction_map.depth, metric_geometry: latestP1Analysis.direction_map.metric_geometry }, preview_fps_median: trial?.preview_fps_median ?? null, privacy: latestP1Analysis.context.privacy, qualitative_pending: true });
   updateP1EvidenceText();
 };
 
@@ -270,7 +276,7 @@ $('copy-evidence').addEventListener('click', async () => {
 });
 $('download-p1').addEventListener('click', () => {
   if (!runtime || !latestP1Analysis) return;
-  const output = { context: latestP1Analysis.context, opportunities: latestP1Analysis.opportunities, descriptors: latestP1Analysis.descriptors, timings: latestP1Analysis.timings };
+  const output = { context: latestP1Analysis.context, frame_set: latestP1Analysis.frame_set, direction_map: latestP1Analysis.direction_map, view_candidates: latestP1Analysis.view_candidates, descriptors: latestP1Analysis.descriptors, timings: latestP1Analysis.timings };
   const blob = new Blob([JSON.stringify(output, null, 2) + '\n'], { type: 'application/json' });
   const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `${runtime.session.sweep_id}-p1.json`; link.click();
   setText('message', `P1 标量结果已导出：${link.download}`); setTimeout(() => URL.revokeObjectURL(link.href), 0);

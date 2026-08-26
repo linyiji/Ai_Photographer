@@ -12,10 +12,12 @@ analyzeSceneSweep(
   photographyIntent: PhotographyIntent,
 ): {
   context: SceneSpatialContextV01;
-  opportunities: PhotographyOpportunityV01[];
+  frame_set: SceneFrameSetV01;
+  direction_map: SceneDirectionMapV01;
+  view_candidates: PhotographyViewCandidateV01[];
 }
 ```
 
-The future production adapter must own platform permission UX and transient keyframe lifetime. Raw keyframes stay local/transient; validated scalar context and opportunity envelopes may become persistable later. The deterministic baseline has no Main Session, navigation, backend per-frame, Provider, or Luna dependency.
+Each `PhotographyViewCandidateV01` contains multiple `PlacementCandidateV01` image anchors. Region count is metadata and does not control candidate count. The future production adapter must own platform permission UX and transient keyframe lifetime. Raw keyframes stay local/transient; validated frame/direction/candidate envelopes may become persistable later. The deterministic baseline has no Main Session, navigation, backend per-frame, Provider, or Luna dependency.
 
-Replacement seams are documented, not implemented: `DeterministicVisualDescriptorProvider`, `FutureSemanticSceneProvider`, and `FutureOpportunityRanker`. Future semantic/aesthetic enrichment must preserve the Scene Sweep, YawMap, `SceneSpatialContextV01`, and `PhotographyOpportunityV01` envelopes and still enter Main as candidate output requiring validation.
+Replacement seams are documented, not implemented: `DeterministicVisualDescriptorProvider`, `FutureSemanticSceneProvider`, `SpatialEvidenceProvider`, and `PhotographyDirectorProvider`. Future semantic/aesthetic enrichment must preserve Scene Sweep, SceneFrameSet, SceneDirectionMap, and candidate authority boundaries. P1 candidates are not final decisions.

@@ -1,5 +1,7 @@
 # Opportunity Ranking
 
+> Historical V1 controlled-fixture evidence. Superseded for runtime acceptance by the P1 V2 direction-map and candidate model. The original result is preserved because real-device evidence later showed that one-region/one-opportunity behavior was not product-acceptable.
+
 Acceptance: **PASS** on controlled fixtures.
 
 - clean balanced alternatives outrank severely blurred and severely clipped candidates;
