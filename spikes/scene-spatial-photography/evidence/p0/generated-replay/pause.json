@@ -1,0 +1,142 @@
+{
+  "manifest": {
+    "schema": "xfx.scene-sweep-manifest",
+    "version": "0.1",
+    "sweep_id": "fixture-quick_sweep",
+    "mode": "QUICK_SWEEP",
+    "status": "COMPLETE",
+    "started_at": 0,
+    "ended_at": 2000,
+    "coverage_deg": 20,
+    "direction": "LEFT_TO_RIGHT",
+    "camera": {
+      "facing": "environment",
+      "source_width": 640,
+      "source_height": 480
+    },
+    "orientation": {
+      "source": "CONTROLLED_FIXTURE",
+      "screen_posture": "PORTRAIT_PRIMARY",
+      "absolute_heading_globally_calibrated": false
+    },
+    "ordered_keyframes": [
+      {
+        "timestamp_ms": 0,
+        "width": 640,
+        "height": 480,
+        "blur_score": 30,
+        "exposure_mean": 128,
+        "highlight_clipping_ratio": 0,
+        "shadow_clipping_ratio": 0,
+        "fingerprint": [
+          0,
+          1
+        ],
+        "yaw_deg": 0,
+        "keyframe_id": "kf-001",
+        "sequence": 1,
+        "quality_status": "ACCEPTED",
+        "selection_reason": "INITIAL"
+      },
+      {
+        "timestamp_ms": 2000,
+        "width": 640,
+        "height": 480,
+        "blur_score": 30,
+        "exposure_mean": 128,
+        "highlight_clipping_ratio": 0,
+        "shadow_clipping_ratio": 0,
+        "fingerprint": [
+          0.6666666666666666,
+          0.33333333333333337
+        ],
+        "yaw_deg": 20,
+        "keyframe_id": "kf-002",
+        "sequence": 2,
+        "quality_status": "ACCEPTED",
+        "selection_reason": "ANGULAR_NOVELTY"
+      }
+    ],
+    "rejection_stats": {
+      "BLUR": 0,
+      "UNDEREXPOSED": 0,
+      "OVEREXPOSED": 0,
+      "ANGULAR_NOVELTY": 0,
+      "DUPLICATE": 1,
+      "BUSY": 0,
+      "CAP": 0
+    },
+    "privacy": {
+      "raw_video_uploaded": false,
+      "raw_frame_stream_uploaded": false,
+      "third_party_image_uploaded": false,
+      "committed_user_media": false
+    },
+    "network": {
+      "provider_calls": 0,
+      "luna_calls": 0,
+      "backend_per_frame_calls": 0
+    }
+  },
+  "yaw_map": {
+    "schema_version": "0.1",
+    "ordered_yaws_deg": [
+      0,
+      20
+    ],
+    "keyframes": [
+      {
+        "timestamp_ms": 0,
+        "width": 640,
+        "height": 480,
+        "blur_score": 30,
+        "exposure_mean": 128,
+        "highlight_clipping_ratio": 0,
+        "shadow_clipping_ratio": 0,
+        "fingerprint": [
+          0,
+          1
+        ],
+        "yaw_deg": 0,
+        "keyframe_id": "kf-001",
+        "sequence": 1,
+        "quality_status": "ACCEPTED",
+        "selection_reason": "INITIAL"
+      },
+      {
+        "timestamp_ms": 2000,
+        "width": 640,
+        "height": 480,
+        "blur_score": 30,
+        "exposure_mean": 128,
+        "highlight_clipping_ratio": 0,
+        "shadow_clipping_ratio": 0,
+        "fingerprint": [
+          0.6666666666666666,
+          0.33333333333333337
+        ],
+        "yaw_deg": 20,
+        "keyframe_id": "kf-002",
+        "sequence": 2,
+        "quality_status": "ACCEPTED",
+        "selection_reason": "ANGULAR_NOVELTY"
+      }
+    ]
+  },
+  "coverage": {
+    "min_observed_yaw": 0,
+    "max_observed_yaw": 20,
+    "span_deg": 20,
+    "direction": "LEFT_TO_RIGHT",
+    "rejected_spikes": 0
+  },
+  "rejections": {
+    "BLUR": 0,
+    "UNDEREXPOSED": 0,
+    "OVEREXPOSED": 0,
+    "ANGULAR_NOVELTY": 0,
+    "DUPLICATE": 1,
+    "BUSY": 0,
+    "CAP": 0
+  }
+}
