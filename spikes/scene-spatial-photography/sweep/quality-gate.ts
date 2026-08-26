@@ -1,7 +1,7 @@
 import type { FrameMetrics, RejectionReason } from './types.js';
 export interface QualityDecision { accepted: boolean; reason?: Extract<RejectionReason, 'BLUR' | 'UNDEREXPOSED' | 'OVEREXPOSED'>; }
 export interface QualityPolicy { min_blur_score: number; min_exposure_mean: number; max_exposure_mean: number; max_clipping_ratio: number; }
-export const DEFAULT_QUALITY_POLICY: QualityPolicy = { min_blur_score: 12, min_exposure_mean: 18, max_exposure_mean: 238, max_clipping_ratio: 0.72 };
+export const DEFAULT_QUALITY_POLICY: QualityPolicy = { min_blur_score: 3, min_exposure_mean: 18, max_exposure_mean: 238, max_clipping_ratio: 0.72 };
 export const evaluateQuality = (frame: FrameMetrics, policy = DEFAULT_QUALITY_POLICY): QualityDecision => {
   if (frame.blur_score < policy.min_blur_score) return { accepted: false, reason: 'BLUR' };
   if (frame.exposure_mean < policy.min_exposure_mean || frame.shadow_clipping_ratio > policy.max_clipping_ratio) return { accepted: false, reason: 'UNDEREXPOSED' };

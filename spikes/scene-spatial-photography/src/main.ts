@@ -24,7 +24,8 @@ type TrialEvidence = {
   preview_fps_median: number | null; preview_fps_min: number | null;
   orientation_state: string; orientation_source: OrientationSource; orientation_hz: number;
   initial_stationary_yaw_range_deg: number | null; quality_eval_ms_p50: number | null;
-  quality_eval_ms_p95: number | null; queue_length: number; privacy: object; network: object;
+  quality_eval_ms_p95: number | null; blur_score_min_p50_p95: number[];
+  exposure_mean_min_p50_max: number[]; queue_length: number; privacy: object; network: object;
 };
 
 let runtime: SceneSweepRuntime | null = null;
@@ -34,6 +35,8 @@ let fixtureTimer = 0;
 let firstOrientationAt: number | null = null;
 let initialYawSamples: number[] = [];
 let previewFpsSamples: number[] = [];
+let candidateBlurScores: number[] = [];
+let candidateExposureMeans: number[] = [];
 let orientationSource: OrientationSource = 'CONTROLLED_FIXTURE';
 const completedTrials: TrialEvidence[] = [];
 const recordedTrialIds = new Set<string>();
@@ -47,7 +50,7 @@ const percentile = (values: readonly number[], ratio: number): number | null => 
   return sorted[Math.floor((sorted.length - 1) * ratio)] ?? null;
 };
 const stationaryRange = (): number | null => initialYawSamples.length < 2 ? null : Math.max(...initialYawSamples) - Math.min(...initialYawSamples);
-const resetTrialTelemetry = (): void => { firstOrientationAt = null; initialYawSamples = []; previewFpsSamples = []; };
+const resetTrialTelemetry = (): void => { firstOrientationAt = null; initialYawSamples = []; previewFpsSamples = []; candidateBlurScores = []; candidateExposureMeans = []; };
 const updateEvidenceText = (): void => { $<HTMLTextAreaElement>('device-evidence').value = JSON.stringify(completedTrials, null, 2); };
 
 const recordTrial = (): void => {
@@ -72,6 +75,8 @@ const recordTrial = (): void => {
     initial_stationary_yaw_range_deg: yawRange === null ? null : rounded(yawRange),
     quality_eval_ms_p50: metrics.quality_eval_ms_p50 === null ? null : rounded(metrics.quality_eval_ms_p50, 2),
     quality_eval_ms_p95: metrics.quality_eval_ms_p95 === null ? null : rounded(metrics.quality_eval_ms_p95, 2),
+    blur_score_min_p50_p95: candidateBlurScores.length ? [rounded(Math.min(...candidateBlurScores), 2), rounded(percentile(candidateBlurScores, 0.5)!, 2), rounded(percentile(candidateBlurScores, 0.95)!, 2)] : [],
+    exposure_mean_min_p50_max: candidateExposureMeans.length ? [rounded(Math.min(...candidateExposureMeans), 2), rounded(percentile(candidateExposureMeans, 0.5)!, 2), rounded(Math.max(...candidateExposureMeans), 2)] : [],
     queue_length: metrics.queue_length, privacy: manifest.privacy, network: manifest.network,
   });
   recordedTrialIds.add(runtime.session.sweep_id);
@@ -111,7 +116,14 @@ const render = (): void => {
   setText('privacy-counters', `${metrics.queue_length} / ${metrics.raw_video_upload}`);
   $('arc-fill').style.width = `${Math.min(100, coverage.span_deg / modeTarget() * 100)}%`;
   setText('hero', runtime.session.status === 'COMPLETE' ? '看完了' : '慢慢转动手机');
-  if (runtime.session.status === 'COMPLETE') { recordTrial(); stopAcquisition(); }
+  if (runtime.session.status === 'COMPLETE') {
+    recordTrial(); stopAcquisition();
+    $<HTMLButtonElement>('start').disabled = false;
+    $<HTMLButtonElement>('start').textContent = '再扫一次';
+    $<HTMLButtonElement>('next-sweep').hidden = false;
+    $<HTMLButtonElement>('next-sweep').textContent = runtime.session.mode === 'QUICK_SWEEP' ? '扫更广一点（WIDE）' : '再拍一个 QUICK';
+    $<HTMLSelectElement>('mode').disabled = false;
+  }
 };
 
 const sampleFrame = (): void => {
@@ -119,16 +131,23 @@ const sampleFrame = (): void => {
   const started = performance.now();
   canvas.width = 160; canvas.height = Math.max(1, Math.round(160 * video.videoHeight / video.videoWidth));
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  const selected = runtime.observeFrame(metricsFromImageData(ctx.getImageData(0, 0, canvas.width, canvas.height), performance.now(), latestYaw));
+  const frameMetrics = metricsFromImageData(ctx.getImageData(0, 0, canvas.width, canvas.height), performance.now(), latestYaw);
+  candidateBlurScores.push(frameMetrics.blur_score); candidateExposureMeans.push(frameMetrics.exposure_mean);
+  runtime.setCameraSourceDimensions(video.videoWidth, video.videoHeight);
+  const selected = runtime.observeFrame(frameMetrics);
   telemetry.candidate(performance.now() - started, selected); render();
 };
 
 $('start').addEventListener('click', async () => {
+  $<HTMLButtonElement>('start').disabled = true; $<HTMLButtonElement>('start').textContent = '启动中…';
+  $<HTMLButtonElement>('next-sweep').hidden = true; $<HTMLSelectElement>('mode').disabled = true;
   runtime = new SceneSweepRuntime(currentMode(), `sweep-${Date.now()}`, Date.now());
   telemetry.start(performance.now()); resetTrialTelemetry(); orientation.resetBaseline(); orientationSource = 'DEVICE_ORIENTATION';
   setText('message', '正在请求相机与方向权限…');
   const [cameraState, orientationState] = await Promise.all([camera.start(), orientation.requestPermission()]);
-  if (cameraState.state !== 'ACTIVE') { setText('message', cameraState.message ?? '相机不可用'); render(); return; }
+  if (cameraState.state !== 'ACTIVE') { setText('message', cameraState.message ?? '相机不可用'); $<HTMLButtonElement>('start').disabled = false; $<HTMLButtonElement>('start').textContent = '重试'; $<HTMLSelectElement>('mode').disabled = false; render(); return; }
+  runtime.setCameraSourceDimensions(cameraState.width, cameraState.height);
+  $<HTMLButtonElement>('start').textContent = '扫描中';
   $('empty').style.display = 'none'; $('finish').toggleAttribute('disabled', false); $('cancel').toggleAttribute('disabled', false);
   orientation.start((sample) => {
     latestYaw = sample.relative_yaw_deg; orientationSource = sample.source; telemetry.orientation();
@@ -163,8 +182,13 @@ $('fixture').addEventListener('click', () => {
   tick(); fixtureTimer = window.setInterval(tick, 35);
 });
 
+$('next-sweep').addEventListener('click', () => {
+  $<HTMLSelectElement>('mode').value = runtime?.session.mode === 'QUICK_SWEEP' ? 'WIDE_SWEEP' : 'QUICK_SWEEP';
+  $<HTMLButtonElement>('start').click();
+});
+
 $('finish').addEventListener('click', () => { runtime?.finish(Date.now()); recordTrial(); stopAcquisition(); render(); });
-$('cancel').addEventListener('click', () => { runtime?.cancel(Date.now()); stopAcquisition(); camera.stop(); render(); setText('hero', '已取消'); });
+$('cancel').addEventListener('click', () => { runtime?.cancel(Date.now()); stopAcquisition(); camera.stop(); render(); setText('hero', '已取消'); $<HTMLButtonElement>('start').disabled = false; $<HTMLButtonElement>('start').textContent = '重新开始'; $<HTMLButtonElement>('next-sweep').hidden = true; $<HTMLSelectElement>('mode').disabled = false; });
 $('download').addEventListener('click', () => {
   if (!runtime) return;
   const blob = new Blob([canonicalManifestJson(runtime.manifest())], { type: 'application/json' });

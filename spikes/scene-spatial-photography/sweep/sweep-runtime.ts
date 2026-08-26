@@ -26,8 +26,11 @@ export class SceneSweepRuntime {
   }
   observeFrame(frame: Omit<FrameMetrics, 'yaw_deg'> & { yaw_deg?: number }): boolean {
     if (this.session.status !== 'SWEEPING' || (frame.yaw_deg === undefined && this.latestYaw === null)) return false;
-    this.session.source_width = frame.width; this.session.source_height = frame.height;
+    if (this.session.source_width === 0 || this.session.source_height === 0) { this.session.source_width = frame.width; this.session.source_height = frame.height; }
     return this.sampler.evaluate({ ...frame, yaw_deg: frame.yaw_deg ?? this.latestYaw! }) !== null;
+  }
+  setCameraSourceDimensions(width: number, height: number): void {
+    if (width > 0 && height > 0) { this.session.source_width = width; this.session.source_height = height; }
   }
   finish(timestampMs: number): void { if (this.session.status !== 'CANCELLED') { this.session.status = 'COMPLETE'; this.session.ended_at = timestampMs; } }
   cancel(timestampMs: number): void { this.session.status = 'CANCELLED'; this.session.ended_at = timestampMs; }
