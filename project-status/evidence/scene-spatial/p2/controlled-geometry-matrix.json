@@ -1,0 +1,367 @@
+{
+  "schema": "xfx.p2-controlled-geometry-evidence",
+  "schema_version": "0.1",
+  "opencv_version": "4.12.0",
+  "primary_pose_route": "RANSAC_ESSENTIAL_RECOVER_POSE_TRIANGULATION",
+  "results": [
+    {
+      "scenario": "PURE_ROTATION",
+      "status": "INSUFFICIENT",
+      "reason_codes": [
+        "PURE_ROTATION_OR_HOMOGRAPHY_DOMINANT"
+      ],
+      "parallax_classification": "ROTATION_DOMINANT",
+      "feature_count": 173,
+      "homography_inlier_ratio": 1.0,
+      "median_parallax_px": 0.0,
+      "p75_parallax_px": 0.0,
+      "pose_inliers": 0,
+      "recovered_camera_center_direction": [
+        null,
+        null,
+        null
+      ],
+      "direction_sign_correct": null,
+      "triangulated_point_count": 0,
+      "positive_depth_ratio": 0.0,
+      "reprojection_error_px": null,
+      "metric_scale_available": false,
+      "coordinate_convention": "CAMERA_X_RIGHT_Y_DOWN_Z_FORWARD",
+      "timing_ms": {
+        "pose_and_triangulation": 0.004,
+        "total": 51.848
+      }
+    },
+    {
+      "scenario": "LOW_PARALLAX",
+      "status": "INSUFFICIENT",
+      "reason_codes": [
+        "LOW_PARALLAX"
+      ],
+      "parallax_classification": "LOW_PARALLAX",
+      "feature_count": 180,
+      "homography_inlier_ratio": 0.9833,
+      "median_parallax_px": 0.8667,
+      "p75_parallax_px": 1.1774,
+      "pose_inliers": 0,
+      "recovered_camera_center_direction": [
+        null,
+        null,
+        null
+      ],
+      "direction_sign_correct": null,
+      "triangulated_point_count": 0,
+      "positive_depth_ratio": 0.0,
+      "reprojection_error_px": null,
+      "metric_scale_available": false,
+      "coordinate_convention": "CAMERA_X_RIGHT_Y_DOWN_Z_FORWARD",
+      "timing_ms": {
+        "pose_and_triangulation": 0.003,
+        "total": 1.164
+      }
+    },
+    {
+      "scenario": "LATERAL_LEFT",
+      "status": "USABLE",
+      "reason_codes": [
+        "ROBUST_CORRESPONDENCE",
+        "PARALLAX_PRESENT",
+        "POSE_AND_TRIANGULATION_VALIDATED"
+      ],
+      "parallax_classification": "TRANSLATION_EVIDENCE_PRESENT",
+      "feature_count": 179,
+      "homography_inlier_ratio": 0.4358,
+      "median_parallax_px": 3.7587,
+      "p75_parallax_px": 8.3435,
+      "pose_inliers": 179,
+      "recovered_camera_center_direction": [
+        -1.0,
+        -0.0,
+        0.0
+      ],
+      "direction_sign_correct": true,
+      "triangulated_point_count": 179,
+      "positive_depth_ratio": 1.0,
+      "reprojection_error_px": 0.0,
+      "metric_scale_available": false,
+      "coordinate_convention": "CAMERA_X_RIGHT_Y_DOWN_Z_FORWARD",
+      "timing_ms": {
+        "pose_and_triangulation": 3.966,
+        "total": 10.651
+      }
+    },
+    {
+      "scenario": "LATERAL_RIGHT",
+      "status": "USABLE",
+      "reason_codes": [
+        "ROBUST_CORRESPONDENCE",
+        "PARALLAX_PRESENT",
+        "POSE_AND_TRIANGULATION_VALIDATED"
+      ],
+      "parallax_classification": "TRANSLATION_EVIDENCE_PRESENT",
+      "feature_count": 179,
+      "homography_inlier_ratio": 0.4637,
+      "median_parallax_px": 3.2199,
+      "p75_parallax_px": 6.2952,
+      "pose_inliers": 179,
+      "recovered_camera_center_direction": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "direction_sign_correct": true,
+      "triangulated_point_count": 179,
+      "positive_depth_ratio": 1.0,
+      "reprojection_error_px": 0.0,
+      "metric_scale_available": false,
+      "coordinate_convention": "CAMERA_X_RIGHT_Y_DOWN_Z_FORWARD",
+      "timing_ms": {
+        "pose_and_triangulation": 3.042,
+        "total": 9.031
+      }
+    },
+    {
+      "scenario": "MOVE_FORWARD",
+      "status": "USABLE",
+      "reason_codes": [
+        "ROBUST_CORRESPONDENCE",
+        "PARALLAX_PRESENT",
+        "POSE_AND_TRIANGULATION_VALIDATED"
+      ],
+      "parallax_classification": "TRANSLATION_EVIDENCE_PRESENT",
+      "feature_count": 176,
+      "homography_inlier_ratio": 0.6136,
+      "median_parallax_px": 2.1558,
+      "p75_parallax_px": 5.2565,
+      "pose_inliers": 176,
+      "recovered_camera_center_direction": [
+        -0.0,
+        -0.0,
+        1.0
+      ],
+      "direction_sign_correct": true,
+      "triangulated_point_count": 176,
+      "positive_depth_ratio": 1.0,
+      "reprojection_error_px": 0.0,
+      "metric_scale_available": false,
+      "coordinate_convention": "CAMERA_X_RIGHT_Y_DOWN_Z_FORWARD",
+      "timing_ms": {
+        "pose_and_triangulation": 3.223,
+        "total": 5.591
+      }
+    },
+    {
+      "scenario": "MOVE_BACKWARD",
+      "status": "USABLE",
+      "reason_codes": [
+        "ROBUST_CORRESPONDENCE",
+        "PARALLAX_PRESENT",
+        "POSE_AND_TRIANGULATION_VALIDATED"
+      ],
+      "parallax_classification": "TRANSLATION_EVIDENCE_PRESENT",
+      "feature_count": 180,
+      "homography_inlier_ratio": 0.6056,
+      "median_parallax_px": 2.0675,
+      "p75_parallax_px": 5.0486,
+      "pose_inliers": 180,
+      "recovered_camera_center_direction": [
+        -0.0,
+        -0.0,
+        -1.0
+      ],
+      "direction_sign_correct": true,
+      "triangulated_point_count": 180,
+      "positive_depth_ratio": 1.0,
+      "reprojection_error_px": 0.0,
+      "metric_scale_available": false,
+      "coordinate_convention": "CAMERA_X_RIGHT_Y_DOWN_Z_FORWARD",
+      "timing_ms": {
+        "pose_and_triangulation": 2.97,
+        "total": 5.521
+      }
+    },
+    {
+      "scenario": "MIXED_ROTATE_TRANSLATE",
+      "status": "USABLE",
+      "reason_codes": [
+        "ROBUST_CORRESPONDENCE",
+        "PARALLAX_PRESENT",
+        "POSE_AND_TRIANGULATION_VALIDATED"
+      ],
+      "parallax_classification": "TRANSLATION_EVIDENCE_PRESENT",
+      "feature_count": 179,
+      "homography_inlier_ratio": 0.4972,
+      "median_parallax_px": 3.0083,
+      "p75_parallax_px": 5.1133,
+      "pose_inliers": 179,
+      "recovered_camera_center_direction": [
+        0.8742,
+        0.0,
+        0.4856
+      ],
+      "direction_sign_correct": null,
+      "triangulated_point_count": 179,
+      "positive_depth_ratio": 1.0,
+      "reprojection_error_px": 0.0,
+      "metric_scale_available": false,
+      "coordinate_convention": "CAMERA_X_RIGHT_Y_DOWN_Z_FORWARD",
+      "timing_ms": {
+        "pose_and_triangulation": 2.872,
+        "total": 7.213
+      }
+    },
+    {
+      "scenario": "WEAK_TEXTURE",
+      "status": "INSUFFICIENT",
+      "reason_codes": [
+        "GEOMETRY_VALIDATION_FAILED"
+      ],
+      "parallax_classification": "UNCLASSIFIED",
+      "feature_count": 12,
+      "homography_inlier_ratio": 0.5833,
+      "median_parallax_px": 1.7034,
+      "p75_parallax_px": 6.1098,
+      "pose_inliers": 0,
+      "recovered_camera_center_direction": [
+        null,
+        null,
+        null
+      ],
+      "direction_sign_correct": null,
+      "triangulated_point_count": 0,
+      "positive_depth_ratio": 0.0,
+      "reprojection_error_px": null,
+      "metric_scale_available": false,
+      "coordinate_convention": "CAMERA_X_RIGHT_Y_DOWN_Z_FORWARD",
+      "timing_ms": {
+        "pose_and_triangulation": 0.003,
+        "total": 2.473
+      }
+    },
+    {
+      "scenario": "REPETITIVE_TEXTURE",
+      "status": "INSUFFICIENT",
+      "reason_codes": [
+        "GEOMETRY_VALIDATION_FAILED"
+      ],
+      "parallax_classification": "UNCLASSIFIED",
+      "feature_count": 179,
+      "homography_inlier_ratio": 0.0335,
+      "median_parallax_px": 220.3817,
+      "p75_parallax_px": 390.8259,
+      "pose_inliers": 0,
+      "recovered_camera_center_direction": [
+        null,
+        null,
+        null
+      ],
+      "direction_sign_correct": null,
+      "triangulated_point_count": 0,
+      "positive_depth_ratio": 0.0,
+      "reprojection_error_px": null,
+      "metric_scale_available": false,
+      "coordinate_convention": "CAMERA_X_RIGHT_Y_DOWN_Z_FORWARD",
+      "timing_ms": {
+        "pose_and_triangulation": 0.003,
+        "total": 64.739
+      }
+    },
+    {
+      "scenario": "BLUR",
+      "status": "INSUFFICIENT",
+      "reason_codes": [
+        "GEOMETRY_VALIDATION_FAILED"
+      ],
+      "parallax_classification": "UNCLASSIFIED",
+      "feature_count": 12,
+      "homography_inlier_ratio": 0.5833,
+      "median_parallax_px": 1.7034,
+      "p75_parallax_px": 6.1098,
+      "pose_inliers": 0,
+      "recovered_camera_center_direction": [
+        null,
+        null,
+        null
+      ],
+      "direction_sign_correct": null,
+      "triangulated_point_count": 0,
+      "positive_depth_ratio": 0.0,
+      "reprojection_error_px": null,
+      "metric_scale_available": false,
+      "coordinate_convention": "CAMERA_X_RIGHT_Y_DOWN_Z_FORWARD",
+      "timing_ms": {
+        "pose_and_triangulation": 0.003,
+        "total": 2.236
+      }
+    },
+    {
+      "scenario": "EXPOSURE_FAILURE",
+      "status": "INSUFFICIENT",
+      "reason_codes": [
+        "GEOMETRY_VALIDATION_FAILED"
+      ],
+      "parallax_classification": "UNCLASSIFIED",
+      "feature_count": 12,
+      "homography_inlier_ratio": 0.5833,
+      "median_parallax_px": 1.7034,
+      "p75_parallax_px": 6.1098,
+      "pose_inliers": 0,
+      "recovered_camera_center_direction": [
+        null,
+        null,
+        null
+      ],
+      "direction_sign_correct": null,
+      "triangulated_point_count": 0,
+      "positive_depth_ratio": 0.0,
+      "reprojection_error_px": null,
+      "metric_scale_available": false,
+      "coordinate_convention": "CAMERA_X_RIGHT_Y_DOWN_Z_FORWARD",
+      "timing_ms": {
+        "pose_and_triangulation": 0.002,
+        "total": 1.982
+      }
+    },
+    {
+      "scenario": "INSUFFICIENT_FRAMES",
+      "status": "INSUFFICIENT",
+      "reason_codes": [
+        "INSUFFICIENT_FRAMES"
+      ],
+      "parallax_classification": "UNCLASSIFIED",
+      "feature_count": 0,
+      "homography_inlier_ratio": 0.0,
+      "median_parallax_px": 0.0,
+      "p75_parallax_px": 0.0,
+      "pose_inliers": 0,
+      "recovered_camera_center_direction": [
+        null,
+        null,
+        null
+      ],
+      "direction_sign_correct": null,
+      "triangulated_point_count": 0,
+      "positive_depth_ratio": 0.0,
+      "reprojection_error_px": null,
+      "metric_scale_available": false,
+      "coordinate_convention": "CAMERA_X_RIGHT_Y_DOWN_Z_FORWARD",
+      "timing_ms": {
+        "pose_and_triangulation": 0.003,
+        "total": 0.221
+      }
+    }
+  ],
+  "gates": {
+    "deterministic": true,
+    "pure_rotation_false_usable": 0,
+    "low_parallax_false_usable": 0,
+    "direction_sign_correct": true,
+    "direction_sign_cases": 4
+  },
+  "privacy": {
+    "raw_media_persisted": false,
+    "raw_media_uploaded": false,
+    "provider_calls": 0,
+    "luna_calls": 0
+  }
+}

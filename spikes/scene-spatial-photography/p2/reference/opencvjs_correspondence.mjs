@@ -1,0 +1,18 @@
+import fs from 'node:fs';
+import cv from '@techstark/opencv-js';
+import { analyzeCorrespondence, selectPrimaryCorrespondence } from '../../.test-dist/p2/opencv-correspondence.js';
+await new Promise((resolve, reject) => { const timer=setTimeout(()=>reject(new Error('OpenCV.js init timeout')),15000); cv.onRuntimeInitialized=()=>{clearTimeout(timer);resolve();}; });
+const width=320,height=240;
+const render=(step,translation)=>{
+  const data=new Uint8ClampedArray(width*height*4); for(let i=0;i<data.length;i+=4){data[i]=18;data[i+1]=20;data[i+2]=18;data[i+3]=255;}
+  const paint=(x,y,r,c)=>{for(let yy=Math.max(0,y-r);yy<Math.min(height,y+r+1);yy++)for(let xx=Math.max(0,x-r);xx<Math.min(width,x+r+1);xx++){if((xx-x)**2+(yy-y)**2<=r*r){const i=(yy*width+xx)*4;data[i]=c;data[i+1]=255-c/3;data[i+2]=80+c/4;}}};
+  for(let i=0;i<110;i++){const baseX=18+(i*47)%284,baseY=15+(i*73)%210,depth=i%3;const global=step*2;const parallax=translation?step*(depth-1)*1.7:0;paint(Math.round(baseX+global+parallax),baseY,2+(i%3),80+(i*31)%160);}
+  return {width,height,data};
+};
+const makeInput=(translation)=>{const frames=Array.from({length:8},(_,i)=>({frame_id:`f${i}`,sequence:i,timestamp_ms:i*125,relative_yaw_deg:i*2,width,height,blur_score:30,exposure_mean:128,technical_quality:1,motion_diagnostic:.2,parallax_diagnostic:'PENDING_POST_SCAN',orientation_source:'CONTROLLED_FIXTURE',pixels:render(i,translation)}));return {schema:'xfx.scene-scan-geometry-input',schema_version:'0.1',source_sweep_id:translation?'TRANSLATION':'PURE_ROTATION',frames,selection_budget:16,estimated_memory_bytes:frames.length*width*height*4,lifecycle:'TRANSIENT_LOCAL_MEMORY',raw_media_persisted:false,raw_media_uploaded:false};};
+const rows=[];
+for(const scenario of ['PURE_ROTATION','TRANSLATION']){const input=makeInput(scenario==='TRANSLATION');const gftt=analyzeCorrespondence(cv,input,'GFTT_PYRLK');const orb=analyzeCorrespondence(cv,input,'ORB_DESCRIPTOR_MATCHING');rows.push({scenario,gftt,orb,selected:selectPrimaryCorrespondence(gftt,orb).engine});}
+const aggregate=(engine)=>{const ds=rows.map(r=>engine==='GFTT_PYRLK'?r.gftt:r.orb);return {engine,mean_retention:ds.reduce((s,d)=>s+d.match_retention,0)/ds.length,mean_inlier_ratio:ds.reduce((s,d)=>s+d.inlier_ratio,0)/ds.length,total_latency_ms:ds.reduce((s,d)=>s+d.latency_ms,0),failure_count:ds.filter(d=>d.failure_reason).length};};
+const comparison=[aggregate('GFTT_PYRLK'),aggregate('ORB_DESCRIPTOR_MATCHING')];const primary=[...comparison].sort((a,b)=>(b.mean_inlier_ratio+b.mean_retention-b.total_latency_ms/5000)-(a.mean_inlier_ratio+a.mean_retention-a.total_latency_ms/5000))[0].engine;
+const output={schema:'xfx.p2-opencvjs-correspondence-comparison',schema_version:'0.1',opencv_version:cv.getBuildInformation().match(/OpenCV [^\n]+/)?.[0]??'OpenCV.js 4.12',rows,comparison,primary_correspondence_engine:primary,client_capabilities:{goodFeaturesToTrack:typeof cv.goodFeaturesToTrack==='function',calcOpticalFlowPyrLK:typeof cv.calcOpticalFlowPyrLK==='function',ORB:typeof cv.ORB==='function',findHomography:typeof cv.findHomography==='function',findEssentialMat:typeof cv.findEssentialMat==='function',recoverPose:typeof cv.recoverPose==='function',triangulatePoints:typeof cv.triangulatePoints==='function'},privacy:{raw_media_persisted:false,raw_media_uploaded:false,provider_calls:0,luna_calls:0}};
+fs.mkdirSync('../../project-status/evidence/scene-spatial/p2',{recursive:true});fs.writeFileSync('../../project-status/evidence/scene-spatial/p2/opencvjs-correspondence-comparison.json',JSON.stringify(output,null,2)+'\n');console.log(JSON.stringify({primary,comparison,capabilities:output.client_capabilities},null,2));

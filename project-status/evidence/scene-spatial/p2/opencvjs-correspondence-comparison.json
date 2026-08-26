@@ -1,0 +1,99 @@
+{
+  "schema": "xfx.p2-opencvjs-correspondence-comparison",
+  "schema_version": "0.1",
+  "opencv_version": "OpenCV 4.12.0 =====================================",
+  "rows": [
+    {
+      "scenario": "PURE_ROTATION",
+      "gftt": {
+        "engine": "GFTT_PYRLK",
+        "detected_feature_count": 1190,
+        "tracked_feature_count": 1190,
+        "match_retention": 1,
+        "inlier_ratio": 1,
+        "median_displacement_px": 1.9999848182566389,
+        "median_parallax_px": 0.0002480648509138037,
+        "p75_parallax_px": 0.000481265018838194,
+        "latency_ms": 206.62390000000005,
+        "pair_count": 7,
+        "failure_reason": null
+      },
+      "orb": {
+        "engine": "ORB_DESCRIPTOR_MATCHING",
+        "detected_feature_count": 1802,
+        "tracked_feature_count": 996,
+        "match_retention": 0.5527192008879024,
+        "inlier_ratio": 0.4435470830596386,
+        "median_displacement_px": 18,
+        "median_parallax_px": 17.986856291142473,
+        "p75_parallax_px": 85.44349957594247,
+        "latency_ms": 364.6771,
+        "pair_count": 7,
+        "failure_reason": null
+      },
+      "selected": "GFTT_PYRLK"
+    },
+    {
+      "scenario": "TRANSLATION",
+      "gftt": {
+        "engine": "GFTT_PYRLK",
+        "detected_feature_count": 1190,
+        "tracked_feature_count": 1190,
+        "match_retention": 1,
+        "inlier_ratio": 0.9588235294117646,
+        "median_displacement_px": 2.0004386909129828,
+        "median_parallax_px": 0.956292437537298,
+        "p75_parallax_px": 1.3731638066362166,
+        "latency_ms": 128.44150000000013,
+        "pair_count": 7,
+        "failure_reason": null
+      },
+      "orb": {
+        "engine": "ORB_DESCRIPTOR_MATCHING",
+        "detected_feature_count": 1778,
+        "tracked_feature_count": 867,
+        "match_retention": 0.4876265466816648,
+        "inlier_ratio": 0.4328339569155233,
+        "median_displacement_px": 17.99999237060547,
+        "median_parallax_px": 17.62847349569387,
+        "p75_parallax_px": 72.80266807941103,
+        "latency_ms": 287.20219999999995,
+        "pair_count": 7,
+        "failure_reason": null
+      },
+      "selected": "GFTT_PYRLK"
+    }
+  ],
+  "comparison": [
+    {
+      "engine": "GFTT_PYRLK",
+      "mean_retention": 1,
+      "mean_inlier_ratio": 0.9794117647058823,
+      "total_latency_ms": 335.0654000000002,
+      "failure_count": 0
+    },
+    {
+      "engine": "ORB_DESCRIPTOR_MATCHING",
+      "mean_retention": 0.5201728737847836,
+      "mean_inlier_ratio": 0.43819051998758096,
+      "total_latency_ms": 651.8793,
+      "failure_count": 0
+    }
+  ],
+  "primary_correspondence_engine": "GFTT_PYRLK",
+  "client_capabilities": {
+    "goodFeaturesToTrack": true,
+    "calcOpticalFlowPyrLK": true,
+    "ORB": true,
+    "findHomography": true,
+    "findEssentialMat": false,
+    "recoverPose": false,
+    "triangulatePoints": false
+  },
+  "privacy": {
+    "raw_media_persisted": false,
+    "raw_media_uploaded": false,
+    "provider_calls": 0,
+    "luna_calls": 0
+  }
+}
