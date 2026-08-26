@@ -2,6 +2,7 @@ import Taro from '@tarojs/taro'
 import {API_BASE,UploadedAsset} from '../api/client'
 import {AdapterDescriptor,CapabilityName,CapabilitySelection,PlatformResult,RuntimePlatform,selectionFrom,normalizedFailure} from './model'
 import {centeredAspectCrop,estimateCentralCropByLuma,projectObjectFit,rectToPixels,type NormalizedRect,type TransformEstimate} from '../diagnostics/cameraGeometry'
+import {cameraVideoConstraints,captureViewportForVideo,type CaptureViewport} from './captureViewport'
 
 const ALL:CapabilityName[]=['CameraAdapter','FrameAdapter','AlbumAdapter','ShareAdapter','HapticAdapter','VoiceOutputAdapter','AuthAdapter','PaymentAdapter','DeviceMotionAdapter','StorageAdapter','NetworkAdapter']
 
@@ -27,8 +28,8 @@ function descriptor(capabilityName:CapabilityName,platform:RuntimePlatform):Adap
 export function detectPlatform():RuntimePlatform{return Taro.getEnv()===Taro.ENV_TYPE.WEAPP?'WECHAT':'H5'}
 
 export type CaptureSource='camera'|'album'
-export type CameraOpenDiagnostics={track:{width:number|null;height:number|null;frameRate:number|null;facingMode:string|null};video:{width:number;height:number};previewFps:number|null}
-export type CaptureDiagnostics={width:number;height:number;bytes:number;quality:string;backend:'IMAGE_CAPTURE'|'CANVAS_VIDEO_INTRINSIC';track:CameraOpenDiagnostics['track'];video:CameraOpenDiagnostics['video']}
+export type CameraOpenDiagnostics={track:{width:number|null;height:number|null;aspectRatio:number|null;frameRate:number|null;facingMode:string|null};video:{width:number;height:number;aspectRatio:number|null};captureViewport:CaptureViewport;previewFps:number|null}
+export type CaptureDiagnostics={width:number;height:number;bytes:number;quality:string;backend:'IMAGE_CAPTURE'|'CANVAS_VIDEO_INTRINSIC';track:CameraOpenDiagnostics['track'];video:CameraOpenDiagnostics['video'];captureViewportInVideo:CaptureViewport;nativeStillPreserved:true}
 export type CameraGeometryInventory={
  userAgent:string;screen:{width:number;height:number;devicePixelRatio:number;orientation:string|null}
  track:{label:string;kind:string;readyState:string;settings:Record<string,unknown>;constraints:Record<string,unknown>;capabilities:Record<string,unknown>}
@@ -55,8 +56,8 @@ export class H5StillCamera{
  private switching=false
  setFacingMode(value:'environment'|'user'){this.facingMode=value}
  private async waitForRelease(delayMs:number){await new Promise(resolve=>setTimeout(resolve,delayMs))}
- private trackSettings():CameraOpenDiagnostics['track']{const settings=this.stream?.getVideoTracks()[0]?.getSettings();return {width:settings?.width||null,height:settings?.height||null,frameRate:settings?.frameRate||null,facingMode:settings?.facingMode||null}}
- diagnostics(previewFps:number|null=null):CameraOpenDiagnostics{return {track:this.trackSettings(),video:{width:this.video?.videoWidth||0,height:this.video?.videoHeight||0},previewFps}}
+ private trackSettings():CameraOpenDiagnostics['track']{const settings=this.stream?.getVideoTracks()[0]?.getSettings();return {width:settings?.width||null,height:settings?.height||null,aspectRatio:settings?.aspectRatio||((settings?.width&&settings?.height)?settings.width/settings.height:null),frameRate:settings?.frameRate||null,facingMode:settings?.facingMode||null}}
+ diagnostics(previewFps:number|null=null):CameraOpenDiagnostics{const width=this.video?.videoWidth||0,height=this.video?.videoHeight||0;return {track:this.trackSettings(),video:{width,height,aspectRatio:width&&height?width/height:null},captureViewport:captureViewportForVideo(width,height),previewFps}}
  async measurePreviewFps(durationMs=1200):Promise<number|null>{
   const video=this.video as (HTMLVideoElement&{requestVideoFrameCallback?:(callback:(now:number)=>void)=>number})|null
   if(!video?.requestVideoFrameCallback)return this.trackSettings().frameRate
@@ -91,7 +92,7 @@ export class H5StillCamera{
  private async openWithConstraint(containerId:string,strict:boolean):Promise<PlatformResult<{facingMode:string}>>{
   if(typeof navigator==='undefined'||!navigator.mediaDevices?.getUserMedia)return normalizedFailure('PLATFORM_UNSUPPORTED','UNSUPPORTED','Camera preview is unavailable in this browser')
   try{
-   this.close();this.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:strict?{exact:this.facingMode}:{ideal:this.facingMode},width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:30}},audio:false})
+   this.close();this.stream=await navigator.mediaDevices.getUserMedia({video:cameraVideoConstraints(this.facingMode,strict),audio:false})
    const host=document.getElementById(containerId);if(!host)throw new Error('Camera preview host is unavailable')
    const video=document.createElement('video');video.autoplay=true;video.muted=true;video.playsInline=true;video.setAttribute('aria-label','相机实时预览');video.srcObject=this.stream;host.replaceChildren(video);await video.play();this.video=video
    const actual=this.stream.getVideoTracks()[0]?.getSettings().facingMode
@@ -127,7 +128,7 @@ export class H5StillCamera{
   let width=this.video.videoWidth,height=this.video.videoHeight
   if(typeof createImageBitmap==='function')try{const bitmap=await createImageBitmap(blob,{imageOrientation:'from-image'});width=bitmap.width;height=bitmap.height;bitmap.close()}catch{}
   const extension=blob.type==='image/png'?'png':blob.type==='image/webp'?'webp':'jpg';const file=new File([blob],`capture-${Date.now()}.${extension}`,{type:blob.type||'image/jpeg'});const previewUrl=URL.createObjectURL(file)
-  return {ok:true,code:'OK',supportLevel:'UNVERIFIED_REAL_DEVICE',value:{id:`local-${Date.now()}`,source:'camera',previewUrl,filePath:previewUrl,file,filename:file.name,orientation:height>=width?'PORTRAIT':'LANDSCAPE',confirmed:false,captureDiagnostics:{width,height,bytes:blob.size,quality,backend,track:this.trackSettings(),video:{width:this.video.videoWidth,height:this.video.videoHeight}}}}
+  return {ok:true,code:'OK',supportLevel:'UNVERIFIED_REAL_DEVICE',value:{id:`local-${Date.now()}`,source:'camera',previewUrl,filePath:previewUrl,file,filename:file.name,orientation:height>=width?'PORTRAIT':'LANDSCAPE',confirmed:false,captureDiagnostics:{width,height,bytes:blob.size,quality,backend,track:this.trackSettings(),video:{width:this.video.videoWidth,height:this.video.videoHeight,aspectRatio:this.video.videoWidth/this.video.videoHeight},captureViewportInVideo:captureViewportForVideo(this.video.videoWidth,this.video.videoHeight),nativeStillPreserved:true}}}
  }
  close(){this.stream?.getTracks().forEach(track=>track.stop());this.stream=null;if(this.video){this.video.srcObject=null;this.video.remove();this.video=null}}
 }
