@@ -4,7 +4,7 @@
 Status = IN_PROGRESS
 Branch = feature/first-complete-non-ai-product-flow
 Main Base Head = 56cd8e5c41ef35b3af43ff5979e5c921fdfddd17
-Current committed head = eca7703eab5c61f1b2f87dfb5875fbc01c6d98f8
+Implementation head under test = faff0f727389f615c80a92c4fc5fe20455cda556
 Product provenance commit = 02821e6c4dcefbef8d916c61eeb502b9ddba5ddd
 OPPO_MAIN_GATE = FAIL
 FIRST_COMPLETE_NON_AI_PRODUCT_BASELINE = NOT_YET_PASS
@@ -59,3 +59,26 @@ Evidence directory:
 `project-status/evidence/first-complete-non-ai/root-cause-diagnostic/`
 
 The parent OPPO and first-complete gates remain failed/not-yet-pass. No remediation is authorized or started automatically.
+
+## OPPO_CAMERA_AND_SAVE_FAILURE_ROOT_CAUSE_REPORT — 2026-08-26
+
+The bounded remediation rerun reproduced blocking Camera composition and capture persistence failures. This section records evidence and classification only; it does not authorize or apply another fix.
+
+```text
+Track = 1920×1440 @30fps / environment / aspect 1.3333
+Canonical portrait viewport = x 0.21875 / width 0.5625 / aspect 0.75
+Preview apparent center-crop scale = 1.7778× relative to full video width
+Native still = 3072×4096 / IMAGE_CAPTURE / DEVICE_NATIVE
+Camera classification = PREVIEW_STILL_PIPELINE_GEOMETRY_DIVERGENCE
+Capture upload attempts = 4
+Tunnel result = Incoming request ended abruptly: context canceled
+FastAPI POST /assets/uploads reached = NO
+Capture asset persisted = NO
+Final browser download gate = NOT_REACHED / NOT_CLASSIFIED
+OPPO_MAIN_GATE = FAIL
+FIRST_COMPLETE_NON_AI_PRODUCT_BASELINE = NOT_YET_PASS
+```
+
+Full report:
+
+`project-status/evidence/first-complete-non-ai/oppo-bounded-remediation/oppo-camera-and-save-failure-root-cause-report.md`
