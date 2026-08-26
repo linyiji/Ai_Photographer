@@ -2,7 +2,7 @@ from __future__ import annotations
 import json,os
 from pathlib import Path
 from uuid import uuid4
-from fastapi import FastAPI,File,Header,Request,UploadFile
+from fastapi import FastAPI,File,Header,Request,Response,UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse,JSONResponse
 from pydantic import BaseModel,Field
@@ -70,7 +70,17 @@ def platform_adapters(platform:str="H5",profile:str|None=None):
 def capability_selection(platform:str="H5"):return {"platform":platform.upper(),"selection":platform_registry.selection(platform)}
 
 @app.post("/assets/uploads",status_code=201)
-async def upload_asset(file:UploadFile=File(...)):return await asset_storage.store_upload(file)
+async def upload_asset(response:Response,file:UploadFile=File(...),idempotency_key:str|None=Header(None,alias="Idempotency-Key")):
+    response.headers["X-XFX-Origin-Reached"]="1"
+    cache_key=f"capture-upload:{idempotency_key}" if idempotency_key else None
+    if cache_key:
+        with repository.connect() as connection:cached=connection.execute("SELECT response_json FROM idempotency WHERE session_id=? AND key=?",("__asset_upload__",cache_key)).fetchone()
+        if cached:
+            await file.close();response.headers["X-XFX-Idempotent-Replay"]="1";return json.loads(cached[0])
+    metadata=await asset_storage.store_upload(file)
+    if cache_key:
+        with repository.connect() as connection:connection.execute("INSERT OR IGNORE INTO idempotency(session_id,key,request_hash,response_json) VALUES(?,?,?,?)",("__asset_upload__",cache_key,metadata["sha256"],json.dumps(metadata)))
+    return metadata
 
 @app.post("/sessions/{session_id}/fine-tune/derived",status_code=201)
 async def upload_fine_tune_derived(session_id:str,file:UploadFile=File(...),idempotency_key:str=Header(...,alias="Idempotency-Key")):

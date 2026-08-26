@@ -1,6 +1,6 @@
 import {test} from 'node:test'
 import {strict as assert} from 'node:assert'
-import {cameraVideoConstraints,captureFrameStyle,captureViewportForVideo} from '../src/platform/captureViewport'
+import {CameraGeometryTracker,cameraVideoConstraints,captureFrameStyle,captureViewportForVideo,normalizeCameraGeometry} from '../src/platform/captureViewport'
 
 test('9:16 video exposes a centered authoritative 3:4 viewport',()=>{
  const viewport=captureViewportForVideo(1080,1920)
@@ -28,3 +28,12 @@ test('camera acquisition requests rear 3:4 high-resolution video without assumin
  assert.deepEqual(constraints.height,{ideal:1920})
  assert.deepEqual(constraints.frameRate,{ideal:30})
 })
+
+test('A landscape raw intrinsic is logically normalized for portrait presentation',()=>{const g=normalizeCameraGeometry({width:1920,height:1440,deviceOrientation:'PORTRAIT',presentationOrientation:'PORTRAIT'});assert.deepEqual(g.normalized,{width:1440,height:1920,aspectRatio:.75,rotation:'LOGICAL_90'});assert.equal(g.previewViewport.width,1)})
+test('B portrait intrinsic is not double rotated',()=>{assert.equal(normalizeCameraGeometry({width:1440,height:1920,deviceOrientation:'PORTRAIT'}).normalized.rotation,'NONE')})
+test('C landscape presentation preserves landscape coordinates',()=>{const g=normalizeCameraGeometry({width:1920,height:1440,deviceOrientation:'LANDSCAPE'});assert.equal(g.normalized.rotation,'NONE');assert.equal(g.normalized.aspectRatio,4/3)})
+test('D identity is authoritative only with validated evidence',()=>{assert.equal(normalizeCameraGeometry({width:1440,height:1920,deviceOrientation:'PORTRAIT',stillWidth:3072,stillHeight:4096,relation:'VALIDATED_IDENTICAL'}).mappingMode,'IDENTITY_VALIDATED')})
+test('E a known FOV difference requires projection',()=>{assert.equal(normalizeCameraGeometry({width:1440,height:1920,deviceOrientation:'PORTRAIT',stillWidth:3072,stillHeight:4096,relation:'KNOWN_DIFFERENT'}).mappingMode,'PROJECTION_REQUIRED')})
+test('F unknown orientation makes no authoritative geometry claim',()=>{assert.equal(normalizeCameraGeometry({width:1920,height:1440}).mappingMode,'SAFE_FALLBACK')})
+test('G switching recalculates geometry',()=>{const t=new CameraGeometryTracker();const rear=t.recalculate({width:1920,height:1440,deviceOrientation:'PORTRAIT'});const front=t.recalculate({width:1280,height:720,deviceOrientation:'PORTRAIT'});assert.equal(front.generation,rear.generation+1);assert.notDeepEqual(front.geometry.raw,rear.geometry.raw)})
+test('H reopen cannot reuse invalidated geometry',()=>{const t=new CameraGeometryTracker();t.recalculate({width:1920,height:1440,deviceOrientation:'PORTRAIT'});t.invalidate();assert.equal(t.snapshot().geometry,null);assert.equal(t.recalculate({width:1440,height:1920,deviceOrientation:'PORTRAIT'}).generation,2)})

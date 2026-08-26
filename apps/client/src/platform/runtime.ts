@@ -2,7 +2,8 @@ import Taro from '@tarojs/taro'
 import {API_BASE,UploadedAsset} from '../api/client'
 import {AdapterDescriptor,CapabilityName,CapabilitySelection,PlatformResult,RuntimePlatform,selectionFrom,normalizedFailure} from './model'
 import {centeredAspectCrop,estimateCentralCropByLuma,projectObjectFit,rectToPixels,type NormalizedRect,type TransformEstimate} from '../diagnostics/cameraGeometry'
-import {cameraVideoConstraints,captureViewportForVideo,type CaptureViewport} from './captureViewport'
+import {CameraGeometryTracker,cameraVideoConstraints,captureViewportForVideo,normalizeCameraGeometry,type CaptureViewport,type CameraOrientation,type NormalizedCameraGeometry} from './captureViewport'
+import type {UploadAttemptTelemetry,UploadContext} from './captureUpload'
 
 const ALL:CapabilityName[]=['CameraAdapter','FrameAdapter','AlbumAdapter','ShareAdapter','HapticAdapter','VoiceOutputAdapter','AuthAdapter','PaymentAdapter','DeviceMotionAdapter','StorageAdapter','NetworkAdapter']
 
@@ -28,8 +29,8 @@ function descriptor(capabilityName:CapabilityName,platform:RuntimePlatform):Adap
 export function detectPlatform():RuntimePlatform{return Taro.getEnv()===Taro.ENV_TYPE.WEAPP?'WECHAT':'H5'}
 
 export type CaptureSource='camera'|'album'
-export type CameraOpenDiagnostics={track:{width:number|null;height:number|null;aspectRatio:number|null;frameRate:number|null;facingMode:string|null};video:{width:number;height:number;aspectRatio:number|null};captureViewport:CaptureViewport;previewFps:number|null}
-export type CaptureDiagnostics={width:number;height:number;bytes:number;quality:string;backend:'IMAGE_CAPTURE'|'CANVAS_VIDEO_INTRINSIC';track:CameraOpenDiagnostics['track'];video:CameraOpenDiagnostics['video'];captureViewportInVideo:CaptureViewport;nativeStillPreserved:true}
+export type CameraOpenDiagnostics={track:{width:number|null;height:number|null;aspectRatio:number|null;frameRate:number|null;facingMode:string|null;zoom:number|null};video:{width:number;height:number;aspectRatio:number|null};orientation:{device:CameraOrientation;presentation:CameraOrientation};geometry:NormalizedCameraGeometry;geometryGeneration:number;captureViewport:CaptureViewport;previewFps:number|null}
+export type CaptureDiagnostics={width:number;height:number;bytes:number;quality:string;backend:'IMAGE_CAPTURE'|'CANVAS_VIDEO_INTRINSIC';track:CameraOpenDiagnostics['track'];video:CameraOpenDiagnostics['video'];geometry:NormalizedCameraGeometry;captureViewportInVideo:CaptureViewport;nativeStillPreserved:true;userFacingDerivedDimensions:null}
 export type CameraGeometryInventory={
  userAgent:string;screen:{width:number;height:number;devicePixelRatio:number;orientation:string|null}
  track:{label:string;kind:string;readyState:string;settings:Record<string,unknown>;constraints:Record<string,unknown>;capabilities:Record<string,unknown>}
@@ -54,10 +55,12 @@ export class H5StillCamera{
  private video:HTMLVideoElement|null=null
  private facingMode:'environment'|'user'='environment'
  private switching=false
+ private geometryTracker=new CameraGeometryTracker()
  setFacingMode(value:'environment'|'user'){this.facingMode=value}
  private async waitForRelease(delayMs:number){await new Promise(resolve=>setTimeout(resolve,delayMs))}
- private trackSettings():CameraOpenDiagnostics['track']{const settings=this.stream?.getVideoTracks()[0]?.getSettings();return {width:settings?.width||null,height:settings?.height||null,aspectRatio:settings?.aspectRatio||((settings?.width&&settings?.height)?settings.width/settings.height:null),frameRate:settings?.frameRate||null,facingMode:settings?.facingMode||null}}
- diagnostics(previewFps:number|null=null):CameraOpenDiagnostics{const width=this.video?.videoWidth||0,height=this.video?.videoHeight||0;return {track:this.trackSettings(),video:{width,height,aspectRatio:width&&height?width/height:null},captureViewport:captureViewportForVideo(width,height),previewFps}}
+ private orientation():{device:CameraOrientation;presentation:CameraOrientation}{const type=typeof screen!=='undefined'?screen.orientation?.type||'':'';const fromType:CameraOrientation=type.startsWith('portrait')?'PORTRAIT':type.startsWith('landscape')?'LANDSCAPE':'UNKNOWN';const presentation:CameraOrientation=typeof innerWidth==='number'&&typeof innerHeight==='number'?(innerHeight>=innerWidth?'PORTRAIT':'LANDSCAPE'):fromType;return {device:fromType,presentation}}
+ private trackSettings():CameraOpenDiagnostics['track']{const track=this.stream?.getVideoTracks()[0],settings=track?.getSettings() as (MediaTrackSettings&{zoom?:number})|undefined;return {width:settings?.width||null,height:settings?.height||null,aspectRatio:settings?.aspectRatio||((settings?.width&&settings?.height)?settings.width/settings.height:null),frameRate:settings?.frameRate||null,facingMode:settings?.facingMode||null,zoom:typeof settings?.zoom==='number'?settings.zoom:null}}
+ diagnostics(previewFps:number|null=null):CameraOpenDiagnostics{const width=this.video?.videoWidth||0,height=this.video?.videoHeight||0,orientation=this.orientation();let snapshot=this.geometryTracker.snapshot();if(!snapshot.geometry)snapshot=this.geometryTracker.recalculate({width,height,deviceOrientation:orientation.device,presentationOrientation:orientation.presentation});return {track:this.trackSettings(),video:{width,height,aspectRatio:width&&height?width/height:null},orientation,geometry:snapshot.geometry!,geometryGeneration:snapshot.generation,captureViewport:snapshot.geometry!.previewViewport,previewFps}}
  async measurePreviewFps(durationMs=1200):Promise<number|null>{
   const video=this.video as (HTMLVideoElement&{requestVideoFrameCallback?:(callback:(now:number)=>void)=>number})|null
   if(!video?.requestVideoFrameCallback)return this.trackSettings().frameRate
@@ -95,7 +98,7 @@ export class H5StillCamera{
    this.close();this.stream=await navigator.mediaDevices.getUserMedia({video:cameraVideoConstraints(this.facingMode,strict),audio:false})
    const host=document.getElementById(containerId);if(!host)throw new Error('Camera preview host is unavailable')
    const video=document.createElement('video');video.autoplay=true;video.muted=true;video.playsInline=true;video.setAttribute('aria-label','相机实时预览');video.srcObject=this.stream;host.replaceChildren(video);await video.play();this.video=video
-   const actual=this.stream.getVideoTracks()[0]?.getSettings().facingMode
+   const actual=this.stream.getVideoTracks()[0]?.getSettings().facingMode,orientation=this.orientation();this.geometryTracker.recalculate({width:video.videoWidth,height:video.videoHeight,deviceOrientation:orientation.device,presentationOrientation:orientation.presentation})
    return {ok:true,code:'OK',supportLevel:'UNVERIFIED_REAL_DEVICE',value:{facingMode:actual||this.facingMode}}
   }catch(error){this.close();return cameraFailure(error,'PARTIAL')}
  }
@@ -128,14 +131,16 @@ export class H5StillCamera{
   let width=this.video.videoWidth,height=this.video.videoHeight
   if(typeof createImageBitmap==='function')try{const bitmap=await createImageBitmap(blob,{imageOrientation:'from-image'});width=bitmap.width;height=bitmap.height;bitmap.close()}catch{}
   const extension=blob.type==='image/png'?'png':blob.type==='image/webp'?'webp':'jpg';const file=new File([blob],`capture-${Date.now()}.${extension}`,{type:blob.type||'image/jpeg'});const previewUrl=URL.createObjectURL(file)
-  return {ok:true,code:'OK',supportLevel:'UNVERIFIED_REAL_DEVICE',value:{id:`local-${Date.now()}`,source:'camera',previewUrl,filePath:previewUrl,file,filename:file.name,orientation:height>=width?'PORTRAIT':'LANDSCAPE',confirmed:false,captureDiagnostics:{width,height,bytes:blob.size,quality,backend,track:this.trackSettings(),video:{width:this.video.videoWidth,height:this.video.videoHeight,aspectRatio:this.video.videoWidth/this.video.videoHeight},captureViewportInVideo:captureViewportForVideo(this.video.videoWidth,this.video.videoHeight),nativeStillPreserved:true}}}
+  const orientation=this.orientation(),geometry=normalizeCameraGeometry({width:this.video.videoWidth,height:this.video.videoHeight,deviceOrientation:orientation.device,presentationOrientation:orientation.presentation,stillWidth:width,stillHeight:height,relation:'UNKNOWN'})
+  return {ok:true,code:'OK',supportLevel:'UNVERIFIED_REAL_DEVICE',value:{id:`local-${Date.now()}`,source:'camera',previewUrl,filePath:previewUrl,file,filename:file.name,orientation:height>=width?'PORTRAIT':'LANDSCAPE',confirmed:false,captureDiagnostics:{width,height,bytes:blob.size,quality,backend,track:this.trackSettings(),video:{width:this.video.videoWidth,height:this.video.videoHeight,aspectRatio:this.video.videoWidth/this.video.videoHeight},geometry,captureViewportInVideo:geometry.previewViewport,nativeStillPreserved:true,userFacingDerivedDimensions:null}}}
  }
- close(){this.stream?.getTracks().forEach(track=>track.stop());this.stream=null;if(this.video){this.video.srcObject=null;this.video.remove();this.video=null}}
+ close(){this.stream?.getTracks().forEach(track=>track.stop());this.stream=null;this.geometryTracker.invalidate();if(this.video){this.video.srcObject=null;this.video.remove();this.video=null}}
 }
 
 export class PlatformAdapterRegistry{
  readonly platform:RuntimePlatform
  readonly descriptors:AdapterDescriptor[]
+ lastUploadAttempt:UploadAttemptTelemetry|null=null
  constructor(platform:RuntimePlatform=detectPlatform()){this.platform=platform;this.descriptors=ALL.map(name=>descriptor(name,platform))}
  availability(name:CapabilityName){return this.descriptors.find(item=>item.capabilityName===name)!}
  selections():CapabilitySelection[]{return [...this.descriptors.map(selectionFrom),{capabilityName:'LiveGuidanceCapability',selectedAdapter:'fake-live-guidance-m02',implementationType:'FAKE',supportLevel:'SUPPORTED',sourceTrack:'MAIN_M02',acceptanceLevel:'DETERMINISTIC_REGRESSION',platform:this.platform,version:'1.0.0'}]}
@@ -167,18 +172,23 @@ export class PlatformAdapterRegistry{
   }catch(error){return cameraFailure(error,this.platform==='WECHAT'?'UNVERIFIED_REAL_DEVICE':'PARTIAL')}
  }
 
- async uploadCandidate(candidate:LocalCaptureCandidate):Promise<PlatformResult<UploadedAsset>>{
+ async uploadCandidate(candidate:LocalCaptureCandidate,context?:UploadContext):Promise<PlatformResult<UploadedAsset>>{
+  const started=Date.now(),startedAt=new Date(started).toISOString();let httpStatus:number|null=null,originReached=false
+  const record=(result:UploadAttemptTelemetry['result'])=>{const ended=Date.now();this.lastUploadAttempt={candidateId:candidate.id,attemptId:context?.attemptId||`attempt-${started}`,sessionId:context?.sessionId||'unknown',bytes:candidate.file?.size||0,mime:candidate.file?.type||'unknown',startedAt,endedAt:new Date(ended).toISOString(),durationMs:ended-started,result,httpStatus,originReached,retryCount:context?.retryCount||0}}
   try{
    if(this.platform==='H5'&&candidate.file){
     const body=new FormData();body.append('file',candidate.file,candidate.filename)
-    const response=await fetch(`${API_BASE}/assets/uploads`,{method:'POST',body});const data=await response.text()
-    if(response.status!==201)return normalizedFailure(response.status===422?'INVALID_ASSET':'STORAGE_FAILURE','SUPPORTED',data)
+    const headers:Record<string,string>={};if(context){headers['Idempotency-Key']=context.idempotencyKey;headers['X-XFX-Upload-Attempt-ID']=context.attemptId;headers['X-XFX-Session-ID']=context.sessionId}
+    const response=await fetch(`${API_BASE}/assets/uploads`,{method:'POST',body,headers});httpStatus=response.status;originReached=true;const data=await response.text()
+    if(response.status!==201){record(response.status>=500?'RETRYABLE_FAILED':'FAILED');return normalizedFailure(response.status===422?'INVALID_ASSET':'STORAGE_FAILURE','SUPPORTED',data)}
+    record('SUCCEEDED')
     return {ok:true,code:'OK',supportLevel:'SUPPORTED',value:JSON.parse(data) as UploadedAsset}
    }
-   const response=await Taro.uploadFile({url:`${API_BASE}/assets/uploads`,filePath:candidate.filePath,name:'file'})
-   if(response.statusCode!==201){return normalizedFailure(response.statusCode===422?'INVALID_ASSET':'STORAGE_FAILURE','SUPPORTED',response.data)}
+   const response=await Taro.uploadFile({url:`${API_BASE}/assets/uploads`,filePath:candidate.filePath,name:'file',header:context?{'Idempotency-Key':context.idempotencyKey,'X-XFX-Upload-Attempt-ID':context.attemptId,'X-XFX-Session-ID':context.sessionId}:undefined})
+   httpStatus=response.statusCode;originReached=true;if(response.statusCode!==201){record(response.statusCode>=500?'RETRYABLE_FAILED':'FAILED');return normalizedFailure(response.statusCode===422?'INVALID_ASSET':'STORAGE_FAILURE','SUPPORTED',response.data)}
+   record('SUCCEEDED')
    return {ok:true,code:'OK',supportLevel:this.platform==='WECHAT'?'UNVERIFIED_REAL_DEVICE':'SUPPORTED',value:JSON.parse(response.data) as UploadedAsset}
-  }catch(error){const message=error instanceof Error?error.message:String(error);return normalizedFailure(message.toLowerCase().includes('network')?'NETWORK_UNAVAILABLE':'STORAGE_FAILURE',this.platform==='WECHAT'?'UNVERIFIED_REAL_DEVICE':'PARTIAL',message)}
+  }catch(error){record('RETRYABLE_FAILED');const message=error instanceof Error?error.message:String(error);return normalizedFailure(message.toLowerCase().includes('network')||!originReached?'NETWORK_UNAVAILABLE':'STORAGE_FAILURE',this.platform==='WECHAT'?'UNVERIFIED_REAL_DEVICE':'PARTIAL',message)}
  }
 
  async uploadDerived(sessionId:string,blob:Blob,idempotencyKey:string):Promise<PlatformResult<UploadedAsset>>{
