@@ -161,14 +161,21 @@
             </label>
             <label class="toggle-setting"><input id="guidance-grid" type="checkbox" /> 九宫格（调试）</label>
             <label class="toggle-setting"><input id="semantic-debug" type="checkbox" /> Semantic Debug</label>
-            <label class="target-picker">SCALE GATE
+            <label class="target-picker">EVIDENCE SCENARIO
               <select id="scale-gate-scenario" aria-label="Scale Gate scenario">
-                <option value="S1_HEAD_SHOULDERS_STATIC">S1 · 头肩静止</option>
-                <option value="S2_HEAD_SHOULDERS_MOVE_FARTHER">S2 · 头肩退后</option>
-                <option value="S3_MOVE_CLOSER">S3 · 靠近</option>
-                <option value="S4_UPPER_BODY_PRECISION">S4 · 上半身精调</option>
-                <option value="S5_ARM_MOTION_INVARIANCE">S5 · 手臂不变量</option>
-                <option value="S6_BODY_MODE_TRANSITION">S6 · BodyMode 转换</option>
+                <optgroup label="Parent OPPO Gate 1">
+                  <option value="GATE1_X">Gate 1 · X 左右修正</option>
+                  <option value="GATE1_SCALE">Gate 1 · Scale 距离修正</option>
+                  <option value="GATE1_COMBINED">Gate 1 · Combined 组合修正</option>
+                </optgroup>
+                <optgroup label="Semantic Scale Gate">
+                  <option value="S1_HEAD_SHOULDERS_STATIC">S1 · 头肩静止</option>
+                  <option value="S2_HEAD_SHOULDERS_MOVE_FARTHER">S2 · 头肩退后</option>
+                  <option value="S3_MOVE_CLOSER">S3 · 靠近</option>
+                  <option value="S4_UPPER_BODY_PRECISION">S4 · 上半身精调</option>
+                  <option value="S5_ARM_MOTION_INVARIANCE">S5 · 手臂不变量</option>
+                  <option value="S6_BODY_MODE_TRANSITION">S6 · BodyMode 转换</option>
+                </optgroup>
               </select>
             </label>
             <button id="closed-loop-reset" class="button button--quiet" type="button">重置本机引导</button>
