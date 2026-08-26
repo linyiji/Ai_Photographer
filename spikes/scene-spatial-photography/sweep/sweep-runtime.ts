@@ -5,6 +5,7 @@ import { KeyframeSampler } from './keyframe-sampler.js';
 import { configForMode, type FrameMetrics, type SweepMode, type SweepStatus } from './types.js';
 
 export interface SceneSweepSession { sweep_id: string; mode: SweepMode; started_at: number; ended_at: number | null; camera_facing: 'environment'; source_width: number; source_height: number; orientation_source: OrientationSample['source']; screen_posture: OrientationSample['screen_orientation']; start_heading: number | null; status: SweepStatus; }
+export const SWEEP_COMPLETION_TOLERANCE_DEG = 0.5;
 export class SceneSweepRuntime {
   readonly coverage: CoverageTracker;
   readonly sampler: KeyframeSampler;
@@ -21,7 +22,7 @@ export class SceneSweepRuntime {
     if (this.session.start_heading === null) this.session.start_heading = sample.raw_heading_deg;
     const accepted = this.coverage.observe(sample.relative_yaw_deg); if (!accepted) return false;
     this.latestYaw = this.coverage.currentYaw() ?? sample.relative_yaw_deg; this.session.status = 'SWEEPING';
-    if (this.coverage.snapshot().span_deg >= configForMode(this.session.mode).target_deg) this.finish(sample.timestamp_ms);
+    if (this.coverage.snapshot().span_deg >= configForMode(this.session.mode).target_deg - SWEEP_COMPLETION_TOLERANCE_DEG) this.finish(sample.timestamp_ms);
     return true;
   }
   currentYawDeg(): number | null { return this.latestYaw; }

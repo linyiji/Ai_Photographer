@@ -72,11 +72,13 @@ Device latency/memory/UX numbers remain pending and no arbitrary device performa
 
 ## Regression
 
-- automated suite: 151/151 PASS;
+- automated suite: 153/153 PASS, including the OPPO-reported full-progress/non-completion regression;
 - replay: P0 11/11 + P1 5/5 PASS;
 - P1 max 3 ViewCandidates, region/candidate separation and LEFT/CENTER/RIGHT markers preserved;
 - typecheck and production build PASS;
 - initial browser DOM PASS; post-WASM Fixture inspection timed out and is not counted as browser PASS.
+
+The OPPO continuation exposed a display/runtime boundary defect: 109.6° rendered as a full 110° bar while strict runtime completion still required 110.0°. The runtime now uses a matching 0.5° completion tolerance, incomplete visual progress is capped at 99%, and the completed action is restored synchronously as “再拍一次”.
 
 ## OPPO and final gate
 

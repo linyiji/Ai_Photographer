@@ -207,12 +207,13 @@ const render = (): void => {
   setText('quality', metrics.quality_eval_ms_p50 === null ? '—' : `${metrics.quality_eval_ms_p50.toFixed(2)} / ${metrics.quality_eval_ms_p95?.toFixed(2)}`);
   setText('stationary-range', yawRange === null ? '采集中' : `${yawRange.toFixed(1)}°`);
   setText('privacy-counters', `${metrics.queue_length} / ${metrics.raw_video_upload}`);
-  $('arc-fill').style.width = `${Math.min(100, coverage.span_deg / modeTarget() * 100)}%`;
+  const progressPercent = coverage.span_deg / modeTarget() * 100;
+  $('arc-fill').style.width = `${runtime.session.status === 'COMPLETE' ? 100 : Math.min(99, progressPercent)}%`;
   setText('hero', runtime.session.status === 'COMPLETE' ? '看完了' : '慢慢转动手机');
   if (runtime.session.status === 'COMPLETE') {
     recordTrial(); runP1Analysis(); void runP2Analysis(); stopAcquisition();
     $<HTMLButtonElement>('start').disabled = false;
-    $<HTMLButtonElement>('start').textContent = '再扫一次';
+    $<HTMLButtonElement>('start').textContent = '再拍一次';
     $<HTMLButtonElement>('next-sweep').hidden = false;
     $<HTMLButtonElement>('next-sweep').textContent = runtime.session.mode === 'QUICK_SWEEP' ? '扫更广一点（WIDE）' : '再拍一个 QUICK';
     $<HTMLSelectElement>('mode').disabled = false;
