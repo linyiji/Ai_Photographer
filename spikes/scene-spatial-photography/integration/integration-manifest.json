@@ -2,7 +2,7 @@
   "schema_version": "0.1",
   "track": "PARALLEL_SCENE_SPATIAL",
   "branch": "spike/scene-spatial-photography-v0.1",
-  "accepted_head": "1e7b6b4889e13104f23c9a3e13902177740ca612",
+  "accepted_head": "f0e8baf6600f52ca6f8d509cc959b4edc04e93ee",
   "p0_status": "PASS_WITH_WARNING",
   "p1_status": "PASS_WITH_WARNING",
   "p1_accepted_runtime_head": "f0e8baf6600f52ca6f8d509cc959b4edc04e93ee",
