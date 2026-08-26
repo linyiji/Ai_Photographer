@@ -21,10 +21,12 @@ Amendment start head: `62207ffaf00c542002a6bdd3bbe4911469b853ef`
 - Cadence: 8/10/12 Hz bounded scheduler candidates automated PASS; default remains 8 Hz until fresh OPPO A/B.
 - Coordinate audit: automated PASS; visible cover crop is separated from sensor control and mirrored display coordinates.
 - Debug: optional BodyMode/metric/uncertainty/torso-anchor overlay; raw box explicitly labeled `DEBUG POSE EXTENT`.
-- Automated semantic fixtures: 31/31 PASS. Complete suite: 193/193 PASS. Typecheck PASS. Build PASS / 27 modules.
+- Automated semantic fixtures: 31/31 PASS. Complete suite: 194/194 PASS. Typecheck PASS. Build PASS / 28 modules.
 - Provider / Backend per-frame / Luna / Raw Upload: 0 / 0 / 0 / 0.
 
 Semantic Measurement Device Gate: READY_FOR_MANUAL_DEVICE_TEST. Parent OPPO Gate 1 is paused and must not resume until the dedicated OPPO semantic gate passes.
+
+Fresh OPPO startup evidence reported model loading incomplete after more than 60 seconds. Audit found that the 45-second Worker timeout initiated a second main-thread fallback initialization, amplifying a slow Quick Tunnel cold download. A bounded same-task correction now performs one observable 120-second Worker attempt, does not redownload after timeout, and serves pinned model/WASM assets with browser caching. Automated suite `194/194`, typecheck, and production build / 28 modules pass; cold-start and cached-reload device confirmation are still required before the Semantic Measurement Device Gate can pass.
 
 ## Starting evidence reconstruction
 

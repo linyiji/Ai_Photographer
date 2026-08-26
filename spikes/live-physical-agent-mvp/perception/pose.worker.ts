@@ -16,7 +16,9 @@ self.onmessage = async (event: MessageEvent<PerceptionWorkerRequest>) => {
   const message = event.data;
   if (message.type === 'init') {
     try {
+      send({ type: 'progress', stage: 'wasm' });
       const fileset = await FilesetResolver.forVisionTasks(message.wasmBaseUrl, true);
+      send({ type: 'progress', stage: 'model' });
       landmarker = await PoseLandmarker.createFromOptions(fileset, {
         baseOptions: {
           modelAssetPath: message.modelUrl,

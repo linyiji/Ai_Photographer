@@ -12,6 +12,7 @@
   "include": [
     "perception/config.ts",
     "perception/geometry.ts",
+    "perception/initialization-policy.ts",
     "perception/scheduler.ts",
     "perception/state-tracker.ts",
     "perception/telemetry.ts",

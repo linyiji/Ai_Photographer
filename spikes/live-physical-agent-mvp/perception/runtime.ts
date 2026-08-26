@@ -7,6 +7,7 @@ import { PerceptionTelemetry } from './telemetry.js';
 import { extractSemanticRawMeasurement } from '../semantic-framing/measurement.js';
 import { SemanticFramingTracker } from '../semantic-framing/tracker.js';
 import { visibleSensorRectForCover } from '../visual-guidance/viewport.js';
+import { WORKER_INITIALIZATION_TIMEOUT_MS, WorkerInitializationTimeoutError } from './initialization-policy.js';
 import type {
   PerceptionExecutionMode,
   PerceptionTelemetrySnapshot,
@@ -64,6 +65,14 @@ export class PerceptionRuntime {
       if (workerError instanceof ModelMissingError) {
         this.mode = 'FAILED';
         this.modelStatus = 'MISSING';
+        this.callbacks.onStatus(this.modelStatus, this.mode, workerError.message);
+        throw workerError;
+      }
+      if (workerError instanceof WorkerInitializationTimeoutError) {
+        this.worker?.terminate();
+        this.worker = null;
+        this.mode = 'FAILED';
+        this.modelStatus = 'ERROR';
         this.callbacks.onStatus(this.modelStatus, this.mode, workerError.message);
         throw workerError;
       }
@@ -163,7 +172,10 @@ export class PerceptionRuntime {
       this.initResolve = resolve;
       this.initReject = reject;
     });
-    const timeout = window.setTimeout(() => this.initReject?.(new Error('Pose worker initialization timed out')), 45_000);
+    const timeout = window.setTimeout(
+      () => this.initReject?.(new WorkerInitializationTimeoutError()),
+      WORKER_INITIALIZATION_TIMEOUT_MS,
+    );
     this.worker.postMessage({
       type: 'init',
       wasmBaseUrl: new URL('/mediapipe-wasm', window.location.href).href,
@@ -188,7 +200,7 @@ export class PerceptionRuntime {
   private async ensureModelAvailable(): Promise<void> {
     const modelUrl = new URL(POSE_MODEL.localPath, window.location.href).href;
     try {
-      const response = await fetch(modelUrl, { method: 'HEAD', cache: 'no-store' });
+      const response = await fetch(modelUrl, { method: 'HEAD' });
       if (!response.ok) throw new ModelMissingError(`Pose model missing: HTTP ${response.status}. Run npm run setup:model.`);
       const contentLength = Number(response.headers.get('content-length'));
       if (contentLength !== POSE_MODEL.sizeBytes) {
@@ -233,6 +245,13 @@ export class PerceptionRuntime {
   }
 
   private handleWorkerMessage(message: PerceptionWorkerResponse): void {
+    if (message.type === 'progress') {
+      const text = message.stage === 'wasm'
+        ? '正在加载本机视觉运行时（WASM）…'
+        : '视觉运行时已就绪，正在加载姿态模型…';
+      this.callbacks.onStatus('LOADING', 'WORKER', text);
+      return;
+    }
     if (message.type === 'ready') {
       this.initResolve?.();
       return;

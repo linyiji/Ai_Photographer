@@ -41,3 +41,14 @@ Required assertions:
 Selected target: PENDING DEVICE EVIDENCE.
 
 Gate result: PENDING. Parent OPPO Gate 1 must not resume until this gate passes.
+
+## Startup blocker and bounded correction
+
+An OPPO attempt on 2026-08-26 reported model loading still incomplete after more than 60 seconds. This is a device-gate blocker, not an accepted measurement run.
+
+- Public cold-path audit: Pose model `5,777,746` bytes; SIMD WASM `11,756,954` bytes. Desktop tunnel timings were approximately `4.27 s` and `3.26 s`; the Quick Tunnel responses were `CF-Cache-Status: DYNAMIC` and `Cache-Control: no-cache` before the correction.
+- Root amplification: Worker initialization timed out at 45 seconds and then started a bounded main-thread fallback, repeating initialization/download work on a slow mobile path.
+- Bounded correction: one 120-second Worker attempt; timeout is terminal and explicitly does not restart the model/WASM download; WASM/model stages are visible; local runtime assets receive a one-day browser cache header with stale revalidation.
+- Regression: complete automated suite `194/194 PASS`; typecheck PASS; production build PASS / 28 modules.
+
+Required revalidation: cold start reaches `MODEL READY`, and a subsequent page reload uses the cached assets and reaches READY again. Until both are observed, this gate remains `READY_FOR_MANUAL_DEVICE_TEST`.

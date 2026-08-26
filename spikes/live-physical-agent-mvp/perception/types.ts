@@ -111,5 +111,6 @@ export type PerceptionWorkerRequest = WorkerInitMessage | WorkerProcessMessage |
 
 export type PerceptionWorkerResponse =
   | { type: 'ready'; mode: 'WORKER' }
+  | { type: 'progress'; stage: 'wasm' | 'model' }
   | { type: 'result'; state: StructuredPerceptionState; rawMeasurement: PoseMeasurement | null; semanticRawMeasurement: SemanticRawMeasurement | null; inferenceMs: number }
   | { type: 'error'; stage: 'init' | 'inference'; message: string };
