@@ -35,7 +35,7 @@ export class DeviceOrientationProvider implements OrientationProvider {
       if (heading === null) return;
       const unwrapped = this.unwrapper.push(heading);
       if (this.baseline === null) this.baseline = unwrapped;
-      onSample({ timestamp_ms: event.timeStamp, relative_yaw_deg: unwrapped - this.baseline, raw_heading_deg: heading,
+      onSample({ timestamp_ms: Date.now(), relative_yaw_deg: unwrapped - this.baseline, raw_heading_deg: heading,
         confidence: event.absolute ? 'HIGH' : 'MEDIUM', status: this.state, screen_orientation: posture, source: 'DEVICE_ORIENTATION' });
     };
     window.addEventListener('deviceorientation', this.listener);
