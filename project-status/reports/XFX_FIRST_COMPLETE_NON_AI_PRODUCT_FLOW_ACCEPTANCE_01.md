@@ -182,3 +182,50 @@ Product code changes = 0
 Evidence and exact Owner instructions:
 
 `project-status/evidence/first-complete-non-ai/oppo-bounded-remediation/oppo-local-loopback-reacceptance.md`
+
+## OPPO_CAMERA_STREAM_CONSTRAINT_FOV_AB_AND_BOUNDED_FIX_05 — 2026-08-27
+
+Gate 05 preserved the preceding history and isolated the residual Camera mismatch further:
+
+```text
+OLD = software crop contributed approximately 1.78× apparent zoom
+FIXED = CaptureViewport became full frame and orientation-aware
+NEW = residual narrow video-stream FOV remained against native ImageCapture still
+CURRENT = same-camera constraint A/B confirmed stream-profile selection as one cause, but not the complete cause
+```
+
+On the same hashed OPPO rear-camera identity, Profile A (`1440×1920`, forced `0.75`) negotiated `1920×1440`; Profile B (`1280×720`, no aspect constraint, same device pinned) negotiated `720×1280` and exposed materially more of the fixed scene. The constraint trigger is therefore confirmed. Main now uses a decoupled Live-like preview-stream policy and a two-phase resolve/pin renegotiation while preserving `ImageCapture.takePhoto()` and the `3072×4096` native source.
+
+Fresh-origin OPPO evidence proved that the production fix was actually active:
+
+```text
+Profile = LIVE_LIKE / pinned YES
+Request = 1280×720 / aspect none / 30fps
+Actual = 720×1280 @30fps
+Preview FPS = 29.3–30.1
+Native still = 3× 3072×4096 / 7.40–8.89MB / DEVICE_NATIVE
+Lifecycle = rear/front/rear + close/reopen + refresh/reopen PASS
+Black screen = 0
+Crash = 0
+Stuck UI = 0
+```
+
+The mandatory three-case composition gate nevertheless failed:
+
+```text
+Centered subject = MATERIAL_MISMATCH
+Edge subject = MATERIAL_MISMATCH
+Environment-heavy = MATERIAL_MISMATCH
+OPPO_CAMERA_FINAL_A_B = FAIL
+CAMERA_COMPOSITION_FIDELITY = FAIL
+ALIGNMENT_MODE = UNSUPPORTED
+REMAINING_CAMERA_ROOT_CAUSE = IMAGE_CAPTURE_PIPELINE_DIFFERENCE / OPPO_CHROME_VIDEO_STREAM_VS_NATIVE_STILL_FOV_DIVERGENCE
+NATIVE_STILL = PASS
+BACKEND_PERSISTENCE = PASS / ACCEPTED_UNCHANGED
+FIRST_COMPLETE_NON_AI_PRODUCT_BASELINE = NOT_YET_PASS
+PUBLIC_PRODUCTION_READY = NO
+```
+
+The result does not authorize replacing the native still with a video-frame capture or manufacturing an unproven static mapping. Full evidence:
+
+`project-status/evidence/first-complete-non-ai/oppo-bounded-remediation/oppo-camera-stream-constraint-fov-ab.md`
