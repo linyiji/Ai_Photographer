@@ -1,5 +1,5 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {"module":"commonjs","target":"es2022","outDir":".test-dist","rootDir":"."},
-  "include": ["src/platform/model.ts", "src/platform/captureViewport.ts", "src/platform/captureUpload.ts", "src/platform/previewStillAlignment.ts", "src/platform/previewStillRegistration.ts", "src/product/capturePolicy.ts", "src/product/userPreferences.ts", "src/product/simplifiedFlow.ts", "src/fineTune/core.ts", "src/fineTune/interactive.ts", "src/diagnostics/cameraGeometry.ts", "src/diagnostics/fineTuneDiagnostics.ts", "tests/*.test.ts"]
+  "include": ["types/global.d.ts", "src/platform/model.ts", "src/platform/captureViewport.ts", "src/platform/captureUpload.ts", "src/platform/previewStillAlignment.ts", "src/platform/previewStillRegistration.ts", "src/platform/wechatCameraState.ts", "src/product/capturePolicy.ts", "src/product/homeContext.ts", "src/product/userPreferences.ts", "src/product/simplifiedFlow.ts", "src/fineTune/core.ts", "src/fineTune/interactive.ts", "src/fineTune/platform.ts", "src/api/client.ts", "src/diagnostics/cameraGeometry.ts", "src/diagnostics/fineTuneDiagnostics.ts", "tests/*.test.ts"]
 }

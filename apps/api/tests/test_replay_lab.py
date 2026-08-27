@@ -54,7 +54,7 @@ def test_trace_is_bounded_and_contains_no_raw_media_or_secret(engine):
 def test_asset_lineage_and_events_are_integral(engine):
     result=engine.run("S01_HAPPY_PATH");canonical=result["canonical"]
     assert [x["kind"] for x in canonical["assets"]]==["CAPTURE","REALITY_PLUS","FINAL"]
-    assert len(canonical["events"])==12;assert canonical["assets"][2]["lineage"]["source_asset_id"]=="asset-reality-plus-001"
+    assert len(canonical["events"])==13;assert canonical["events"][1]["event_type"]=="CONTEXT_RECONCILED";assert canonical["assets"][2]["lineage"]["source_asset_id"]=="asset-reality-plus-001"
 
 def test_semantic_diff_reports_paths(engine):
     left={"workflow":{"stage":"FINAL"},"events":[{"event_type":"A"}]};right={"workflow":{"stage":"QA"},"events":[{"event_type":"B"}]}

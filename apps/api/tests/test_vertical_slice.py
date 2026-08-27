@@ -18,7 +18,7 @@ async def test_s01_full_flow_network_and_persistence(client):
     steps=[("SELECT_SHOOTING_RELATION",{"shooting_relation":"FRIEND"}),("CONFIRM_DEVICE_MODE",{"device_mode":"SINGLE"}),("ACCEPT_REALITY",{}),("GENERATE_TARGETS",{}),("SELECT_TARGET",{"candidate_id":"target-cinematic"}),("ACCEPT_SHOT_DIRECTION",{}),("ENTER_CAPTURE_WINDOW",{}),("CREATE_CAPTURE",{}),("ACCEPT",{}),("ACCEPT_REALITY_PLUS",{}),("SAVE_ADJUSTMENT_RECIPE",{"contrast":14})]
     for index,(action,payload) in enumerate(steps):
         response=await act(client,sid,action,f"flow-{index}",payload);assert response.status_code==200,response.text
-    readback=(await client.get(f"/sessions/{sid}")).json();assert readback["workflow_stage"]=="FINAL";assert readback["state"]["selected_target"]["id"]=="target-cinematic";assert len(readback["assets"])==3;assert len(readback["events"])==12
+    readback=(await client.get(f"/sessions/{sid}")).json();assert readback["workflow_stage"]=="FINAL";assert readback["state"]["selected_target"]["id"]=="target-cinematic";assert len(readback["assets"])==3;assert len(readback["events"])==13;assert readback["events"][1]["event_type"]=="CONTEXT_RECONCILED"
 
 @pytest.mark.anyio
 async def test_idempotency_and_retake_preservation(client):
