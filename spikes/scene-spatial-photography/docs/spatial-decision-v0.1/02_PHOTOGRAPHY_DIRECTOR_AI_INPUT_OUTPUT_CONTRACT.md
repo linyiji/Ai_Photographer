@@ -1,5 +1,7 @@
 # 02 — Photography Director AI Input / Output Contract
 
+> V0.2 TERMINOLOGY AMENDMENT: P1 `LEFT_THIRD / CENTER / RIGHT_THIRD` values are canonical `CompositionAnchorCandidateV01` image-plane anchors. They are not physical placement. Future `SubjectPlacementCandidate` belongs to P3 and remains `NOT_STARTED`. AI may consume P1 view/anchor candidates before P2/P3, but must not invent physical coordinates.
+
 ## 1. AI 的角色
 
 `AI Photography Director` 的核心任务：

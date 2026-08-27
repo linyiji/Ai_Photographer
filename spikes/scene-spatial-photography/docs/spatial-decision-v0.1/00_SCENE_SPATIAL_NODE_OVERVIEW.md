@@ -1,5 +1,7 @@
 # 00 — Scene Spatial Node Overview
 
+> V0.2 AUTHORITY AMENDMENT: canonical nodes are `P0=SCAN`, `P1=VIEW`, `P2=GEOMETRY`, `P3=PHOTOGRAPHY AFFORDANCE`. Client precheck is routing-only; current-session Spatial Status comes only from the first-party Backend Solver. Conflicting V0.1 P2/P3 semantics below are historical.
+
 ## 1. 节点目标
 
 Scene Spatial 的目标不是生成通用、可漫游的完整 3D 世界，而是把一次 Scene Scan 得到的复杂现场信息压缩成少量可信、可执行的摄影候选。

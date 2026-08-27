@@ -1,5 +1,7 @@
 # 08 — Main / Live Integration Mapping
 
+> V0.2 MAPPING AMENDMENT: canonical object flow is `SceneScanEvidence → ViewEvidence + CompositionAnchorCandidate → SpatialEvidenceV02 → future P3 Affordance → PhotographyDirectorInput`. Backend Geometry remains spike-local; Main Integration stays `NOT_STARTED` and future adoption is selective migration only.
+
 ## 1. Main
 
 负责：

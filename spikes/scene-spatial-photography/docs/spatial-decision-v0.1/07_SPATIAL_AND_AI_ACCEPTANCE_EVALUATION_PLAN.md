@@ -1,5 +1,7 @@
 # 07 — Spatial and AI Acceptance Evaluation Plan
 
+> V0.2 GATE AMENDMENT: evaluate separately: (1) P2 Backend Geometry, (2) future P3 Photography Affordance, and (3) future AI Director. Client precheck cannot pass P2; Controlled Reference cannot substitute for current-session Backend evidence. Passing P2 does not start or pass P3.
+
 ## 1. Gate
 
 ```text

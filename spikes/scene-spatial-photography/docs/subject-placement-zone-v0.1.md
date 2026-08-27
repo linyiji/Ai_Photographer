@@ -1,5 +1,7 @@
 # Subject Placement Zone V0.1
 
+> V0.2 TERMINOLOGY: this historical/internal type is an image-plane composition rectangle only. Canonical external output is `CompositionAnchorCandidateV01`. Physical `SubjectPlacementCandidate` belongs to future P3 and is `NOT_STARTED`.
+
 `SubjectPlacementZone` is a normalized image-plane composition rectangle. It is explicitly not a person detector, segmentation result, physical standing coordinate, or safety-approved location.
 
 The local framing profiles are `CLOSE`, `MEDIUM`, `ENVIRONMENTAL`, and `FULL_BODY`. For each profile, P1 evaluates `LEFT_THIRD`, `CENTER`, and `RIGHT_THIRD` footprints. Every rectangle is bounded to `[0,1]` image coordinates.

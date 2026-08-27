@@ -1,5 +1,7 @@
 # 03 — Current Node Checkpoint and Product Decisions
 
+> V0.2 CHECKPOINT: P0 accepted; P1 accepted with warning; old P2 judgment model superseded; P2 spike-local Backend Geometry is the current implementation target; P3 Affordance, AI Director and Main Integration remain `NOT_STARTED`.
+
 ## 1. P0
 
 `Scene Sweep = PASS_WITH_WARNING`

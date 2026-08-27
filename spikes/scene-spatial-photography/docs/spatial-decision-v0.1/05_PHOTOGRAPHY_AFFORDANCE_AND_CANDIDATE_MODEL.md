@@ -1,5 +1,13 @@
 # 05 — Photography Affordance and Candidate Model
 
+```text
+PHASE = FUTURE P3
+P2 ACCEPTANCE DEPENDENCY = NO
+IMPLEMENTATION STATUS = NOT_STARTED
+```
+
+> V0.2 AUTHORITY AMENDMENT: every physical Subject/Camera placement, STAND/SIT/LEAN/CROUCH zone, ground/support/walkability/safe-path claim in this historical document belongs to future P3, not P1 or P2.
+
 ## 1. 定义
 
 Photography Affordance Layer 将复杂 Geometry 压缩为：

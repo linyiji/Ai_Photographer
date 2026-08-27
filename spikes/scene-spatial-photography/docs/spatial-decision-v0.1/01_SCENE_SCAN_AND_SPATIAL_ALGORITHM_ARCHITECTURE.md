@@ -1,5 +1,7 @@
 # 01 — Scene Scan and Spatial Algorithm Architecture
 
+> V0.2 AUTHORITY AMENDMENT: Production Geometry executes in the first-party Backend Solver. The client owns Capture, GeometryFrameSelector, resize/compression, quality and `SpatialPrecheckV01` only. Controlled Reference validates algorithms and never supplies a user's Session evidence. P3 Affordance is not a P2 acceptance dependency.
+
 ## 1. 目标
 
 在微信/抖音小程序的一次 Scene Scan 中，同时采集 Direction Evidence 与潜在 Spatial Evidence。Spatial 算法的目标是摄影几何，不是通用 3D 展示。

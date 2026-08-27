@@ -1,5 +1,7 @@
 # P1 Direction Map and Candidate Architecture V0.1
 
+> V0.2 TERMINOLOGY: canonical external type is `CompositionAnchorCandidateV01` and canonical internal rectangle is `CompositionAnchorZoneV01`. Any historical `PlacementCandidateV01` / `SubjectPlacementZone` names below mean image-plane composition only, never physical placement.
+
 Authority: `SCENE_SPATIAL_TRACK_DESIGN_AUTHORITY_V0_1`.
 
 The P1 V2 boundary is:

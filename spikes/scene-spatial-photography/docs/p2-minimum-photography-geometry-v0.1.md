@@ -1,5 +1,7 @@
 # P2 minimum photography geometry spike v0.1
 
+> HISTORICAL V0.1 IMPLEMENTATION EVIDENCE: V0.2 supersedes the client `PARTIAL/INSUFFICIENT` and Controlled Reference session-authority semantics below. Current client output is `SpatialPrecheckV01` (`UNRELIABLE/NO_SIGNAL/POSSIBLE`, routing-only); current-session `SpatialEvidenceV02.status` is first-party Backend-only. P3 physical placement is not a P2 responsibility.
+
 ## Boundary
 
 P2 is an internal capability branch of the same user-operated Scene Scan. `GeometryFrameSelector` observes the existing local frame callback independently from the P0/P1 angular keyframe sampler. It retains at most 10 160px-wide RGBA frames in transient browser memory; it never uploads or persists them.

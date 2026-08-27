@@ -1,5 +1,7 @@
 # 06 — Evidence, Confidence and Authority Rules
 
+> V0.2 BOUNDED TERMINOLOGY: `CompositionAnchorCandidateV01` is a P1 image-plane CANDIDATE. Physical `SubjectPlacementCandidate` and `CameraPlacementCandidate` are future P3 CANDIDATE types. Client `SpatialPrecheckV01` is a routing hint, not FACT and not Session Spatial Authority. Existing FACT/CANDIDATE/UNKNOWN rules remain unchanged.
+
 ## 1. Evidence Class
 
 所有关键字段必须属于：
