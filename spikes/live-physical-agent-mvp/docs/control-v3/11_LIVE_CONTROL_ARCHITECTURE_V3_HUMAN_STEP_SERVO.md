@@ -1,6 +1,12 @@
 # LIVE Control Architecture V3 — Human Step Servo
 
-Status: `REQUIRES_REVISION` after Counterfactual Promotion Gate. This document remains the V3 design-authority candidate; it is not promoted to runtime authority.
+Status: `PASS / EXPERIMENTAL`. V3 architecture and pure controller are accepted for debug/acceptance execution; production runtime promotion remains unauthorized.
+
+## Authority correction — 2026-08-27
+
+The historical Counterfactual Promotion Gate result remains recorded as `FAIL / SOURCE_REQUIRED`, but its earlier interpretation as a design failure is superseded. `EXACT_EFFECTIVENESS_COMPARATOR_COUNT=0` proves that historical V2 intervention traces cannot establish V3 human-step effectiveness; it does not prove that V3 is ineffective. The old `COUNTERFACTUAL_EFFECTIVENESS_GATE` is invalid as a promotion prerequisite because V3 human evidence requires an executable V3 runtime.
+
+The authorized causal chain is now Design → Structural Safety Replay → Experimental Debug Runtime → Prospective Human Evidence → Effectiveness Evaluation → Production Candidate Decision. `EXPERIMENTAL_RUNTIME_ADMISSION=PASS`; this authorizes debug/acceptance-only V3 selection and never changes the V2 production default.
 
 ## Boundary
 
@@ -45,6 +51,6 @@ READY has one path: framing and X in range, measurement GOOD/fresh/stable for 60
 
 ## Promotion state
 
-Pure controller and replay code are implemented and automated. Runtime promotion is forbidden because the Counterfactual Gate has no exact effectiveness comparator records. V2 therefore remains the only runtime policy. Required revision: obtain controlled step-response traces that contain the exact cue, immutable start state, observable human step, natural settle, and terminal comparable measurement for both policies or an equivalent randomized/offline protocol that can fairly compare effectiveness.
+Pure controller and structural replay are implemented and automated. A session-only experimental runtime is admitted to collect the missing controlled step-response traces. V2 remains the default/current accepted runtime; V3 production promotion is `NOT_AUTHORIZED` until fresh prospective evidence is evaluated.
 
 Privacy remains scalar-only: frame/video persistence, upload, Backend per-frame, Provider, and Luna are zero.

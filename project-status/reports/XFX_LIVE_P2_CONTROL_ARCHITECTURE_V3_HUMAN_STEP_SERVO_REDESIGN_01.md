@@ -2,6 +2,8 @@
 
 Status: `FAIL / COUNTERFACTUAL_PROMOTION_GATE_NOT_MET`
 
+Authority correction (2026-08-27): the status above is preserved as the historical gate result, not as evidence that the V3 design is ineffective. Corrected classification: `V3_ARCHITECTURE_DESIGN=PASS`, `V3_PURE_CONTROLLER=PASS`, `V3_STRUCTURAL_REPLAY_GATE=PASS`, `V3_EFFECTIVENESS_EVIDENCE=SOURCE_REQUIRED`, `V3_PRODUCTION_RUNTIME_PROMOTION=NOT_AUTHORIZED`. `COUNTERFACTUAL_EFFECTIVENESS_GATE=INVALID_AS_PROMOTION_PREREQUISITE`; `EXPERIMENTAL_RUNTIME_ADMISSION=PASS` for debug/acceptance-only prospective evidence.
+
 Git Admission started clean at published `451d1b86308fc0fa5fa47f144ab055aaca39ea5d`, branch `spike/live-physical-agent-mvp-v0.1`, ahead/behind `0/0`. V2 and Attempt 3–8 provenance were preserved.
 
 ## Completed Phase A
@@ -19,7 +21,7 @@ Thirty-seven records were evaluated: Attempt 3/5/6/7, both Semantic Scale attemp
 
 The exact state streams show zero V3 wrong-direction regression, zero post-READY regression, V2/V3 reversal opportunity `0/0`, lower structural complexity, and deterministic both-bad FRAMING-to-ALIGN_X order. However, exact records with valid terminal-effectiveness observations for both V2 and V3 are zero. V2/V3 Action Effectiveness is therefore `NOT_COMPUTABLE`, not a PASS. Historical continuous-until-STOP responses and measurement-gate traces cannot be relabeled as human-step outcomes.
 
-Counterfactual Promotion Gate: FAIL. `V3_DESIGN_AUTHORITY=FAIL / REQUIRES_REVISION`. Phase B runtime selector, V3 runtime Trace, browser A/B, and Phase C OPPO V3 Gate were not started, exactly as required by the gate ordering.
+Historical Counterfactual Promotion Gate: FAIL / SOURCE_REQUIRED. The original `V3_DESIGN_AUTHORITY=FAIL / REQUIRES_REVISION` interpretation is superseded by the authority correction above. At that historical checkpoint, Phase B runtime selector, V3 runtime Trace, browser A/B, and Phase C OPPO V3 Gate had not started.
 
 ## Preserved boundaries
 

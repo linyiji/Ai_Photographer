@@ -1,12 +1,16 @@
 # Live Physical Agent Spike Status
 
-V2 = HISTORICAL IMPLEMENTED BASELINE / RUNTIME UNCHANGED
-V3 Design Authority = FAIL / REQUIRES_REVISION
+V2 Runtime = CURRENT_ACCEPTED_IMPLEMENTED_BASELINE / DEFAULT
+V3 Design Authority = PASS / EXPERIMENTAL
 V3 Phase A Pure Controller = IMPLEMENTED / 225 OF 225 CHECKPOINT PASS
 V3 Counterfactual Replay = 7 EXACT / 29 STRUCTURAL / 1 NOT RECONSTRUCTABLE
 V3 Exact Effectiveness Comparator Records = 0 / SOURCE_REQUIRED
-V3 Promotion Gate = FAIL
-V3 Runtime / Browser A-B / OPPO Gate = NOT_REACHED
+Historical V3 Promotion Gate = FAIL / PRESERVED
+Counterfactual Effectiveness Gate = SUPERSEDED_AS_INVALID_PREREQUISITE
+Experimental Runtime Admission = PASS / DEBUG-ACCEPTANCE ONLY
+V3 Experimental Runtime = IMPLEMENTATION IN PROGRESS
+V3 Production Runtime = NOT_PROMOTED
+V3 Prospective OPPO Gate = NOT_YET_EXERCISED
 V3 Dynamic Axis Priority = REMOVED IN PURE CANDIDATE
 V3 Predictive STOP = REMOVED IN PURE CANDIDATE
 V3 Gate 2 = NOT_DEFINED

@@ -1,6 +1,8 @@
 # LIVE V3 Counterfactual Replay and Acceptance Plan
 
-Status: Phase A executed; Promotion Gate FAIL; Phase B/C not reached.
+Status: Structural Replay Gate `PASS`; historical Effectiveness Gate `SOURCE_REQUIRED`; Experimental Runtime Admission `PASS`.
+
+The previous `Promotion Gate FAIL` is preserved as a historical result. Its effectiveness prerequisite is now `SUPERSEDED_AS_INVALID_PREREQUISITE`: historical V2 responses cannot stand in for prospective V3 human-step responses, and their absence cannot reject the architecture. Counterfactual replay authority is limited to structural safety, causal determinism, and regression prevention.
 
 ## Replay classification
 
@@ -16,7 +18,7 @@ The analyzer consumed Attempt 3 (5), Attempt 5 (4), Attempt 6 (4), Attempt 7 (2)
 
 Result: 37 records = 7 exact state streams, 29 structural-only, 1 not reconstructable. Exact records with valid terminal outcomes for both V2 and V3: 0.
 
-## Promotion decision
+## Historical promotion decision and corrected role
 
 | Requirement | Result |
 | --- | --- |
@@ -27,10 +29,12 @@ Result: 37 records = 7 exact state streams, 29 structural-only, 1 not reconstruc
 | V3 complexity lower | PASS |
 | BOTH_BAD = FRAMING then ALIGN_X | PASS in deterministic automated replay |
 
-Overall Promotion Gate: `FAIL`. `V3_DESIGN=REQUIRES_REVISION`. Debug Runtime A/B, Trace V3 runtime extension, browser V2/V3 comparison, and OPPO V3 Gate are not authorized.
+Historical overall Promotion Gate: `FAIL / SOURCE_REQUIRED`; retained without deletion. Corrected decomposition: `V3_ARCHITECTURE_DESIGN=PASS`, `V3_PURE_CONTROLLER=PASS`, `V3_STRUCTURAL_REPLAY_GATE=PASS`, `V3_EFFECTIVENESS_EVIDENCE=SOURCE_REQUIRED`, and `V3_PRODUCTION_RUNTIME_PROMOTION=NOT_AUTHORIZED`.
+
+`EXPERIMENTAL_RUNTIME_ADMISSION=PASS` authorizes an explicit, debug-only V3 runtime and prospective OPPO evidence. It does not authorize default V3, Main integration, or production promotion.
 
 ## Required evidence to revise
 
-Create a controlled scalar-only step protocol after revising authority or supplying new source: one cue, immutable start snapshot, one physical step, natural stop, newer comparable settled measurement, and explicit outcome. At least three comparable records must cover framing, X, and both-bad sequential handoff. Only then recompute V2/V3 effectiveness and consider Phase B.
+Create a controlled scalar-only prospective protocol: one cue, immutable start snapshot, one physical step, natural stop, newer comparable settled measurement, and explicit outcome. The first exploratory device gate covers framing-only, X-only, combined sequential handoff, and already-satisfied. Only fresh V3 intervention evidence may compute V3 effectiveness.
 
-The future candidate device gates remain unchanged from the task: wrong direction 0, post-READY ordinary 0, action effectiveness >=80%, trial READY >=80%, obvious oscillation 0, and median precision corrections to READY <=3. They are not evaluated in this run.
+V3 Gate 2 remains `NOT_DEFINED`; V2 statistical thresholds are not inherited automatically.
