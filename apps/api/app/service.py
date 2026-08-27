@@ -19,10 +19,27 @@ class SessionService:
         self.transitions={(item["from"],item["action"]):item["to"] for item in self.workflow["transitions"]}
     @staticmethod
     def now():return datetime.now(UTC).isoformat()
-    def create(self):
-        sid,now=f"session-{uuid4().hex[:12]}",self.now();state={"scenario_id":self.fixture["scenario_id"],"shooting_relation":None,"device_mode":None}
-        with self.repository.connect() as c:c.execute("INSERT INTO sessions VALUES(?,?,?,?,?,?)",(sid,"ENTRY",0,json.dumps(state),now,now));self._event(c,sid,"SESSION_CREATED",{"workflow_stage":"ENTRY"})
+    def create(self,create_input=None):
+        normalized=self._normalize_create_input(create_input);sid,now=f"session-{uuid4().hex[:12]}",self.now();state={"scenario_id":self.fixture["scenario_id"],"shooting_relation":None,"device_mode":None,"entry_input":normalized,"context_reconcile":self._reconcile_context(normalized)}
+        with self.repository.connect() as c:
+            c.execute("INSERT INTO sessions VALUES(?,?,?,?,?,?)",(sid,"ENTRY",0,json.dumps(state),now,now));self._event(c,sid,"SESSION_CREATED",{"workflow_stage":"ENTRY","entry_source":normalized["entry_source"]});self._event(c,sid,"CONTEXT_RECONCILED",state["context_reconcile"])
         return self.get(sid)
+    @staticmethod
+    def _normalize_create_input(value):
+        data=dict(value or {});entry=data.get("entry_source","LIVE")
+        if entry not in {"LIVE","REFERENCE","RECOMMENDED_METHOD"}:raise DomainError("INVALID_SESSION_ENTRY","Unsupported Home entry source.",422)
+        if entry=="REFERENCE" and not data.get("reference_asset_id"):raise DomainError("INVALID_SESSION_ENTRY","REFERENCE requires a persisted reference asset.",422)
+        if entry=="RECOMMENDED_METHOD" and not data.get("intent_seed"):raise DomainError("INVALID_SESSION_ENTRY","RECOMMENDED_METHOD requires an intent seed.",422)
+        return {"schema_version":"0.1.0","entry_source":entry,**{key:data[key] for key in ("home_context","reference_asset_id","intent_seed") if data.get(key) is not None}}
+    @staticmethod
+    def _reconcile_context(create_input):
+        context=create_input.get("home_context") or {};accepted=[];discarded=[]
+        if context:
+            accepted.extend([key for key in ("city_code","city_name","weather","temperature_c","observed_at") if context.get(key) is not None])
+            if context.get("landmark_asset_id"):discarded.append("landmark_asset_id:DECORATIVE_ONLY")
+        if create_input.get("intent_seed"):accepted.append("intent_seed:USER_INTENT")
+        if create_input.get("reference_asset_id"):accepted.append("reference_asset_id:USER_INTENT")
+        return {"schema_version":"0.1.0","ordering":["OBSERVED","USER_INTENT","EXTERNAL_CONTEXT","DECORATIVE"],"accepted":accepted,"discarded":discarded,"landmark_authority":"DECORATIVE_ONLY"}
     def get(self,sid):
         with self.repository.connect() as c:
             row=c.execute("SELECT * FROM sessions WHERE session_id=?",(sid,)).fetchone()

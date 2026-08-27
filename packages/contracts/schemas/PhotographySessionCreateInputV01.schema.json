@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xfx.local/contracts/v1/PhotographySessionCreateInputV01.schema.json",
+  "title": "PhotographySessionCreateInputV01",
+  "type": "object",
+  "required": ["schema_version", "entry_source"],
+  "properties": {
+    "schema_version": {"const": "0.1.0"},
+    "entry_source": {"enum": ["LIVE", "REFERENCE", "RECOMMENDED_METHOD"]},
+    "home_context": {"$ref": "HomeContextV01.schema.json"},
+    "reference_asset_id": {"type": ["string", "null"]},
+    "intent_seed": {
+      "type": ["object", "null"],
+      "required": ["method_id", "title"],
+      "properties": {
+        "method_id": {"type": "string", "minLength": 1},
+        "title": {"type": "string", "minLength": 1},
+        "tag": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {"if": {"properties": {"entry_source": {"const": "REFERENCE"}}}, "then": {"required": ["reference_asset_id"]}},
+    {"if": {"properties": {"entry_source": {"const": "RECOMMENDED_METHOD"}}}, "then": {"required": ["intent_seed"]}}
+  ],
+  "additionalProperties": false
+}

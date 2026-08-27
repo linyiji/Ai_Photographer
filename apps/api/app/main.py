@@ -41,6 +41,28 @@ class ActionBody(BaseModel):
 class RecipeBody(BaseModel):
     recipe:dict
 
+class HomeContextBody(BaseModel):
+    schema_version:str="0.1.0"
+    reliability:str="EXTERNAL_CONTEXT"
+    city_code:str
+    city_name:str
+    weather:str="UNKNOWN"
+    temperature_c:float|None=None
+    observed_at:str|None=None
+    landmark_asset_id:str|None=None
+
+class IntentSeedBody(BaseModel):
+    method_id:str
+    title:str
+    tag:str|None=None
+
+class SessionCreateBody(BaseModel):
+    schema_version:str="0.1.0"
+    entry_source:str="LIVE"
+    home_context:HomeContextBody|None=None
+    reference_asset_id:str|None=None
+    intent_seed:IntentSeedBody|None=None
+
 @app.middleware("http")
 async def correlation(request:Request,call_next):
     cid=request.headers.get("X-Correlation-ID",str(uuid4()));request.state.correlation_id=cid;response=await call_next(request);response.headers["X-Correlation-ID"]=cid;return response
@@ -113,7 +135,7 @@ def final_content(session_id:str):
     return FileResponse(path,media_type=metadata["mime_type"],filename=f"xiangfengxing-final{extension}",headers={"X-Content-SHA256":metadata["sha256"],"X-XFX-Transformation":transformation})
 
 @app.post("/sessions",status_code=201)
-def create_session():return service.create()
+def create_session(body:SessionCreateBody|None=None):return service.create(body.model_dump(exclude_none=True) if body else None)
 
 @app.get("/sessions")
 def list_sessions(classification:str|None=None):

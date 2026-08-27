@@ -24,6 +24,9 @@
     {"name":"AssetRef","domain":"ASSET","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/AssetRef.schema.json","path":"schemas/AssetRef.schema.json"},
     {"name":"AssetManifest","domain":"ASSET","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/AssetManifest.schema.json","path":"schemas/AssetManifest.schema.json"},
     {"name":"ScenarioManifest","domain":"EVALUATION","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/ScenarioManifest.schema.json","path":"schemas/ScenarioManifest.schema.json"},
-    {"name":"EvaluationResult","domain":"EVALUATION","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/EvaluationResult.schema.json","path":"schemas/EvaluationResult.schema.json"}
+    {"name":"EvaluationResult","domain":"EVALUATION","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/EvaluationResult.schema.json","path":"schemas/EvaluationResult.schema.json"},
+    {"name":"HomeContextV01","domain":"ENTRY_CONTEXT","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/HomeContextV01.schema.json","path":"schemas/HomeContextV01.schema.json"},
+    {"name":"PhotographySessionCreateInputV01","domain":"CONTROL","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/PhotographySessionCreateInputV01.schema.json","path":"schemas/PhotographySessionCreateInputV01.schema.json"},
+    {"name":"ContextReconcileResultV01","domain":"CONTROL","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/ContextReconcileResultV01.schema.json","path":"schemas/ContextReconcileResultV01.schema.json"}
   ]
 }

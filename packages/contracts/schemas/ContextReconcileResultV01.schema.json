@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xfx.local/contracts/v1/ContextReconcileResultV01.schema.json",
+  "title": "ContextReconcileResultV01",
+  "type": "object",
+  "required": ["schema_version", "ordering", "accepted", "discarded", "landmark_authority"],
+  "properties": {
+    "schema_version": {"const": "0.1.0"},
+    "ordering": {"const": ["OBSERVED", "USER_INTENT", "EXTERNAL_CONTEXT", "DECORATIVE"]},
+    "accepted": {"type": "array", "items": {"type": "string"}},
+    "discarded": {"type": "array", "items": {"type": "string"}},
+    "landmark_authority": {"const": "DECORATIVE_ONLY"}
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xfx.local/contracts/v1/HomeContextV01.schema.json",
+  "title": "HomeContextV01",
+  "type": "object",
+  "required": ["schema_version", "reliability", "city_code", "city_name", "weather"],
+  "properties": {
+    "schema_version": {"const": "0.1.0"},
+    "reliability": {"enum": ["OBSERVED", "USER_INTENT", "EXTERNAL_CONTEXT", "DECORATIVE"]},
+    "city_code": {"type": "string", "minLength": 1},
+    "city_name": {"type": "string", "minLength": 1},
+    "weather": {"enum": ["SUNNY", "CLOUDY", "RAIN", "SNOW", "UNKNOWN"]},
+    "temperature_c": {"type": ["number", "null"]},
+    "observed_at": {"type": ["string", "null"], "format": "date-time"},
+    "landmark_asset_id": {"type": ["string", "null"], "description": "Decorative presentation identity only; never observed reality or target evidence."}
+  },
+  "additionalProperties": false
+}

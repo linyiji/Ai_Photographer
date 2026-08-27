@@ -7,6 +7,10 @@ export type SessionSummary={session_id:string;created_at:string;updated_at:strin
 export type RuntimeReadiness={schema_version:string;mode:'DEVELOPMENT'|'INTERNAL_DEMO'|'PRODUCTION';ready:boolean;public_production_ready:boolean;disclosure:string;fake_ai_present:boolean;blocking_capabilities:string[];capabilities:Record<string,{implementation:'REAL'|'FAKE_INTERNAL_ONLY'|'EXPERIMENTAL'|'UNAVAILABLE';status:string;note:string}>}
 export type FineTuneSource={schema_version:'1.0.0';asset_id:string;asset_kind:'REALITY_PLUS';version:number;status:'ACCEPTED';storage_ref:string;created_at:string;producer:string;source_asset_ids:string[];checksum:{algorithm:'SHA256';value:string};mime_type:string;size_bytes:number;content_asset_id:string}
 export type PersistedRecipe<T=unknown>={recipe:T;version:number;recipe_hash:string;persistence:string}
+export type ContextReliability='OBSERVED'|'USER_INTENT'|'EXTERNAL_CONTEXT'|'DECORATIVE'
+export type HomeContextV01={schema_version:'0.1.0';reliability:ContextReliability;city_code:string;city_name:string;weather:'SUNNY'|'CLOUDY'|'RAIN'|'SNOW'|'UNKNOWN';temperature_c?:number|null;observed_at?:string|null;landmark_asset_id?:string|null}
+export type IntentSeed={method_id:string;title:string;tag?:string|null}
+export type PhotographySessionCreateInputV01={schema_version:'0.1.0';entry_source:'LIVE'|'REFERENCE'|'RECOMMENDED_METHOD';home_context?:HomeContextV01;reference_asset_id?:string|null;intent_seed?:IntentSeed|null}
 // Defaults to the locked local runtime; mobile acceptance injects an ephemeral HTTPS API tunnel at build time.
 export const API_BASE=__XFX_API_BASE__
 async function request<T>(path:string,method:'GET'|'POST'='GET',data?:unknown,headers:Record<string,string>={}):Promise<T>{
@@ -15,7 +19,7 @@ async function request<T>(path:string,method:'GET'|'POST'='GET',data?:unknown,he
  return response.data
 }
 export const api={
- create:()=>request<Session>('/sessions','POST'),
+ create:(input?:PhotographySessionCreateInputV01)=>request<Session>('/sessions','POST',input),
  list:(classification?:'ACTIVE'|'COMPLETED')=>request<SessionSummary[]>(`/sessions${classification?`?classification=${classification}`:''}`),
  get:(id:string)=>request<Session>(`/sessions/${id}`),
  action:async(id:string,action:string,payload:Record<string,any>={},idempotencyKey?:string)=>{const key=idempotencyKey||`ui-${action}-${Date.now()}-${Math.random().toString(16).slice(2)}`;const result=await request<{readback:Session}>(`/sessions/${id}/actions`,'POST',{action,payload},{'Idempotency-Key':key});return result.readback},
