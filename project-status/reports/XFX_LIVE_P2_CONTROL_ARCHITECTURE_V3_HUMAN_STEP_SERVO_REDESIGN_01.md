@@ -17,7 +17,7 @@ Git Admission started clean at published `451d1b86308fc0fa5fa47f144ab055aaca39ea
 
 Thirty-seven records were evaluated: Attempt 3/5/6/7, both Semantic Scale attempts, nine existing synthetic replays, and Attempt 8 availability. Classification is 7 exact state streams, 29 structural-only, and 1 not reconstructable. Attempt 8 is the missing source because no fresh device Trace exists.
 
-The exact state streams show zero V3 wrong-direction regression, zero post-READY regression, zero reversal opportunity, lower structural complexity, and deterministic both-bad FRAMING-to-ALIGN_X order. However, exact records with valid terminal-effectiveness observations for both V2 and V3 are zero. V2/V3 Action Effectiveness is therefore `NOT_COMPUTABLE`, not a PASS. Historical continuous-until-STOP responses and measurement-gate traces cannot be relabeled as human-step outcomes.
+The exact state streams show zero V3 wrong-direction regression, zero post-READY regression, V2/V3 reversal opportunity `0/0`, lower structural complexity, and deterministic both-bad FRAMING-to-ALIGN_X order. However, exact records with valid terminal-effectiveness observations for both V2 and V3 are zero. V2/V3 Action Effectiveness is therefore `NOT_COMPUTABLE`, not a PASS. Historical continuous-until-STOP responses and measurement-gate traces cannot be relabeled as human-step outcomes.
 
 Counterfactual Promotion Gate: FAIL. `V3_DESIGN_AUTHORITY=FAIL / REQUIRES_REVISION`. Phase B runtime selector, V3 runtime Trace, browser A/B, and Phase C OPPO V3 Gate were not started, exactly as required by the gate ordering.
 
