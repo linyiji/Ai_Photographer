@@ -30,8 +30,8 @@ function descriptor(capabilityName:CapabilityName,platform:RuntimePlatform):Adap
 export function detectPlatform():RuntimePlatform{return Taro.getEnv()===Taro.ENV_TYPE.WEAPP?'WECHAT':'H5'}
 
 export type CaptureSource='camera'|'album'
-export type CameraOpenDiagnostics={track:{width:number|null;height:number|null;aspectRatio:number|null;frameRate:number|null;facingMode:string|null;zoom:number|null};video:{width:number;height:number;aspectRatio:number|null};orientation:{device:CameraOrientation;presentation:CameraOrientation};geometry:NormalizedCameraGeometry;geometryGeneration:number;captureViewport:CaptureViewport;previewFps:number|null}
-export type CaptureDiagnostics={width:number;height:number;bytes:number;quality:string;backend:'IMAGE_CAPTURE'|'CANVAS_VIDEO_INTRINSIC';track:CameraOpenDiagnostics['track'];video:CameraOpenDiagnostics['video'];geometry:NormalizedCameraGeometry;captureViewportInVideo:CaptureViewport;nativeStillPreserved:true;userFacingDerivedDimensions:null}
+export type CameraOpenDiagnostics={profile:CameraStreamProfile;requested:CameraConstraintRequest;track:{width:number|null;height:number|null;aspectRatio:number|null;frameRate:number|null;facingMode:string|null;zoom:number|null};video:{width:number;height:number;aspectRatio:number|null};orientation:{device:CameraOrientation;presentation:CameraOrientation};geometry:NormalizedCameraGeometry;geometryGeneration:number;captureViewport:CaptureViewport;previewFps:number|null}
+export type CaptureDiagnostics={profile:CameraStreamProfile;requested:CameraConstraintRequest;width:number;height:number;bytes:number;quality:string;backend:'IMAGE_CAPTURE'|'CANVAS_VIDEO_INTRINSIC';track:CameraOpenDiagnostics['track'];video:CameraOpenDiagnostics['video'];geometry:NormalizedCameraGeometry;captureViewportInVideo:CaptureViewport;nativeStillPreserved:true;userFacingDerivedDimensions:null}
 export type CameraGeometryInventory={
  profile:CameraStreamProfile;requested:CameraConstraintRequest;actual:NormalizedCameraSettings;startupLatencyMs:number|null
  userAgent:string;screen:{width:number;height:number;devicePixelRatio:number;orientation:string|null}
@@ -67,7 +67,7 @@ export class H5StillCamera{
  private async waitForRelease(delayMs:number){await new Promise(resolve=>setTimeout(resolve,delayMs))}
  private orientation():{device:CameraOrientation;presentation:CameraOrientation}{const type=typeof screen!=='undefined'?screen.orientation?.type||'':'';const fromType:CameraOrientation=type.startsWith('portrait')?'PORTRAIT':type.startsWith('landscape')?'LANDSCAPE':'UNKNOWN';const presentation:CameraOrientation=typeof innerWidth==='number'&&typeof innerHeight==='number'?(innerHeight>=innerWidth?'PORTRAIT':'LANDSCAPE'):fromType;return {device:fromType,presentation}}
  private trackSettings():CameraOpenDiagnostics['track']{const track=this.stream?.getVideoTracks()[0],settings=track?.getSettings() as (MediaTrackSettings&{zoom?:number})|undefined;return {width:settings?.width||null,height:settings?.height||null,aspectRatio:settings?.aspectRatio||((settings?.width&&settings?.height)?settings.width/settings.height:null),frameRate:settings?.frameRate||null,facingMode:settings?.facingMode||null,zoom:typeof settings?.zoom==='number'?settings.zoom:null}}
- diagnostics(previewFps:number|null=null):CameraOpenDiagnostics{const width=this.video?.videoWidth||0,height=this.video?.videoHeight||0,orientation=this.orientation();let snapshot=this.geometryTracker.snapshot();if(!snapshot.geometry)snapshot=this.geometryTracker.recalculate({width,height,deviceOrientation:orientation.device,presentationOrientation:orientation.presentation});return {track:this.trackSettings(),video:{width,height,aspectRatio:width&&height?width/height:null},orientation,geometry:snapshot.geometry!,geometryGeneration:snapshot.generation,captureViewport:snapshot.geometry!.previewViewport,previewFps}}
+ diagnostics(previewFps:number|null=null):CameraOpenDiagnostics{const width=this.video?.videoWidth||0,height=this.video?.videoHeight||0,orientation=this.orientation();let snapshot=this.geometryTracker.snapshot();if(!snapshot.geometry)snapshot=this.geometryTracker.recalculate({width,height,deviceOrientation:orientation.device,presentationOrientation:orientation.presentation});return {profile:this.activeProfile,requested:this.lastConstraintRequest,track:this.trackSettings(),video:{width,height,aspectRatio:width&&height?width/height:null},orientation,geometry:snapshot.geometry!,geometryGeneration:snapshot.generation,captureViewport:snapshot.geometry!.previewViewport,previewFps}}
  async measurePreviewFps(durationMs=1200):Promise<number|null>{
   const video=this.video as (HTMLVideoElement&{requestVideoFrameCallback?:(callback:(now:number)=>void)=>number})|null
   if(!video?.requestVideoFrameCallback)return this.trackSettings().frameRate
@@ -111,7 +111,18 @@ export class H5StillCamera{
    return {ok:true,code:'OK',supportLevel:'UNVERIFIED_REAL_DEVICE',value:{facingMode:actual||this.facingMode}}
   }catch(error){this.close();return cameraFailure(error,'PARTIAL')}
  }
- async open(containerId:string):Promise<PlatformResult<{facingMode:string}>>{return this.openWithConstraint(containerId,false)}
+ private async openProductStream(containerId:string,strict:boolean):Promise<PlatformResult<{facingMode:string}>>{
+  const profile=H5_CAMERA_STREAM_CONSTRAINT_POLICY_V02.previewProfile,initial=await this.openWithConstraint(containerId,strict,profile)
+  if(!initial.ok)return initial
+  const resolvedDeviceId=this.stream?.getVideoTracks()[0]?.getSettings().deviceId
+  if(!resolvedDeviceId)return initial
+  await this.waitForRelease(150)
+  const pinned=await this.openWithConstraint(containerId,strict,profile,resolvedDeviceId)
+  if(pinned.ok)return pinned
+  await this.waitForRelease(250)
+  return this.openWithConstraint(containerId,strict,profile)
+ }
+ async open(containerId:string):Promise<PlatformResult<{facingMode:string}>>{return this.openProductStream(containerId,false)}
  async openDiagnosticProfile(containerId:string,profile:CameraStreamProfile):Promise<PlatformResult<{facingMode:string}>>{
   if(typeof __XFX_DIAGNOSTIC_MODE__==='undefined'||!__XFX_DIAGNOSTIC_MODE__)return normalizedFailure('PLATFORM_UNSUPPORTED','UNSUPPORTED','DIAGNOSTIC_MODE_DISABLED')
   const result=await this.openWithConstraint(containerId,false,profile,this.diagnosticPinnedDeviceId||undefined)
@@ -124,15 +135,15 @@ export class H5StillCamera{
   const previous=this.facingMode;const next=previous==='environment'?'user':'environment';this.switching=true
   try{
    this.close();await this.waitForRelease(300);this.facingMode=next
-   let result=await this.openWithConstraint(containerId,true)
-   if(!result.ok){await this.waitForRelease(450);result=await this.openWithConstraint(containerId,false)}
+   let result=await this.openProductStream(containerId,true)
+   if(!result.ok){await this.waitForRelease(450);result=await this.openProductStream(containerId,false)}
    if(result.ok&&result.value){
     const actual=result.value.facingMode
     if(actual==='environment'||actual==='user')this.facingMode=actual
     if(actual!==previous)return result
     return normalizedFailure('CAMERA_FAILURE','PARTIAL','CAMERA_SWITCH_FAILED_RESTORED')
    }
-   this.facingMode=previous;await this.waitForRelease(450);const restored=await this.openWithConstraint(containerId,false)
+   this.facingMode=previous;await this.waitForRelease(450);const restored=await this.openProductStream(containerId,false)
    if(restored.ok){this.facingMode=previous;return normalizedFailure('CAMERA_FAILURE','PARTIAL','CAMERA_SWITCH_FAILED_RESTORED')}
    return normalizedFailure('CAMERA_FAILURE','PARTIAL','CAMERA_SWITCH_FAILED_CLOSED')
   }finally{this.switching=false}
@@ -161,7 +172,7 @@ export class H5StillCamera{
   const candidateId=`local-${Date.now()}`,extension=blob.type==='image/png'?'png':blob.type==='image/webp'?'webp':'jpg';const file=new File([blob],`capture-${Date.now()}.${extension}`,{type:blob.type||'image/jpeg'});const previewUrl=URL.createObjectURL(file)
   const orientation=this.orientation(),geometry=normalizeCameraGeometry({width:this.video.videoWidth,height:this.video.videoHeight,deviceOrientation:orientation.device,presentationOrientation:orientation.presentation,stillWidth:width,stillHeight:height,relation:'UNKNOWN'})
   const stillOrientation:CameraOrientation=height>=width?'PORTRAIT':'LANDSCAPE',previewStillAlignment=previewReference?classifyPreviewStillAlignment({previewReferenceId:previewReference.id,nativeStillId:candidateId,alignmentMode:'UNSUPPORTED',previewWidth:previewReference.width,previewHeight:previewReference.height,stillWidth:width,stillHeight:height,normalizedPreviewOrientation:previewReference.orientation,normalizedStillOrientation:stillOrientation,cropRectNormalized:fullViewport(width/height),scaleX:1,scaleY:1,translationX:0,translationY:0,mirrorX:false,mirrorY:false,confidence:0,residualError:1,generation:1,source:'CAPTURE_TIME_REFERENCE'}):undefined
-  return {ok:true,code:'OK',supportLevel:'UNVERIFIED_REAL_DEVICE',value:{id:candidateId,source:'camera',previewUrl,filePath:previewUrl,file,filename:file.name,orientation:stillOrientation,confirmed:false,previewReference:previewReference||undefined,previewStillAlignment,captureDiagnostics:{width,height,bytes:blob.size,quality,backend,track:this.trackSettings(),video:{width:this.video.videoWidth,height:this.video.videoHeight,aspectRatio:this.video.videoWidth/this.video.videoHeight},geometry,captureViewportInVideo:geometry.previewViewport,nativeStillPreserved:true,userFacingDerivedDimensions:null}}}
+  return {ok:true,code:'OK',supportLevel:'UNVERIFIED_REAL_DEVICE',value:{id:candidateId,source:'camera',previewUrl,filePath:previewUrl,file,filename:file.name,orientation:stillOrientation,confirmed:false,previewReference:previewReference||undefined,previewStillAlignment,captureDiagnostics:{profile:this.activeProfile,requested:this.lastConstraintRequest,width,height,bytes:blob.size,quality,backend,track:this.trackSettings(),video:{width:this.video.videoWidth,height:this.video.videoHeight,aspectRatio:this.video.videoWidth/this.video.videoHeight},geometry,captureViewportInVideo:geometry.previewViewport,nativeStillPreserved:true,userFacingDerivedDimensions:null}}}
  }
  close(){this.stream?.getTracks().forEach(track=>track.stop());this.stream=null;this.geometryTracker.invalidate();if(this.video){this.video.srcObject=null;this.video.remove();this.video=null}}
 }

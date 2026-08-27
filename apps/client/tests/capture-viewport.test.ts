@@ -41,6 +41,7 @@ test('accepted H5 preview policy decouples stream selection from the 3:4 final c
  const constraints=productCameraVideoConstraints('environment',false)
  assert.deepEqual(constraints,{facingMode:{ideal:'environment'},frameRate:{ideal:30},width:{ideal:1280},height:{ideal:720}})
  assert.equal('aspectRatio' in constraints,false)
+ assert.deepEqual(productCameraVideoConstraints('environment',false,'resolved-rear'),{facingMode:{ideal:'environment'},frameRate:{ideal:30},width:{ideal:1280},height:{ideal:720},deviceId:{exact:'resolved-rear'}})
 })
 
 test('actual settings normalization records unsupported values honestly and hashes camera identity',()=>{

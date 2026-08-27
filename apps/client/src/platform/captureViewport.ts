@@ -69,8 +69,8 @@ export function cameraVideoConstraints(facingMode:'environment'|'user',strict:bo
  return cameraStreamConstraints('MAIN_CURRENT',facingMode,strict)
 }
 
-export function productCameraVideoConstraints(facingMode:'environment'|'user',strict:boolean):MediaTrackConstraints{
- return cameraStreamConstraints(H5_CAMERA_STREAM_CONSTRAINT_POLICY_V02.previewProfile,facingMode,strict)
+export function productCameraVideoConstraints(facingMode:'environment'|'user',strict:boolean,resolvedDeviceId?:string):MediaTrackConstraints{
+ return cameraStreamConstraints(H5_CAMERA_STREAM_CONSTRAINT_POLICY_V02.previewProfile,facingMode,strict,resolvedDeviceId)
 }
 
 export function hashCameraIdentity(value:string|undefined|null):string|null{
