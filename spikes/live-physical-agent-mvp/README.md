@@ -1,5 +1,7 @@
 # XFX Live Physical Agent — LIVE-P2 Visual Servo Spike
 
+V3 Human Step Servo Phase A now exists as a pure controller/replay candidate under `docs/control-v3/`. Its Counterfactual Promotion Gate is `FAIL / SOURCE_REQUIRED` because no exact record contains comparable V2 and V3 terminal effectiveness. V2 therefore remains the only runtime policy; no V3 selector, OPPO Gate, Luna, or Main integration has started.
+
 This isolated Mobile Web spike preserves accepted LIVE-P0 camera and LIVE-P1 perception, then adds only the deterministic local P2 chain:
 
 ```text
