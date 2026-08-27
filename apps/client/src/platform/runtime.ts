@@ -253,16 +253,25 @@ export class PlatformAdapterRegistry{
 
  async download(url:string,filename='xiangfengxing-final.jpg'):Promise<PlatformResult>{
   if(this.platform==='WECHAT'){
-   try{await Taro.downloadFile({url});return {ok:true,code:'OK',supportLevel:'UNVERIFIED_REAL_DEVICE'}}catch{return normalizedFailure('STORAGE_FAILURE','UNVERIFIED_REAL_DEVICE','WeChat download requires device acceptance')}
+   try{
+    const downloaded=await Taro.downloadFile({url})
+    if(downloaded.statusCode!==200)return normalizedFailure('STORAGE_FAILURE','UNVERIFIED_REAL_DEVICE',`WECHAT_DOWNLOAD_HTTP_${downloaded.statusCode}`)
+    await Taro.saveImageToPhotosAlbum({filePath:downloaded.tempFilePath})
+    return {ok:true,code:'OK',supportLevel:'UNVERIFIED_REAL_DEVICE'}
+   }catch(error){const message=error instanceof Error?error.message:String(error);return normalizedFailure(message.toLowerCase().includes('auth deny')?'SAVE_TO_ALBUM_DENIED':'STORAGE_FAILURE','UNVERIFIED_REAL_DEVICE',message)}
   }
   try{const anchor=document.createElement('a');anchor.href=url;anchor.download=filename;anchor.rel='noopener';document.body.appendChild(anchor);anchor.click();anchor.remove();return {ok:true,code:'OK',supportLevel:'SUPPORTED'}}catch{return normalizedFailure('STORAGE_FAILURE','PARTIAL','Browser download failed')}
  }
 
  async share(url:string):Promise<PlatformResult>{
+  if(this.platform==='WECHAT'){
+   try{const downloaded=await Taro.downloadFile({url});if(downloaded.statusCode!==200)return normalizedFailure('SHARE_FAILURE','UNVERIFIED_REAL_DEVICE',`WECHAT_DOWNLOAD_HTTP_${downloaded.statusCode}`);await Taro.showShareImageMenu({path:downloaded.tempFilePath});return {ok:true,code:'OK',supportLevel:'UNVERIFIED_REAL_DEVICE'}}
+   catch(error){return normalizedFailure('SHARE_FAILURE','UNVERIFIED_REAL_DEVICE',error instanceof Error?error.message:String(error))}
+  }
   if(this.platform==='H5'&&typeof navigator!=='undefined'&&typeof navigator.share==='function'){
    try{await navigator.share({title:'向风行 · My Final Photo',url});return {ok:true,code:'OK',supportLevel:'PARTIAL'}}catch(error){return normalizedFailure(error instanceof DOMException&&error.name==='AbortError'?'USER_CANCELLED':'SHARE_FAILURE','PARTIAL',String(error))}
   }
-  return normalizedFailure('PLATFORM_UNSUPPORTED',this.platform==='WECHAT'?'UNVERIFIED_REAL_DEVICE':'UNSUPPORTED','Share capability is unavailable in this runtime')
+  return normalizedFailure('PLATFORM_UNSUPPORTED','UNSUPPORTED','Share capability is unavailable in this runtime')
  }
 }
 
