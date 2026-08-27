@@ -13,6 +13,11 @@ import { GUIDANCE_THEMES, renderGuidanceTheme } from '../visual-guidance/themes.
 import { CameraSessionGuard, ownsActiveCameraSession } from '../camera/session-guard.js';
 import { evaluateGate1PreArm, isGate1Scenario, type Gate1PreArmTelemetry } from '../closed-loop/gate1-acceptance.js';
 import { precisionScaleCalibrationFor } from '../semantic-framing/profiles.js';
+import { HumanStepServoV3, V3_ACTION_COPY } from '../control-v3/controller.js';
+import { LiveMeasurementV3Projector } from '../control-v3/measurement.js';
+import { V3HumanStepTraceRecorder } from '../control-v3/trace.js';
+import type { LiveMeasurementV3, V3Action, V3Snapshot } from '../control-v3/types.js';
+import { runV3BrowserScenario, V3_BROWSER_SCENARIOS, type V3BrowserScenario } from '../control-v3/browser-scenarios.js';
 
 type FacingMode = 'user' | 'environment';
 type PermissionStateLabel = PermissionState | 'not_requested' | 'unsupported' | 'error';
@@ -58,6 +63,7 @@ const guidanceOverlayState = requireElement<HTMLElement>('guidance-overlay-state
 const guidanceOverlayText = requireElement<HTMLElement>('guidance-overlay-text');
 const closedLoopHud = requireElement<HTMLElement>('closed-loop-hud');
 const targetPreset = requireElement<HTMLSelectElement>('target-preset');
+const controlPolicySelect = requireElement<HTMLSelectElement>('control-policy');
 const closedLoopReset = requireElement<HTMLButtonElement>('closed-loop-reset');
 const closedLoopArm = requireElement<HTMLButtonElement>('closed-loop-arm');
 const closedLoopTrace = requireElement<HTMLButtonElement>('closed-loop-trace');
@@ -66,6 +72,9 @@ const guidanceGrid = requireElement<HTMLInputElement>('guidance-grid');
 const semanticDebug = requireElement<HTMLInputElement>('semantic-debug');
 const scaleGateScenario = requireElement<HTMLSelectElement>('scale-gate-scenario');
 const gate1Precondition = requireElement<HTMLElement>('gate1-precondition');
+const v2DebugGrid = requireElement<HTMLElement>('v2-debug-grid');
+const v3DebugPanel = requireElement<HTMLElement>('v3-debug-panel');
+const v3Fields={policy:requireElement<HTMLElement>('v3-policy'),stage:requireElement<HTMLElement>('v3-stage'),framing:requireElement<HTMLElement>('v3-framing'),x:requireElement<HTMLElement>('v3-x'),measurement:requireElement<HTMLElement>('v3-measurement'),stable:requireElement<HTMLElement>('v3-stable'),action:requireElement<HTMLElement>('v3-action'),outcome:requireElement<HTMLElement>('v3-outcome'),latency:requireElement<HTMLElement>('v3-latency')};
 const gate1PreconditionResult = requireElement<HTMLElement>('gate1-precondition-result');
 const gate1Expected = requireElement<HTMLElement>('gate1-expected');
 const gate1BodyMode = requireElement<HTMLElement>('gate1-body-mode');
@@ -157,6 +166,9 @@ let latestPerceptionState: StructuredPerceptionState | null = null;
 let latestRawMeasurement: PoseMeasurement | null = null;
 let latestClosedLoop: ClosedLoopSnapshot | null = null;
 let latestVisualGuidance: VisualGuidanceState | null = null;
+let latestV3Measurement: LiveMeasurementV3 | null = null;
+let latestV3Snapshot: V3Snapshot | null = null;
+let v3ControllerLatencies:number[]=[];
 let displayedActionCopy: string | null = null;
 let displayedActionUntilMs = 0;
 let activeGate1PreArm: Gate1PreArmTelemetry | null = null;
@@ -173,6 +185,13 @@ let currentTarget = TARGET_PRESETS[0];
 const closedLoop = new LocalClosedLoopEngine(currentTarget);
 const scalarTrace = new ScalarTraceRecorder();
 const visualProjector = new VisualGuidanceProjector();
+const v3Controller = new HumanStepServoV3(currentTarget);
+const v3Projector = new LiveMeasurementV3Projector();
+const v3Trace = new V3HumanStepTraceRecorder();
+type ControlPolicy='V2'|'V3';
+const requestedDebugPolicy=new URLSearchParams(window.location.search).get('controlPolicy');
+controlPolicySelect.value=requestedDebugPolicy==='V3'?'V3':'V2';
+const activePolicy=():ControlPolicy=>controlPolicySelect.value==='V3'?'V3':'V2';
 
 const perceptionRuntime = new PerceptionRuntime({
   onStatus: (status, mode, text) => {
@@ -189,12 +208,13 @@ const perceptionRuntime = new PerceptionRuntime({
   onState: (state, rawMeasurement) => {
     latestPerceptionState = state;
     latestRawMeasurement = rawMeasurement;
-    latestClosedLoop = closedLoop.update(state, { decision_timestamp_ms: performance.now(), camera_facing: activeFacingMode === 'user' ? 'FRONT' : activeFacingMode === 'environment' ? 'REAR' : 'UNKNOWN', preview_mirror_state: activeFacingMode === 'user' ? 'MIRRORED' : activeFacingMode === 'environment' ? 'NON_MIRRORED' : 'UNKNOWN' });
-    latestVisualGuidance = visualProjector.update(state, latestClosedLoop, rawMeasurement, { mode: guidanceMode.value as VisualServoMode, grid: guidanceGrid.checked, now: performance.now() });
-    scalarTrace.append(state, latestClosedLoop, latestVisualGuidance, guidanceTheme.value);
-    if (latestClosedLoop.instruction && latestClosedLoop.instruction.action !== 'HOLD') {
-      displayedActionCopy = latestClosedLoop.instruction.copy_zh;
-      displayedActionUntilMs = state.timestamp_ms + 1100;
+    if(activePolicy()==='V3'){
+      const decisionAt=performance.now();latestV3Measurement=v3Projector.project(state,currentTarget,Math.max(0,decisionAt-state.timestamp_ms));const started=performance.now();latestV3Snapshot=v3Controller.update(latestV3Measurement);v3ControllerLatencies.push(performance.now()-started);if(v3ControllerLatencies.length>240)v3ControllerLatencies.shift();v3Trace.append(latestV3Snapshot);latestClosedLoop=null;latestVisualGuidance=null;
+    }else{
+      latestClosedLoop = closedLoop.update(state, { decision_timestamp_ms: performance.now(), camera_facing: activeFacingMode === 'user' ? 'FRONT' : activeFacingMode === 'environment' ? 'REAR' : 'UNKNOWN', preview_mirror_state: activeFacingMode === 'user' ? 'MIRRORED' : activeFacingMode === 'environment' ? 'NON_MIRRORED' : 'UNKNOWN' });
+      latestVisualGuidance = visualProjector.update(state, latestClosedLoop, rawMeasurement, { mode: guidanceMode.value as VisualServoMode, grid: guidanceGrid.checked, now: performance.now() });
+      scalarTrace.append(state, latestClosedLoop, latestVisualGuidance, guidanceTheme.value);
+      if (latestClosedLoop.instruction && latestClosedLoop.instruction.action !== 'HOLD') {displayedActionCopy = latestClosedLoop.instruction.copy_zh;displayedActionUntilMs = state.timestamp_ms + 1100;}
     }
     renderPerceptionState();
     renderClosedLoop();
@@ -234,7 +254,7 @@ const GATE1_REASON_COPY: Readonly<Record<string, string>> = Object.freeze({
 
 function renderGate1Precondition(): void {
   const scenario = scaleGateScenario.value;
-  gate1Precondition.hidden = !isGate1Scenario(scenario);
+  gate1Precondition.hidden = activePolicy()==='V3'||!isGate1Scenario(scenario);
   if (!isGate1Scenario(scenario)) return;
   const current = activeGate1PreArm ?? evaluateGate1PreArm(scenario, latestPerceptionState, currentTarget);
   const blocked = gate1ArmAttempted && !current.precondition_valid;
@@ -280,6 +300,7 @@ function applyProjectedBox(element: HTMLElement, box: NormalizedBox | null): voi
 }
 
 function renderVisualGuidance(): void {
+  if(activePolicy()==='V3'){renderV3Visual();return;}
   const visual = latestVisualGuidance;
   visualOverlay.dataset.mode = guidanceMode.value; cameraStage.dataset.guidanceMode = guidanceMode.value;
   if (!visual) {
@@ -299,6 +320,26 @@ function renderVisualGuidance(): void {
   stopVisual.classList.toggle('is-visible', visual.braking && !visual.ready); readyVisual.classList.toggle('is-visible', visual.ready);
   trackingVisual.textContent = visual.tracking_status === 'LOCKED' ? (visual.inside_target ? '人物已在目标框内' : visual.near_target ? '接近目标框' : '跟随箭头，把人物移进目标框') : visual.tracking_status === 'HELD' ? '暂时未识别 · 请保持位置' : visual.tracking_status === 'UNLOCKED' ? '请让人物进入画面' : '把人物放进目标框';
   closedLoopFields.theme.textContent=`${renderedTheme.theme.theme_id} / ${semanticDiff}`;
+}
+
+const percentile=(values:ReadonlyArray<number>,p:number):number=>{if(!values.length)return 0;const sorted=[...values].sort((a,b)=>a-b);return sorted[Math.min(sorted.length-1,Math.floor((sorted.length-1)*p))];};
+const v3CurrentAction=(snapshot:V3Snapshot|null):V3Action|null=>snapshot?.action??(snapshot?.episode?.state!=='EVALUATED'?snapshot?.episode?.action??null:null);
+
+function renderV3Visual():void{
+  const snapshot=latestV3Snapshot;const action=v3CurrentAction(snapshot);const copy=action?V3_ACTION_COPY[action]:null;
+  visualOverlay.dataset.status=snapshot?.ready?'READY':action?'CORRECTING':snapshot?.measurement.subject_state==='PRESENT'?'TRACKING':'LOST';visualGrid.classList.toggle('is-visible',guidanceGrid.checked);
+  for(const element of [acceptableZone,targetBox,subjectBox,stopVisual])element.classList.remove('is-visible');
+  readyVisual.classList.toggle('is-visible',Boolean(snapshot?.ready));directionVisual.classList.toggle('is-visible',Boolean(action));
+  if(action){directionLabel.textContent=copy!;directionIcon.textContent=action==='MOVE_LEFT_SMALL'?'←':action==='MOVE_RIGHT_SMALL'?'→':action==='MOVE_CLOSER_SMALL'?'＋':'−';}
+  trackingVisual.textContent=snapshot?.ready?'READY · 已锁定':action?'只做一次小调整，然后自然停下':snapshot?.stage==='ACQUIRE'?'正在确认人物与测量':'保持不动 · 正在确认结果';
+}
+
+function renderV3Control():void{
+  const snapshot=latestV3Snapshot;const measurement=latestV3Measurement??snapshot?.measurement??null;const action=v3CurrentAction(snapshot);const copy=action?V3_ACTION_COPY[action]:null;
+  v3DebugPanel.hidden=false;v2DebugGrid.hidden=true;v3Fields.policy.textContent='CONTROL POLICY · V3 · EXPERIMENTAL';v3Fields.stage.textContent=snapshot?.stage??'ACQUIRE';v3Fields.framing.textContent=measurement?.framing_relation??'UNKNOWN';v3Fields.x.textContent=measurement?.x_relation??'UNKNOWN';v3Fields.measurement.textContent=measurement?.measurement_quality??'INVALID';v3Fields.stable.textContent=measurement?.stable?'YES':'NO';v3Fields.action.textContent=copy??'—';v3Fields.outcome.textContent=snapshot?.outcome??'—';v3Fields.latency.textContent=`${percentile(v3ControllerLatencies,.5).toFixed(3)} / ${percentile(v3ControllerLatencies,.95).toFixed(3)} ms`;
+  closedLoopFields.runtimeState.textContent=`STATE · ${snapshot?.stage??'IDLE'}`;closedLoopFields.ready.textContent=`READY · ${String(snapshot?.ready??false).toUpperCase()}`;
+  let text='模型已就绪 · 点击“ARM 新试验”开始';if(snapshot?.armed){if(snapshot.ready)text='好，就这里';else if(copy)text=`${copy} · 做一次小调整后自然停下`;else if(snapshot.stage==='ACQUIRE')text='保持片刻 · 正在确认人物与测量';else if(snapshot.episode?.state==='EVALUATED')text=`${snapshot.outcome??'已评估'} · 保持不动，等待下一步`;else text='保持不动 · 正在确认结果';}
+  closedLoopFields.instruction.textContent=text;guidanceOverlayState.textContent=`V3 EXPERIMENTAL · ${snapshot?.stage??'DISARMED'} · ONE STEP`;guidanceOverlayText.textContent=text;closedLoopReset.textContent='重置 V3 试验';closedLoopArm.textContent='ARM V3 新试验';
 }
 
 function renderSemanticDebug():void{
@@ -372,6 +413,8 @@ function renderPerceptionTelemetry(): void {
 }
 
 function renderClosedLoop(): void {
+  v3DebugPanel.hidden=activePolicy()!=='V3';v2DebugGrid.hidden=activePolicy()==='V3';
+  if(activePolicy()==='V3'){renderV3Control();return;}
   const snapshot = latestClosedLoop;
   const target = snapshot?.target ?? currentTarget;
   const currentFraming = latestPerceptionState?.framing;
@@ -604,6 +647,7 @@ function stopCamera(options: { preserveMessage?: boolean } = {}): void {
   updateCoordinateState();
   perceptionRuntime.resetSession();
   closedLoop.reset();
+  v3Controller.reset();v3Projector.reset();v3Trace.clear();latestV3Measurement=null;latestV3Snapshot=null;v3ControllerLatencies=[];
   latestPerceptionState = null;
   latestRawMeasurement = null;
   latestClosedLoop = null;
@@ -748,7 +792,7 @@ visionCadence.addEventListener('change',()=>{const hz=Number(visionCadence.value
 
 targetPreset.addEventListener('change', () => {
   const selected = TARGET_PRESETS.find((preset) => preset.id === targetPreset.value) ?? TARGET_PRESETS[0];
-  currentTarget = selected; closedLoop.setTarget(selected); latestClosedLoop = null;
+  currentTarget = selected; closedLoop.setTarget(selected);v3Controller.setTarget(selected); latestClosedLoop = null;latestV3Measurement=null;latestV3Snapshot=null;
   visualProjector.reset(); latestVisualGuidance = null;
   displayedActionCopy = null; displayedActionUntilMs = 0; activeGate1PreArm = null; gate1ArmAttempted = false; renderClosedLoop(); renderGate1Precondition(); renderVisualGuidance();
 });
@@ -758,8 +802,10 @@ guidanceGrid.addEventListener('change',()=>{ if(latestPerceptionState&&latestClo
 semanticDebug.addEventListener('change',renderSemanticDebug);
 guidanceTheme.addEventListener('change',()=>renderVisualGuidance());
 scaleGateScenario.addEventListener('change', () => { activeGate1PreArm = null; gate1ArmAttempted = false; renderGate1Precondition(); });
+controlPolicySelect.addEventListener('change',()=>{closedLoop.reset();v3Controller.reset();v3Projector.reset();scalarTrace.clear();v3Trace.clear();latestClosedLoop=null;latestV3Measurement=null;latestV3Snapshot=null;latestVisualGuidance=null;v3ControllerLatencies=[];displayedActionCopy=null;displayedActionUntilMs=0;activeGate1PreArm=null;gate1ArmAttempted=false;visualProjector.reset();renderClosedLoop();renderGate1Precondition();renderVisualGuidance();setMessage(activePolicy()==='V3'?'V3 实验控制已选择；仅本测试会话有效，V2 仍是默认。':'已恢复 V2 当前默认控制。');});
 
 closedLoopReset.addEventListener('click', () => {
+  if(activePolicy()==='V3'){v3Controller.reset();v3Projector.reset();v3Trace.clear();latestV3Measurement=null;latestV3Snapshot=null;v3ControllerLatencies=[];renderClosedLoop();renderVisualGuidance();setMessage('V3 实验已重置；请选择 ARM 开始新的单步试验。');return;}
   if (latestClosedLoop?.runtime_state === 'LOCAL_RECOVERY_REQUIRED' && closedLoop.resumeAfterLocalRecovery(performance.now())) {
     displayedActionCopy = null; displayedActionUntilMs = 0;
     setMessage('已继续本机引导；历史 Episode 与标量 Trace 保留，不会重复编号。');
@@ -769,6 +815,7 @@ closedLoopReset.addEventListener('click', () => {
   visualProjector.reset(); latestVisualGuidance = null; renderClosedLoop(); renderGate1Precondition(); renderVisualGuidance();
 });
 closedLoopArm.addEventListener('click', () => {
+  if(activePolicy()==='V3'){v3Controller.arm(performance.now());v3Trace.clear();latestV3Snapshot=null;renderClosedLoop();renderVisualGuidance();setMessage('V3 试验已 ARM：每条指令只做一次小调整，然后自然停下。');return;}
   const scenario = scaleGateScenario.value;
   const preArm = isGate1Scenario(scenario) ? evaluateGate1PreArm(scenario, latestPerceptionState, currentTarget) : null;
   if (preArm && !preArm.precondition_valid) {
@@ -790,8 +837,8 @@ closedLoopArm.addEventListener('click', () => {
 closedLoopTrace.addEventListener('click', () => {
   const previewFps=Number.parseFloat(fpsValue.textContent??'0')||0;const runtimeTelemetry=perceptionRuntime.snapshot(previewFps);const scenario=scaleGateScenario.value;
   const context={scenario_label:scenario,generated_at_iso:new Date().toISOString(),runtime_telemetry:runtimeTelemetry,session:{user_agent:navigator.userAgent,viewport_width:window.innerWidth,viewport_height:window.innerHeight,orientation:screen.orientation?.type??(window.innerHeight>=window.innerWidth?'portrait':'landscape'),camera_facing:activeFacingMode==='user'?'FRONT':activeFacingMode==='environment'?'REAR':'UNKNOWN',preview_mirror_state:activeFacingMode==='user'?'MIRRORED':activeFacingMode==='environment'?'NON_MIRRORED':'UNKNOWN',target_id:currentTarget.id,theme_id:guidanceTheme.value,vision_target_hz:runtimeTelemetry.vision_target_hz,scheduler}};
-  const blob = new Blob([scalarTrace.json(context)], { type: 'application/json' }); const url = URL.createObjectURL(blob);
-  const link = document.createElement('a'); link.href = url; link.download = `live-p2-scale-${scenario.toLowerCase()}-${Date.now()}.json`; link.click();
+  const isV3=activePolicy()==='V3';const blob = new Blob([isV3?v3Trace.json(context):scalarTrace.json(context)], { type: 'application/json' }); const url = URL.createObjectURL(blob);
+  const link = document.createElement('a'); link.href = url; link.download = isV3?`live-p2-v3-${scenario.toLowerCase()}-${Date.now()}.json`:`live-p2-scale-${scenario.toLowerCase()}-${Date.now()}.json`; link.click();
   window.setTimeout(() => URL.revokeObjectURL(url), 0);
 });
 
@@ -851,4 +898,10 @@ if (replayName) {
       }, index * 600);
     });
   });
+}
+
+const v3ReplayName=new URLSearchParams(window.location.search).get('v3Replay');
+if(v3ReplayName&&V3_BROWSER_SCENARIOS.includes(v3ReplayName as V3BrowserScenario)){
+  controlPolicySelect.value='V3';v3Controller.reset();v3Trace.clear();const snapshots=runV3BrowserScenario(v3ReplayName as V3BrowserScenario);poseMessage.textContent=`V3 SYNTHETIC REPLAY · ${v3ReplayName} · NO CAMERA / NO PROVIDER`;
+  snapshots.forEach((snapshot,index)=>window.setTimeout(()=>{latestV3Snapshot=snapshot;latestV3Measurement=snapshot.measurement;v3Trace.append(snapshot);renderClosedLoop();renderGate1Precondition();renderVisualGuidance();if(index===snapshots.length-1){document.documentElement.dataset.v3BrowserGate='PASS';document.documentElement.dataset.v3Scenario=v3ReplayName;}},index*120));
 }

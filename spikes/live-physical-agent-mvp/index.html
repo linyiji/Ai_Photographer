@@ -149,6 +149,12 @@
             <label class="target-picker">TARGET
               <select id="target-preset" aria-label="Target preset"></select>
             </label>
+            <label class="target-picker">CONTROL POLICY
+              <select id="control-policy" aria-label="Debug control policy">
+                <option value="V2" selected>V2 · CURRENT DEFAULT</option>
+                <option value="V3">V3 · EXPERIMENTAL</option>
+              </select>
+            </label>
             <label class="target-picker">MODE
               <select id="guidance-mode" aria-label="Guidance mode">
                 <option value="TEXT_DOMINANT">文字主导</option>
@@ -189,6 +195,20 @@
           <span class="status-pill status-pill--muted">LUNA · OFF</span>
         </div>
         <p id="cl-instruction" class="instruction-copy" role="status" aria-live="polite">等待本机状态输入</p>
+        <section id="v3-debug-panel" class="gate1-precondition" aria-label="V3 experimental human-step status" hidden>
+          <div class="gate1-precondition__header"><strong>V3 EXPERIMENTAL · ONE SMALL STEP</strong><span id="v3-policy">CONTROL POLICY · V3</span></div>
+          <dl>
+            <div><dt>CURRENT STAGE</dt><dd id="v3-stage">ACQUIRE</dd></div>
+            <div><dt>FRAMING</dt><dd id="v3-framing">UNKNOWN</dd></div>
+            <div><dt>X</dt><dd id="v3-x">UNKNOWN</dd></div>
+            <div><dt>MEASUREMENT</dt><dd id="v3-measurement">INVALID</dd></div>
+            <div><dt>STABLE</dt><dd id="v3-stable">NO</dd></div>
+            <div><dt>ACTION</dt><dd id="v3-action">—</dd></div>
+            <div><dt>OUTCOME</dt><dd id="v3-outcome">—</dd></div>
+            <div><dt>CONTROLLER LATENCY P50 / P95</dt><dd id="v3-latency">0 / 0 ms</dd></div>
+          </dl>
+          <p>每条指令只做一次小调整，然后自然停下，等待下一条指令。</p>
+        </section>
         <section id="gate1-precondition" class="gate1-precondition" aria-label="Gate 1 precondition">
           <div class="gate1-precondition__header">
             <strong>GATE 1 PRECONDITION</strong>
@@ -206,7 +226,7 @@
           </dl>
           <p id="gate1-precondition-reason" role="alert">请先选择 Gate 1 场景并建立有效起始状态</p>
         </section>
-        <dl class="perception-grid guidance-grid">
+        <dl id="v2-debug-grid" class="perception-grid guidance-grid">
           <div><dt>TARGET X / Y / SCALE</dt><dd id="cl-target">— / — / —</dd></div>
           <div><dt>CURRENT X / Y / SCALE</dt><dd id="cl-current">— / — / —</dd></div>
           <div><dt>DELTA X / Y / SCALE</dt><dd id="cl-delta">— / — / —</dd></div>
