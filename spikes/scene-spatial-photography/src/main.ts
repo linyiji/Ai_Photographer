@@ -7,7 +7,7 @@ import { clonePixelFrame, syntheticVisualFixtures } from '../p1/synthetic-fixtur
 import type { PhotographyViewCandidateV01, PlacementAnchor, SceneSweepAnalysisResult, TransientKeyframePixels } from '../p1/types.js';
 import { GeometryFrameSelector } from '../p2/geometry-frame-selector.js';
 import { analyzeCorrespondence } from '../p2/opencv-correspondence.js';
-import { loadOpenCv } from '../p2/opencv-loader.js';
+import { loadOpenCv, preloadOpenCvAsset } from '../p2/opencv-loader.js';
 import { buildClientSpatialEvidence } from '../p2/spatial-evidence.js';
 import type { CorrespondenceDiagnostics, SpatialEvidenceV01 } from '../p2/types.js';
 import { canonicalManifestJson } from '../spatial/scene-sweep-manifest.js';
@@ -253,6 +253,7 @@ $('start').addEventListener('click', async () => {
   const [cameraState, orientationState] = await Promise.all([camera.start(), orientation.requestPermission()]);
   if (cameraState.state !== 'ACTIVE') { setText('message', cameraState.message ?? '相机不可用'); $<HTMLButtonElement>('start').disabled = false; $<HTMLButtonElement>('start').textContent = '重试'; $<HTMLSelectElement>('mode').disabled = false; render(); return; }
   runtime.setCameraSourceDimensions(cameraState.width, cameraState.height);
+  void preloadOpenCvAsset();
   $<HTMLButtonElement>('start').textContent = '扫描中';
   $('empty').style.display = 'none'; $('finish').toggleAttribute('disabled', false); $('cancel').toggleAttribute('disabled', false);
   orientation.start((sample) => {

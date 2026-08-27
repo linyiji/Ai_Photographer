@@ -6,7 +6,7 @@
 - Provider: 0
 - Luna: 0
 - backend per-frame calls: 0
-- selected frames: at most 16, transient local memory only
+- selected frames: at most 10, transient local memory only
 - exported evidence: scalar diagnostics and identifiers only
 - metric scale: unavailable
 - physical safety authority: unavailable

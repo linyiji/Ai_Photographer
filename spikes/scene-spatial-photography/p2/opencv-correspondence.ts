@@ -19,11 +19,16 @@ const homographyResiduals = (cv: any, source: readonly Point[], target: readonly
   } finally { src.delete(); dst.delete(); mask.delete(); }
 };
 type PairResult = { detected: number; tracked: number; displacement: number[]; residuals: number[]; inlierRatio: number };
+export const MAX_CORRESPONDENCE_PAIRS = 7;
+export const correspondencePairEndIndices = (frameCount: number, maxPairs = MAX_CORRESPONDENCE_PAIRS): number[] => {
+  const available = Math.max(0, frameCount - 1); if (available <= maxPairs) return Array.from({ length: available }, (_, index) => index + 1);
+  return [...new Set(Array.from({ length: maxPairs }, (_, index) => 1 + Math.round(index * (available - 1) / (maxPairs - 1))))];
+};
 const gfttPair = (cv: any, a: PixelFrame, b: PixelFrame): PairResult => {
   const ga = grayMat(cv, a), gb = grayMat(cv, b), p0 = new cv.Mat(), p1 = new cv.Mat(), status = new cv.Mat(), error = new cv.Mat(), mask = new cv.Mat();
   try {
-    cv.goodFeaturesToTrack(ga, p0, 300, .01, 6, mask, 3, false, .04); const detected = p0.rows;
-    cv.calcOpticalFlowPyrLK(ga, gb, p0, p1, status, error, new cv.Size(21, 21), 3, new cv.TermCriteria(cv.TermCriteria_COUNT | cv.TermCriteria_EPS, 30, .01));
+    cv.goodFeaturesToTrack(ga, p0, 180, .01, 7, mask, 3, false, .04); const detected = p0.rows;
+    cv.calcOpticalFlowPyrLK(ga, gb, p0, p1, status, error, new cv.Size(15, 15), 2, new cv.TermCriteria(cv.TermCriteria_COUNT | cv.TermCriteria_EPS, 20, .02));
     const before = matPoints(p0), after = matPoints(p1), source: Point[] = [], target: Point[] = [];
     for (let i = 0; i < before.length; i++) if (status.ucharAt(i, 0)) { source.push(before[i]!); target.push(after[i]!); }
     const h = homographyResiduals(cv, source, target); return { detected, tracked: source.length, displacement: source.map((p, i) => distance(p, target[i]!)), residuals: h.residuals, inlierRatio: h.inlierRatio };
@@ -41,7 +46,7 @@ const orbPair = (cv: any, a: PixelFrame, b: PixelFrame): PairResult => {
 export const analyzeCorrespondence = (cv: any, input: SceneScanGeometryInputV01, engine: CorrespondenceEngine): CorrespondenceDiagnostics => {
   const started = performance.now(), results: PairResult[] = [];
   try {
-    for (let i = 1; i < input.frames.length; i++) results.push(engine === 'GFTT_PYRLK' ? gfttPair(cv, input.frames[i - 1]!.pixels, input.frames[i]!.pixels) : orbPair(cv, input.frames[i - 1]!.pixels, input.frames[i]!.pixels));
+    for (const i of correspondencePairEndIndices(input.frames.length)) results.push(engine === 'GFTT_PYRLK' ? gfttPair(cv, input.frames[i - 1]!.pixels, input.frames[i]!.pixels) : orbPair(cv, input.frames[i - 1]!.pixels, input.frames[i]!.pixels));
     const detected = results.reduce((s, r) => s + r.detected, 0), tracked = results.reduce((s, r) => s + r.tracked, 0), displacement = results.flatMap(r => r.displacement), residuals = results.flatMap(r => r.residuals);
     return { engine, detected_feature_count: detected, tracked_feature_count: tracked, match_retention: detected ? tracked / detected : 0, inlier_ratio: results.length ? results.reduce((s, r) => s + r.inlierRatio, 0) / results.length : 0, median_displacement_px: median(displacement), median_parallax_px: median(residuals), p75_parallax_px: percentile(residuals, .75), latency_ms: performance.now() - started, pair_count: results.length, failure_reason: results.length && tracked >= 20 ? null : input.frames.length < 2 ? 'INSUFFICIENT_FRAMES' : 'INSUFFICIENT_TRACKS' };
   } catch (error) {

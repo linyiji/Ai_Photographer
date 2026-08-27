@@ -3,7 +3,7 @@ import type { FrameMetrics } from '../sweep/types.js';
 import type { GeometryFrameObservation, SceneScanGeometryInputV01 } from './types.js';
 
 export interface GeometryFrameSelectorConfig { max_frames: number; min_interval_ms: number; max_yaw_step_deg: number; min_blur_score: number; min_exposure: number; max_exposure: number; }
-export const DEFAULT_GEOMETRY_FRAME_SELECTOR_CONFIG: GeometryFrameSelectorConfig = { max_frames: 16, min_interval_ms: 120, max_yaw_step_deg: 18, min_blur_score: 4, min_exposure: 22, max_exposure: 235 };
+export const DEFAULT_GEOMETRY_FRAME_SELECTOR_CONFIG: GeometryFrameSelectorConfig = { max_frames: 10, min_interval_ms: 250, max_yaw_step_deg: 18, min_blur_score: 4, min_exposure: 22, max_exposure: 235 };
 const clamp01 = (v: number): number => Math.max(0, Math.min(1, v));
 const fingerprintDistance = (a?: readonly number[], b?: readonly number[]): number => !a || !b || !a.length || a.length !== b.length ? 0 : Math.sqrt(a.reduce((sum, value, index) => sum + (value - (b[index] ?? value)) ** 2, 0) / a.length);
 
