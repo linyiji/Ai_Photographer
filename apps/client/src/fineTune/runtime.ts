@@ -2,7 +2,7 @@ import {RUNTIME_VERSION,renderPixels,validateRecipe,type AdjustmentRecipe,type O
 export type SourceAssetRef={asset_id:string;checksum:{algorithm:'SHA256';value:string};content_url:string}
 export type RuntimeOptions={preview_long_edge?:number;jpeg_quality?:number}
 export type PreviewProjection={data:Uint8ClampedArray;width:number;height:number;render_ms:number}
-export type FinalRenderArtifact={blob:Blob;width:number;height:number;decode_ms:number;render_ms:number;encode_ms:number;total_ms:number;backend:'WORKER_OFFSCREENCANVAS'|'MAIN_THREAD_CANVAS2D'}
+export type FinalRenderArtifact={blob?:Blob;filePath?:string;bytes?:number;width:number;height:number;decode_ms:number;render_ms:number;encode_ms:number;total_ms:number;backend:'WORKER_OFFSCREENCANVAS'|'MAIN_THREAD_CANVAS2D'|'WECHAT_OFFSCREEN_CANVAS2D'}
 export type RenderMetrics={preview_count:number;final_count:number;last_render_ms:number;worker_used:boolean;network_calls_per_slider:0;preview_jpeg_encode_count:0;preview_object_url_count:0;preview_width:number;preview_height:number}
 export interface FineTuneSession{project(recipe:AdjustmentRecipe):Promise<PreviewProjection>;renderFinal(recipe:AdjustmentRecipe,idempotencyKey:string):Promise<FinalRenderArtifact>;metrics():RenderMetrics;warnings():string[];close():void}
 export interface FineTuneRuntime{open(input:{source:SourceAssetRef;recipe:AdjustmentRecipe;masks?:OptionalMaskSet;options:RuntimeOptions}):Promise<FineTuneSession>}

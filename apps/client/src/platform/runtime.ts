@@ -241,10 +241,14 @@ export class PlatformAdapterRegistry{
   }catch(error){record('RETRYABLE_FAILED');const message=error instanceof Error?error.message:String(error);return normalizedFailure(message.toLowerCase().includes('network')||!originReached?'NETWORK_UNAVAILABLE':'STORAGE_FAILURE',this.platform==='WECHAT'?'UNVERIFIED_REAL_DEVICE':'PARTIAL',message)}
  }
 
- async uploadDerived(sessionId:string,blob:Blob,idempotencyKey:string):Promise<PlatformResult<UploadedAsset>>{
-  if(this.platform!=='H5')return normalizedFailure('PLATFORM_UNSUPPORTED','UNVERIFIED_REAL_DEVICE','Fine Tune binary persistence is not yet device-verified on WeChat')
+ async uploadDerived(sessionId:string,artifact:{blob?:Blob;filePath?:string;bytes?:number},idempotencyKey:string):Promise<PlatformResult<UploadedAsset>>{
+  if(this.platform==='WECHAT'){
+   if(!artifact.filePath)return normalizedFailure('INVALID_ASSET','UNVERIFIED_REAL_DEVICE','WECHAT_DERIVED_FILE_PATH_MISSING')
+   try{const response=await Taro.uploadFile({url:`${API_BASE}/sessions/${sessionId}/fine-tune/derived`,filePath:artifact.filePath,name:'file',header:{'Idempotency-Key':idempotencyKey}});if(response.statusCode!==201)return normalizedFailure(response.statusCode===422?'INVALID_ASSET':'STORAGE_FAILURE','UNVERIFIED_REAL_DEVICE',response.data);return {ok:true,code:'OK',supportLevel:'UNVERIFIED_REAL_DEVICE',value:JSON.parse(response.data) as UploadedAsset}}catch(error){return normalizedFailure('STORAGE_FAILURE','UNVERIFIED_REAL_DEVICE',error instanceof Error?error.message:String(error))}
+  }
+  if(!artifact.blob)return normalizedFailure('INVALID_ASSET','SUPPORTED','DERIVED_BLOB_MISSING')
   try{
-   const body=new FormData();body.append('file',new File([blob],`fine-tune-${sessionId}.jpg`,{type:'image/jpeg'}))
+   const body=new FormData();body.append('file',new File([artifact.blob],`fine-tune-${sessionId}.jpg`,{type:'image/jpeg'}))
    const response=await fetch(`${API_BASE}/sessions/${sessionId}/fine-tune/derived`,{method:'POST',body,headers:{'Idempotency-Key':idempotencyKey}});const data=await response.text()
    if(response.status!==201)return normalizedFailure(response.status===422?'INVALID_ASSET':'STORAGE_FAILURE','SUPPORTED',data)
    return {ok:true,code:'OK',supportLevel:'SUPPORTED',value:JSON.parse(data) as UploadedAsset}

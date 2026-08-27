@@ -1,10 +1,12 @@
-import {Button,Text,View} from '@tarojs/components'
+import {Button,Canvas,Text,View} from '@tarojs/components'
+import Taro from '@tarojs/taro'
 import {useEffect,useRef,useState} from 'react'
 import {api,type Session} from '../api/client'
 import {platformRegistry} from '../platform/runtime'
 import {MAX_LOCAL_REGIONS,PARAMETERS,clampRegion,cloneRecipe,createRecipe,defaultRegion,setAdjustment,type AdjustmentParameter,type AdjustmentRecipe,type AdjustmentScope,type LocalRegion} from './core'
 import {LatestOnlyQueue,V1_ADJUSTMENT_LIMIT,clampV1,deleteRegion,pointerRatioToUiRaw,recipeValueToUi,regionsFromRecipe,uiRawToRecipe,updateRegionGeometry} from './interactive'
 import {MainFineTuneRuntime,RUNTIME_VERSION,type FineTuneSession,type PreviewProjection} from './runtime'
+import {WeChatFineTuneRuntime} from './wechatRuntime'
 import './FineTuneEditor.css'
 
 const labels:Record<AdjustmentParameter,string>={BRIGHTNESS:'亮度',WARMTH:'色温',SATURATION:'饱和度',SOFTNESS:'柔和',BLUR:'背景虚化'}
@@ -36,7 +38,8 @@ export function FineTuneEditor({session,onComplete,onError}:{session:Session;onC
  const canvasHostId=`fine-tune-preview-${session.session_id}`
  const stageId=`${canvasHostId}-stage`
 
- const drawProjection=(projection:PreviewProjection)=>{
+ const drawProjection=async(projection:PreviewProjection)=>{
+  if(platformRegistry.platform==='WECHAT')return new Promise<void>((resolve,reject)=>Taro.nextTick(()=>Taro.createSelectorQuery().select(`#${canvasHostId}-canvas`).fields({node:true,size:true}).exec((result:any[])=>{try{const canvas=result?.[0]?.node;if(!canvas)throw new Error('WECHAT_PREVIEW_CANVAS_UNAVAILABLE');canvas.width=projection.width;canvas.height=projection.height;const context=canvas.getContext('2d',{alpha:false}),image=context.createImageData(projection.width,projection.height);image.data.set(projection.data);context.putImageData(image,0,0);resolve()}catch(error){reject(error)}})))
   if(typeof document==='undefined')return
   const stage=document.getElementById(stageId);if(!stage)return
   const canvas=stage.querySelector('canvas');if(!canvas)return
@@ -61,7 +64,7 @@ export function FineTuneEditor({session,onComplete,onError}:{session:Session;onC
   try{
    const projection=await runtime.current.project(request.recipe)
    queue.current.complete(request.sequence)
-   if(request.sequence===sequence.current)drawProjection(projection)
+   if(request.sequence===sequence.current)await drawProjection(projection)
    const latency=performance.now()-request.inputAt,current=telemetryRef.current,stats=queue.current.snapshot()
    telemetryRef.current={...current,...stats,previewLatencies:[...current.previewLatencies.slice(-39),latency],previewRenderTimes:[...current.previewRenderTimes.slice(-39),projection.render_ms],previewWidth:projection.width,previewHeight:projection.height}
   }catch(error){onError(error instanceof Error?error.message:String(error))}
@@ -82,7 +85,8 @@ export function FineTuneEditor({session,onComplete,onError}:{session:Session;onC
   const source=await api.fineTuneSource(session.session_id)
   const saved=await api.fineTuneRecipe<AdjustmentRecipe>(session.session_id)
   const initial=saved?.recipe||createRecipe(session.session_id,source.asset_id)
-  const opened=await new MainFineTuneRuntime().open({source:{asset_id:source.asset_id,checksum:source.checksum,content_url:api.fineTuneSourceContentUrl(session.session_id)},recipe:initial,options:{preview_long_edge:480,jpeg_quality:.92}})
+  const Runtime=platformRegistry.platform==='WECHAT'?WeChatFineTuneRuntime:MainFineTuneRuntime
+  const opened=await new Runtime().open({source:{asset_id:source.asset_id,checksum:source.checksum,content_url:api.fineTuneSourceContentUrl(session.session_id)},recipe:initial,options:{preview_long_edge:480,jpeg_quality:.92}})
   if(cancelled){opened.close();return}
   runtime.current=opened;history.current=[cloneRecipe(initial)];cursor.current=0;latestRecipe.current=initial
   const restored=regionsFromRecipe(initial);setRegions(restored);setSelectedRegionId(restored[0]?.id||null)
@@ -122,7 +126,7 @@ export function FineTuneEditor({session,onComplete,onError}:{session:Session;onC
  const updateRegion=(region:LocalRegion)=>{const bounded=clampRegion(region);setRegions(current=>current.map(item=>item.id===bounded.id?bounded:item));const source=latestRecipe.current;if(!source)return;const next=updateRegionGeometry(source,bounded);latestRecipe.current=next;setRecipe(next);scheduleProjection(next)}
  const gesturePoint=(event:any)=>event.touches?.[0]||event.changedTouches?.[0]||event
  const beginRegionGesture=(mode:RegionGesture['mode'],region:LocalRegion,event:any)=>{const point=gesturePoint(event);if(typeof point?.clientX!=='number')return;event.stopPropagation?.();event.preventDefault?.();setSelectedRegionId(region.id);regionGesture.current={id:region.id,mode,startX:point.clientX,startY:point.clientY,origin:{...region}}}
- const moveRegionGesture=(event:any)=>{const gesture=regionGesture.current,point=gesturePoint(event),stage=typeof document!=='undefined'?document.getElementById(stageId):null;if(!gesture||!stage||typeof point?.clientX!=='number')return;event.stopPropagation?.();event.preventDefault?.();const rect=stage.getBoundingClientRect(),dx=(point.clientX-gesture.startX)/rect.width,dy=(point.clientY-gesture.startY)/rect.height;updateRegion(gesture.mode==='DRAG'?{...gesture.origin,x:gesture.origin.x+dx,y:gesture.origin.y+dy}:{...gesture.origin,width:gesture.origin.width+dx,height:gesture.origin.height+dy})}
+ const moveRegionGesture=async(event:any)=>{const gesture=regionGesture.current,point=gesturePoint(event);if(!gesture||typeof point?.clientX!=='number')return;event.stopPropagation?.();event.preventDefault?.();let rect:any=typeof document!=='undefined'?document.getElementById(stageId)?.getBoundingClientRect():null;if(!rect)rect=await new Promise(resolve=>Taro.createSelectorQuery().select(`#${stageId}`).boundingClientRect(value=>resolve(value)).exec());if(!rect?.width||!rect?.height)return;const dx=(point.clientX-gesture.startX)/rect.width,dy=(point.clientY-gesture.startY)/rect.height;updateRegion(gesture.mode==='DRAG'?{...gesture.origin,x:gesture.origin.x+dx,y:gesture.origin.y+dy}:{...gesture.origin,width:gesture.origin.width+dx,height:gesture.origin.height+dy})}
  const endRegionGesture=(event:any)=>{if(!regionGesture.current)return;event.stopPropagation?.();event.preventDefault?.();regionGesture.current=null;commitCurrent()}
  const compare=(original:boolean)=>{const current=latestRecipe.current;if(!current)return;scheduleProjection(original?{...current,adjustments:[]}:current)}
 
@@ -134,7 +138,7 @@ export function FineTuneEditor({session,onComplete,onError}:{session:Session;onC
   if(typeof requestAnimationFrame==='function')frameHandle=requestAnimationFrame(heartbeat)
   const artifact=await runtime.current.renderFinal(current,finalKey);telemetryRef.current.jpegEncodeCount++
   if(frameHandle)cancelAnimationFrame(frameHandle)
-  const upload=await platformRegistry.uploadDerived(session.session_id,artifact.blob,finalKey);if(!upload.ok||!upload.value)throw new Error(upload.code)
+  const upload=await platformRegistry.uploadDerived(session.session_id,{blob:artifact.blob,filePath:artifact.filePath,bytes:artifact.bytes},finalKey);if(!upload.ok||!upload.value)throw new Error(upload.code)
   const value=await api.action(session.session_id,'SAVE_ADJUSTMENT_RECIPE',{adjustment_recipe_id:current.recipe_id,derived_upload_asset_id:upload.value.asset_id,runtime_version:RUNTIME_VERSION,render_backend:artifact.backend,render_metrics:{decode_ms:artifact.decode_ms,render_ms:artifact.render_ms,encode_ms:artifact.encode_ms,total_ms:artifact.total_ms,width:artifact.width,height:artifact.height,ui_frame_count_during_render:frameCount,ui_max_frame_gap_ms:maxFrameGap,ui_responsive:artifact.backend==='WORKER_OFFSCREENCANVAS'&&frameCount>0},mask_identity:null},`finalize-${finalKey}`)
   onComplete(value)
  }catch(error){onError(error instanceof Error?error.message:String(error));setStatus('生成未完成，已保存的配方可在刷新后继续。')}finally{setBusy(false)}}
@@ -147,7 +151,7 @@ export function FineTuneEditor({session,onComplete,onError}:{session:Session;onC
  return <View className='fineTunePanel'>
   <Text className='sectionTitle'>微调</Text><Text className='fineTuneStatus'>{status}</Text>
   {compatibilityWarning&&<Text className='compatibilityWarning'>检测到历史配方超出 V1 ±30% 范围；原值保持不变，只有你明确编辑后才写入新范围。</Text>}
-  <View id={canvasHostId} className='fineTunePreviewCanvas'><View id={stageId} className='fineTuneCanvasStage' style={{aspectRatio:previewAspect}}><canvas className='fineTuneCanvasElement' aria-label='微调实时预览'/>{scope==='LOCAL_REGION'&&<View className='localRegionLayer'>{regions.map((region,index)=><View key={region.id} className={selectedRegionId===region.id?'localRegion selectedRegion':'localRegion'} style={{left:`${region.x*100}%`,top:`${region.y*100}%`,width:`${region.width*100}%`,height:`${region.height*100}%`}} onClick={()=>setSelectedRegionId(region.id)} onTouchStart={(event:any)=>beginRegionGesture('DRAG',region,event)} onTouchMove={moveRegionGesture} onTouchEnd={endRegionGesture}><Text className='regionLabel'>区域 {index+1}</Text><Button className='regionDelete' onClick={(event:any)=>{event.stopPropagation?.();removeLocal(region.id)}}>×</Button><View className='regionResize' onTouchStart={(event:any)=>beginRegionGesture('RESIZE',region,event)} onTouchMove={moveRegionGesture} onTouchEnd={endRegionGesture}/></View>)}</View>}</View></View>
+  <View id={canvasHostId} className='fineTunePreviewCanvas'><View id={stageId} className='fineTuneCanvasStage' style={{aspectRatio:previewAspect}}><Canvas id={`${canvasHostId}-canvas`} type='2d' canvasId={`${canvasHostId}-canvas`} className='fineTuneCanvasElement'/>{scope==='LOCAL_REGION'&&<View className='localRegionLayer'>{regions.map((region,index)=><View key={region.id} className={selectedRegionId===region.id?'localRegion selectedRegion':'localRegion'} style={{left:`${region.x*100}%`,top:`${region.y*100}%`,width:`${region.width*100}%`,height:`${region.height*100}%`}} onClick={()=>setSelectedRegionId(region.id)} onTouchStart={(event:any)=>beginRegionGesture('DRAG',region,event)} onTouchMove={moveRegionGesture} onTouchEnd={endRegionGesture}><Text className='regionLabel'>区域 {index+1}</Text><Button className='regionDelete' onClick={(event:any)=>{event.stopPropagation?.();removeLocal(region.id)}}>×</Button><View className='regionResize' onTouchStart={(event:any)=>beginRegionGesture('RESIZE',region,event)} onTouchMove={moveRegionGesture} onTouchEnd={endRegionGesture}/></View>)}</View>}</View></View>
   <View className='scopeTabs'>{(['ALL','PERSON','BACKGROUND','LOCAL_REGION'] as AdjustmentScope[]).map(item=><Button key={item} className={scope===item?'chip activeChip':'chip'} disabled={item==='PERSON'||item==='BACKGROUND'} onClick={()=>setScope(item)}>{{ALL:'整体',PERSON:'人物',BACKGROUND:'背景',LOCAL_REGION:'局部'}[item]}</Button>)}</View>
   <Text className='maskNotice'>人物 / 背景：当前照片没有生产遮罩，按设计暂不可用；整体与手动局部可用。</Text>
   {scope==='LOCAL_REGION'&&<View className='localToolbar'><Button className='secondary compact' disabled={regions.length>=MAX_LOCAL_REGIONS} onClick={addLocal}>新增局部区域（{regions.length}/3）</Button>{regions.length===0&&<Text className='localEmpty'>暂无局部区域，点击上方按钮创建区域 1。</Text>}</View>}
