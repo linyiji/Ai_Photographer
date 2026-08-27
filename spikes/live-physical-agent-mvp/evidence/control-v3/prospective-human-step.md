@@ -4,6 +4,21 @@ Date: 2026-08-27
 
 Status: `READY_FOR_OPPO_EXPLORATORY_GATE / DEVICE_SOURCE_REQUIRED`
 
+## OPPO Attempt A1 — pre-fix diagnostic
+
+Source: `live-p2-v3-v3_framing_only-1787833651595.json`; SHA-256 `204F46F0AF561F26E9DE968D2AC4AB62B1E034B660441108EE3B295EBCA26D9E`.
+
+Result: `FAIL / IMPLEMENTATION_DEFECT / NOT_ACCEPTED_AS_VALID FRAMING_ONLY`.
+
+- User observation: V3 visual subject/target frames disappeared; instruction felt inaccurate.
+- Trace proves tracking itself did not disappear: subject detected ratio 1.0, loss/reacquire 0/0.
+- Root cause 1: V3 presentation path deliberately cleared the accepted visual projector output instead of adapting it to V3.
+- Root cause 2: one initial `MOVE_FARTHER_SMALL` became 24 repeated ordinary actions; 21 NO_EFFECT, 2 INVALIDATED, 0 TARGET_REACHED/IMPROVED, READY false. No new meaningful motion was required before a duplicate retry.
+- Wrong physical direction evidence: 0; this attempt does not establish direction accuracy because no accepted effective correction exists.
+- Performance: Preview 30 FPS; Vision/State 6.99 Hz; inference p50/p95 65.9/74.8 ms; Skipped Busy 5; duration 107.7 s; no raw media.
+
+Bounded fix: V3 now reuses the existing stabilized visual tracker to render subject box, target box, and acceptable zone; NO_EFFECT/WRONG_DIRECTION installs a causal retry barrier until new relevant motion/relation/position evidence; copy identifies the subject's own left/right and explains distance intent. Trace adds scalar start/settled position. Automated regression after fix: 231/231 PASS; TypeScript PASS; build PASS / 35 modules. Attempt A must be rerun with fresh evidence.
+
 ## Admission and browser evidence
 
 - V3 architecture design: PASS / EXPERIMENTAL

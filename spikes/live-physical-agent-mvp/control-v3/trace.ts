@@ -8,6 +8,7 @@ const scalarEpisode=(episode:Readonly<V3Episode>)=>({
   settle_detected_at:episode.settle_detected_at,settled_measurement_at:episode.settled_measurement_at,outcome_at:episode.outcome_at,
   start_state_version:episode.start_state_version,settled_state_version:episode.settled_state_version,start_relation:episode.start_relation,
   settled_relation:episode.settled_relation,start_error:episode.start_error,settled_error:episode.settled_error,
+  start_position:episode.start_position,settled_position:episode.settled_position,
   measurement_quality:episode.measurement_quality,freshness:episode.freshness,settle_duration:episode.settle_duration,outcome:episode.outcome,
 });
 

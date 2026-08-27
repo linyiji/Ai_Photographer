@@ -2,6 +2,8 @@
 
 Status: `MANUAL_REVIEW_REQUIRED / READY_FOR_OPPO_EXPLORATORY_GATE`
 
+Update: first OPPO FRAMING_ONLY attempt is a pre-fix FAIL diagnostic, not an accepted device trial. It exposed a V3-only visual presentation omission and repeated NO_EFFECT cue issuance. A bounded same-task fix restores the existing stabilized visual boxes, adds a causal duplicate-retry barrier, clarifies copy, and extends scalar position telemetry. Post-fix verification is 231/231 automated PASS, TypeScript PASS, Build PASS / 35 modules. Fresh OPPO rerun remains required.
+
 Git admission passed at `48ecd0c90ea304c8ce6b2198306c9060a1c576ca`, remote equal, ahead/behind `0/0`, clean worktree. No reset, rebase, force push, develop merge, Main integration, or new branch was performed.
 
 ## Authority correction

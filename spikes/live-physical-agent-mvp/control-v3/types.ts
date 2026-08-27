@@ -72,6 +72,8 @@ export interface V3Episode {
   settled_relation: V3FramingRelation | V3XRelation | null;
   start_error: number | null;
   settled_error: number | null;
+  start_position: number | null;
+  settled_position: number | null;
   measurement_quality: V3MeasurementQuality;
   freshness: boolean;
   settle_duration: number | null;
@@ -93,6 +95,7 @@ export interface V3Metrics {
   action_effectiveness: number | null;
   wrong_direction_rate: number | null;
   pause_count: number;
+  duplicate_retry_suppressed_count: number;
   luna_calls: 0;
   provider_calls: 0;
   backend_per_frame_calls: 0;

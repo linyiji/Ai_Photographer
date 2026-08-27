@@ -210,7 +210,7 @@ const perceptionRuntime = new PerceptionRuntime({
     latestPerceptionState = state;
     latestRawMeasurement = rawMeasurement;
     if(activePolicy()==='V3'){
-      const decisionAt=performance.now();latestV3Measurement=v3Projector.project(state,currentTarget,Math.max(0,decisionAt-state.timestamp_ms));const started=performance.now();latestV3Snapshot=v3Controller.update(latestV3Measurement);v3ControllerLatencies.push(performance.now()-started);if(v3ControllerLatencies.length>240)v3ControllerLatencies.shift();v3Trace.append(latestV3Snapshot);latestClosedLoop=null;latestVisualGuidance=null;
+      const decisionAt=performance.now();latestV3Measurement=v3Projector.project(state,currentTarget,Math.max(0,decisionAt-state.timestamp_ms));const started=performance.now();latestV3Snapshot=v3Controller.update(latestV3Measurement);v3ControllerLatencies.push(performance.now()-started);if(v3ControllerLatencies.length>240)v3ControllerLatencies.shift();v3Trace.append(latestV3Snapshot);latestClosedLoop=null;latestVisualGuidance=visualProjector.updateV3(state,latestV3Snapshot,currentTarget,rawMeasurement,{mode:guidanceMode.value as VisualServoMode,grid:guidanceGrid.checked,now:performance.now()});
     }else{
       latestClosedLoop = closedLoop.update(state, { decision_timestamp_ms: performance.now(), camera_facing: activeFacingMode === 'user' ? 'FRONT' : activeFacingMode === 'environment' ? 'REAR' : 'UNKNOWN', preview_mirror_state: activeFacingMode === 'user' ? 'MIRRORED' : activeFacingMode === 'environment' ? 'NON_MIRRORED' : 'UNKNOWN' });
       latestVisualGuidance = visualProjector.update(state, latestClosedLoop, rawMeasurement, { mode: guidanceMode.value as VisualServoMode, grid: guidanceGrid.checked, now: performance.now() });
@@ -324,12 +324,12 @@ function renderVisualGuidance(): void {
 }
 
 const percentile=(values:ReadonlyArray<number>,p:number):number=>{if(!values.length)return 0;const sorted=[...values].sort((a,b)=>a-b);return sorted[Math.min(sorted.length-1,Math.floor((sorted.length-1)*p))];};
-const v3CurrentAction=(snapshot:V3Snapshot|null):V3Action|null=>snapshot?.action??(snapshot?.episode?.state!=='EVALUATED'?snapshot?.episode?.action??null:null);
+const v3CurrentAction=(snapshot:V3Snapshot|null):V3Action|null=>snapshot?.action??(snapshot?.episode&&(snapshot.episode.state!=='EVALUATED'||snapshot.outcome==='NO_EFFECT'||snapshot.outcome==='WRONG_DIRECTION')?snapshot.episode.action:null);
 
 function renderV3Visual():void{
   const snapshot=latestV3Snapshot;const action=v3CurrentAction(snapshot);const copy=action?V3_ACTION_COPY[action]:null;
   visualOverlay.dataset.status=snapshot?.ready?'READY':action?'CORRECTING':snapshot?.measurement.subject_state==='PRESENT'?'TRACKING':'LOST';visualGrid.classList.toggle('is-visible',guidanceGrid.checked);
-  for(const element of [acceptableZone,targetBox,subjectBox,stopVisual])element.classList.remove('is-visible');
+  stopVisual.classList.remove('is-visible');applyProjectedBox(subjectBox,latestVisualGuidance?.tracked_subject_box??null);applyProjectedBox(targetBox,latestVisualGuidance?.target_box??null);const zone=latestVisualGuidance?.acceptable_zone;applyProjectedBox(acceptableZone,zone?{left:zone.left,top:zone.top,width:zone.right-zone.left,height:zone.bottom-zone.top,center_x:(zone.left+zone.right)/2,center_y:(zone.top+zone.bottom)/2}:null);subjectLockLabel.textContent=latestVisualGuidance?.tracking_status==='LOCKED'?'人物已锁定':'人物锁定中';
   readyVisual.classList.toggle('is-visible',Boolean(snapshot?.ready));directionVisual.classList.toggle('is-visible',Boolean(action));
   if(action){directionLabel.textContent=copy!;directionIcon.textContent=action==='MOVE_LEFT_SMALL'?'←':action==='MOVE_RIGHT_SMALL'?'→':action==='MOVE_CLOSER_SMALL'?'＋':'−';}
   trackingVisual.textContent=snapshot?.ready?'READY · 已锁定':action?'只做一次小调整，然后自然停下':snapshot?.stage==='ACQUIRE'?'正在确认人物与测量':'保持不动 · 正在确认结果';
@@ -339,7 +339,7 @@ function renderV3Control():void{
   const snapshot=latestV3Snapshot;const measurement=latestV3Measurement??snapshot?.measurement??null;const action=v3CurrentAction(snapshot);const copy=action?V3_ACTION_COPY[action]:null;
   v3DebugPanel.hidden=false;v2DebugGrid.hidden=true;v3Fields.policy.textContent='CONTROL POLICY · V3 · EXPERIMENTAL';v3Fields.stage.textContent=snapshot?.stage??'ACQUIRE';v3Fields.framing.textContent=measurement?.framing_relation??'UNKNOWN';v3Fields.x.textContent=measurement?.x_relation??'UNKNOWN';v3Fields.measurement.textContent=measurement?.measurement_quality??'INVALID';v3Fields.stable.textContent=measurement?.stable?'YES':'NO';v3Fields.action.textContent=copy??'—';v3Fields.outcome.textContent=snapshot?.outcome??'—';v3Fields.latency.textContent=`${percentile(v3ControllerLatencies,.5).toFixed(3)} / ${percentile(v3ControllerLatencies,.95).toFixed(3)} ms`;
   closedLoopFields.runtimeState.textContent=`STATE · ${snapshot?.stage??'IDLE'}`;closedLoopFields.ready.textContent=`READY · ${String(snapshot?.ready??false).toUpperCase()}`;
-  let text='模型已就绪 · 点击“ARM 新试验”开始';if(snapshot?.armed){if(snapshot.ready)text='好，就这里';else if(copy)text=`${copy} · 做一次小调整后自然停下`;else if(snapshot.stage==='ACQUIRE')text='保持片刻 · 正在确认人物与测量';else if(snapshot.episode?.state==='EVALUATED')text=`${snapshot.outcome??'已评估'} · 保持不动，等待下一步`;else text='保持不动 · 正在确认结果';}
+  let text='模型已就绪 · 点击“ARM 新试验”开始';if(snapshot?.armed){if(snapshot.ready)text='好，就这里';else if(snapshot.outcome==='NO_EFFECT'&&copy)text=`未检测到有效调整 · ${copy}，然后停下`;else if(snapshot.outcome==='WRONG_DIRECTION'&&copy)text=`刚才方向相反 · ${copy}，然后停下`;else if(copy)text=`${copy} · 做一次小调整后自然停下`;else if(snapshot.stage==='ACQUIRE')text=snapshot.outcome==='INVALIDATED'?'测量中断 · 请保持人物可见并站稳':'保持片刻 · 正在确认人物与测量';else if(snapshot.episode?.state==='EVALUATED')text=`${snapshot.outcome??'已评估'} · 保持不动，等待下一步`;else text='保持不动 · 正在确认结果';}
   closedLoopFields.instruction.textContent=text;guidanceOverlayState.textContent=`V3 EXPERIMENTAL · ${snapshot?.stage??'DISARMED'} · ONE STEP`;guidanceOverlayText.textContent=text;closedLoopReset.textContent='重置 V3 试验';closedLoopArm.textContent='ARM V3 新试验';
 }
 

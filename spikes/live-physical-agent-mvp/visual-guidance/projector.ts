@@ -1,5 +1,7 @@
 import type { ClosedLoopSnapshot, DirectionalAction } from '../closed-loop/types.js';
 import type { PoseMeasurement, StructuredPerceptionState } from '../perception/types.js';
+import type { TargetState } from '../closed-loop/types.js';
+import type { V3Snapshot } from '../control-v3/types.js';
 import { VISUAL_GUIDANCE_CONFIG } from './config.js';
 import type { AcceptableZone, NormalizedBox, TrackingStatus, VisualAxisStatus, VisualGuidanceConfig, VisualGuidanceMetrics, VisualGuidanceState, VisualServoMode, VisualServoStatus } from './types.js';
 
@@ -92,6 +94,13 @@ export class VisualGuidanceProjector {
     };
   }
 
+  updateV3(state:StructuredPerceptionState,control:V3Snapshot,targetState:TargetState,rawMeasurement:PoseMeasurement|null=null,options:{mode?:VisualServoMode;grid?:boolean;now?:number}={}):VisualGuidanceState{
+    const now=options.now??state.timestamp_ms;const fresh=state.subject.present&&(state.measurement_age_ms??0)===0;const rawBox=boxFromState(state,rawMeasurement);const authoritativeBox=boxFromState(state,null);this.updateTracking(rawBox,state,fresh,now);if(rawBox&&fresh)this.updateProjection(rawBox,state,now,control.ready&&state.subject.stable?authoritativeBox:null);
+    const target=this.targetGeometryFor(targetState,this.smoothed??authoritativeBox??rawBox);const xStatus:VisualAxisStatus=control.measurement.x_relation==='IN_RANGE'?'INSIDE':control.measurement.x_relation==='UNKNOWN'?'MISSING':'OUTSIDE';const scaleStatus:VisualAxisStatus=control.measurement.framing_relation==='IN_RANGE'?'INSIDE':control.measurement.framing_relation==='UNKNOWN'?'MISSING':'OUTSIDE';const inside=xStatus==='INSIDE'&&scaleStatus==='INSIDE';
+    const action=control.action??(control.episode?.state!=='EVALUATED'?control.episode?.action:null);const directionHint:DirectionalAction|null=action==='MOVE_LEFT_SMALL'?'MOVE_LEFT':action==='MOVE_RIGHT_SMALL'?'MOVE_RIGHT':action==='MOVE_CLOSER_SMALL'?'MOVE_CLOSER':action==='MOVE_FARTHER_SMALL'?'MOVE_FARTHER':null;
+    return {tracked_subject_box:this.trackingStatus==='UNLOCKED'?null:this.smoothed,raw_subject_box:rawBox,target_box:target.box,acceptable_zone:target.zone,tracking_status:this.trackingStatus,tracking_confidence:state.subject.present?clamp(state.subject.confidence):0,x_status:xStatus,scale_status:scaleStatus,visual_status:this.trackingStatus==='UNLOCKED'?'LOST':control.ready?'READY':directionHint?'CORRECTING':inside?'INSIDE_TARGET':'TRACKING',near_target:false,inside_target:inside,measurement_stable:control.measurement.stable,direction_hint:directionHint,display_axis_sign:directionHint?(state.coordinate_basis==='SENSOR_NORMALIZED_NON_MIRRORED'?(directionHint==='MOVE_LEFT'?-1:directionHint==='MOVE_RIGHT'?1:0):0):0,braking:false,ready:control.ready,ready_source:control.ready?'PASSIVE_CONFIRMATION':null,source_timestamp:state.timestamp_ms,projection_age:Math.max(0,now-state.timestamp_ms),grid_enabled:options.grid??false,overlay_mode:options.mode??'VISUAL_PLUS_TEXT',metrics:this.metrics(),display_observation:Object.freeze({source_timestamp:state.timestamp_ms,projected_at:now,latency_ms:this.visualLatencyMs,subject_box:this.smoothed?{...this.smoothed}:null})};
+  }
+
   private updateTracking(rawBox: NormalizedBox | null, state: StructuredPerceptionState, fresh: boolean, now: number): void {
     if (rawBox && fresh) {
       const returning = this.trackingStatus === 'HELD' || this.trackingStatus === 'REACQUIRING';
@@ -138,14 +147,17 @@ export class VisualGuidanceProjector {
   }
 
   private targetGeometry(control: ClosedLoopSnapshot, subject: NormalizedBox | null): { box: NormalizedBox; zone: AcceptableZone } {
+    return this.targetGeometryFor(control.target,subject);
+  }
+  private targetGeometryFor(targetState:TargetState, subject: NormalizedBox | null): { box: NormalizedBox; zone: AcceptableZone } {
     const aspect = subject && subject.height > 0 ? clamp(subject.width / subject.height, 0.3, 1.2) : 0.58;
-    const centerY = control.target.y_exempt && subject ? subject.center_y : control.target.center_y;
-    const targetWidth = clamp(control.target.height_ratio * aspect, 0.08, 0.9);
-    const box = boxFromValues(control.target.center_x, centerY, targetWidth, control.target.height_ratio);
-    const outerHeight = clamp(control.target.height_ratio + control.target.tolerance_height * 2, 0.02, 1);
-    const outerWidth = clamp(targetWidth + control.target.tolerance_x * 2, 0.02, 1);
-    const outer = boxFromValues(control.target.center_x, centerY, outerWidth, outerHeight);
-    return { box, zone: { left: outer.left, right: clamp(outer.left + outer.width), top: outer.top, bottom: clamp(outer.top + outer.height), center_x_min: clamp(control.target.center_x - control.target.tolerance_x), center_x_max: clamp(control.target.center_x + control.target.tolerance_x), height_min: clamp(control.target.height_ratio - control.target.tolerance_height), height_max: clamp(control.target.height_ratio + control.target.tolerance_height) } };
+    const centerY = targetState.y_exempt && subject ? subject.center_y : targetState.center_y;
+    const targetWidth = clamp(targetState.height_ratio * aspect, 0.08, 0.9);
+    const box = boxFromValues(targetState.center_x, centerY, targetWidth, targetState.height_ratio);
+    const outerHeight = clamp(targetState.height_ratio + targetState.tolerance_height * 2, 0.02, 1);
+    const outerWidth = clamp(targetWidth + targetState.tolerance_x * 2, 0.02, 1);
+    const outer = boxFromValues(targetState.center_x, centerY, outerWidth, outerHeight);
+    return { box, zone: { left: outer.left, right: clamp(outer.left + outer.width), top: outer.top, bottom: clamp(outer.top + outer.height), center_x_min: clamp(targetState.center_x - targetState.tolerance_x), center_x_max: clamp(targetState.center_x + targetState.tolerance_x), height_min: clamp(targetState.height_ratio - targetState.tolerance_height), height_max: clamp(targetState.height_ratio + targetState.tolerance_height) } };
   }
 
   private visualStatus(control: ClosedLoopSnapshot, near: boolean, inside: boolean, braking: boolean): VisualServoStatus {
