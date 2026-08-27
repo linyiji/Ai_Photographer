@@ -2,10 +2,10 @@
 
 **Project Baseline:** V0.6 Complete  
 **Current Product Prototype:** S01 V1.6.1  
-**Current Milestone:** Product Platform Rebaseline
-**Current Task:** XFX_MAIN_TARGET_PLATFORM_REBASELINE_AFTER_H5_CAMERA_LIMITATION_01
+**Current Milestone:** WeChat First Complete Product Baseline
+**Current Task:** XFX_MAIN_WECHAT_MINIPROGRAM_FIRST_COMPLETE_PRODUCT_BASELINE_01
 
-**Current Task Status:** PASS
+**Current Task Status:** MANUAL_REVIEW_REQUIRED
 
 **Overall Project Status:** IN_PROGRESS
 **Primary Environment:** Windows First
@@ -45,6 +45,28 @@ PUBLIC_PRODUCTION_READY = NO
 ```
 
 H5 remains supported for UI, Workflow, backend, Replay, diagnostics, Scene/Live harnesses, Fine Tune and desktop QA. It is no longer product authority for OPPO Chrome Preview-to-Capture fidelity. Successor planning authority: `docs/platform/MINIPROGRAM_PRODUCT_PLATFORM_BASELINE_V01.md`.
+
+## WeChat First Complete Product Candidate
+
+```text
+Source: feature/first-complete-non-ai-product-flow @ 62e9cacc37cfd5149c78e05860cbc56ab2f6e0d5
+Branch: feature/wechat-miniprogram-first-complete-product-baseline
+Implementation: PASS
+Home V1 Import: PASS
+WeChat Build: PASS
+H5 Regression: PASS_WITH_WARNING
+TypeScript: PASS
+Frontend Tests: 87 / 87 PASS
+Backend Tests: 110 / 110 PASS
+WeChat Developer Tools: NOT_AVAILABLE
+WeChat Real Device Network: MANUAL_REVIEW_REQUIRED
+WeChat Device Gate: MANUAL_REVIEW_REQUIRED
+WeChat Product Baseline: NOT_YET_PASS
+First Complete Non-AI Product Baseline: NOT_YET_PASS
+Provider / Luna / Raw Video / Frame Stream: 0
+```
+
+Home/Works/Mine, three session entry modes, Context Reliability/Reconcile, WeChat Camera/capture/reference/upload/save/share adapters, and WeChat Fine Tune platform runtime are implemented. Build and mock-platform evidence cannot substitute for authorized WeChat Developer Tools and OPPO K11 evidence. Camera lifecycle, Preview-to-Capture fidelity, native Capture persistence, Fine Tune/local region, Final/My Works/Save/Share, and the full golden flow remain unexercised. Exact Owner steps: `project-status/evidence/wechat-miniprogram-first-complete/manual-gates.md`.
 
 ## M05 Real User Golden Flow
 

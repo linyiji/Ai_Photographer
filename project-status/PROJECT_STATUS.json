@@ -5,9 +5,9 @@
   "current_prototype": "S01 V1.6.1",
   "primary_environment": "windows",
   "overall_status": "IN_PROGRESS",
-  "current_milestone": "PRODUCT_PLATFORM_REBASELINE",
-  "current_task": "XFX_MAIN_TARGET_PLATFORM_REBASELINE_AFTER_H5_CAMERA_LIMITATION_01",
-  "current_task_status": "PASS",
+  "current_milestone": "WECHAT_FIRST_COMPLETE_PRODUCT_BASELINE",
+  "current_task": "XFX_MAIN_WECHAT_MINIPROGRAM_FIRST_COMPLETE_PRODUCT_BASELINE_01",
+  "current_task_status": "MANUAL_REVIEW_REQUIRED",
   "milestones": [
     { "id": "M00", "name": "Project Baseline", "status": "PASS", "gate": "M00_BASELINE_LOCK", "gate_status": "PASS" },
     { "id": "M01", "name": "Global Contracts", "status": "PASS", "gate": "M01_CONTRACT_LOCK", "gate_status": "PASS" },
@@ -480,9 +480,52 @@
     "luna_calls": 0,
     "public_production_ready": false
   },
+  "wechat_first_complete_product_baseline": {
+    "task_id": "XFX_MAIN_WECHAT_MINIPROGRAM_FIRST_COMPLETE_PRODUCT_BASELINE_01",
+    "status": "MANUAL_REVIEW_REQUIRED",
+    "source_branch": "feature/first-complete-non-ai-product-flow",
+    "source_head": "62e9cacc37cfd5149c78e05860cbc56ab2f6e0d5",
+    "work_branch": "feature/wechat-miniprogram-first-complete-product-baseline",
+    "implementation": "PASS",
+    "home_v1_import": "PASS",
+    "home_landmark_authority": "DECORATIVE_ONLY",
+    "real_home_external_context": "NOT_YET_LOCKED",
+    "wechat_bootstrap": "PASS",
+    "wechat_build": "PASS",
+    "h5_regression": "PASS_WITH_WARNING",
+    "typescript": "PASS",
+    "frontend_tests": "87 PASS",
+    "backend_tests": "110 PASS",
+    "home_navigation": "PASS",
+    "photography_session_entry": "PASS",
+    "context_reliability": "PASS",
+    "context_reconcile": "PASS",
+    "wechat_camera_adapter": "PASS",
+    "wechat_camera_lifecycle": "NOT_EXERCISED",
+    "wechat_camera_composition_fidelity": "NOT_EXERCISED",
+    "wechat_capture": "NOT_EXERCISED",
+    "capture_persistence": "NOT_EXERCISED",
+    "fine_tune_portability": "PASS_WITH_WARNING",
+    "local_region": "NOT_EXERCISED",
+    "finalize": "NOT_EXERCISED",
+    "my_works": "NOT_EXERCISED",
+    "save_to_album": "NOT_EXERCISED",
+    "share": "NOT_EXERCISED",
+    "wechat_devtools_gate": "NOT_AVAILABLE",
+    "wechat_real_device_network_gate": "MANUAL_REVIEW_REQUIRED",
+    "wechat_device_gate": "MANUAL_REVIEW_REQUIRED",
+    "full_wechat_golden_flow": "NOT_EXERCISED",
+    "wechat_miniprogram_product_baseline": "NOT_YET_PASS",
+    "first_complete_non_ai_product_baseline": "NOT_YET_PASS",
+    "provider_calls": 0,
+    "luna_calls": 0,
+    "raw_video_uploads": 0,
+    "frame_stream_uploads": 0,
+    "public_production_ready": false
+  },
   "next_required_result": {
     "task_id": "XFX_MAIN_WECHAT_MINIPROGRAM_FIRST_COMPLETE_PRODUCT_BASELINE_01",
-    "condition": "WECHAT_MINIPROGRAM_FIRST_COMPLETE_PRODUCT_BASELINE"
+    "condition": "AUTHORIZED_WECHAT_DEVTOOLS_AND_OPPO_K11_G0_G9_ACCEPTANCE"
   },
   "next_recommended_task": "XFX_MAIN_WECHAT_MINIPROGRAM_FIRST_COMPLETE_PRODUCT_BASELINE_01",
   "following_main_task": null,
@@ -520,5 +563,5 @@
     "version_scope": "project-status/CURRENT_VERSION_SCOPE.md",
     "handoff": "project-status/GPT_HANDOFF.md"
   },
-  "updated_at": "2026-08-25"
+  "updated_at": "2026-08-27"
 }

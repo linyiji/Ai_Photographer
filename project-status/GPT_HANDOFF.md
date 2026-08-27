@@ -1,9 +1,9 @@
 # GPT / Codex Handoff
 
 **Baseline:** V0.6 Complete  
-**Current Milestone:** TARGET PLATFORM REBASELINE
+**Current Milestone:** WECHAT FIRST COMPLETE PRODUCT BASELINE
 
-**Current Task:** XFX_MAIN_TARGET_PLATFORM_REBASELINE_AFTER_H5_CAMERA_LIMITATION_01 — PASS
+**Current Task:** XFX_MAIN_WECHAT_MINIPROGRAM_FIRST_COMPLETE_PRODUCT_BASELINE_01 — MANUAL_REVIEW_REQUIRED
 
 ## Project Context
 
@@ -23,9 +23,13 @@ Provider = 0
 Luna = 0
 ```
 
-Reuse M01 contracts, PhotographySession/Workflow, backend/persistence, asset lineage, deterministic QA/Reality+, Replay, Fine Tune semantics, Final/My Works and shared product logic. Replace and independently accept Mini Program Camera, permission/lifecycle, Preview-to-Capture fidelity, native/high-quality Capture, Album/Save and Share adapters. Home V1 is staged—not imported—under `D:\Projects\_bootstrap\main-next\home-v1\source\`. Scene Spatial and Live Main integration remain `NOT_STARTED`; Fine Tune is preserved for portability review.
+Reuse M01 contracts, PhotographySession/Workflow, backend/persistence, asset lineage, deterministic QA/Reality+, Replay, Fine Tune semantics, Final/My Works and shared product logic. Home V1 was imported from `D:\Projects\_bootstrap\main-next\home-v1\source\` with provenance. Mini Program Camera, permission/lifecycle, Preview-to-Capture fidelity, native/high-quality Capture, Album/Save, Share, and Fine Tune platform behavior require independent device acceptance. Scene Spatial and Live Main integration remain `NOT_STARTED`.
 
-Read first: `docs/platform/MINIPROGRAM_PRODUCT_PLATFORM_BASELINE_V01.md` and `project-status/reports/XFX_MAIN_TARGET_PLATFORM_REBASELINE_AFTER_H5_CAMERA_LIMITATION_01.md`.
+The WeChat candidate implementation is now complete on `feature/wechat-miniprogram-first-complete-product-baseline`: Home V1 is imported, Home/Works/Mine and all three session entry modes are wired, Context Reliability/Reconcile is contract-backed, WeChat Camera/upload/save/share adapters exist, and Fine Tune has a WeChat Canvas/OffscreenCanvas runtime. TypeScript, 87 frontend tests, 110 backend tests, WeChat build, and H5 regression passed. The project still uses `touristappid`, WeChat Developer Tools was unavailable, and no authorized device/network environment was available; G2-G9 and baseline promotion therefore remain pending.
+
+Read first: `project-status/reports/XFX_MAIN_WECHAT_MINIPROGRAM_FIRST_COMPLETE_PRODUCT_BASELINE_01.md`, `project-status/evidence/wechat-miniprogram-first-complete/manual-gates.md`, and `docs/architecture/81-wechat-first-complete-product-baseline-v1.0.md`.
+
+Platform rebaseline history: `docs/platform/MINIPROGRAM_PRODUCT_PLATFORM_BASELINE_V01.md` and `project-status/reports/XFX_MAIN_TARGET_PLATFORM_REBASELINE_AFTER_H5_CAMERA_LIMITATION_01.md`.
 
 ## Architecture Authority
 
@@ -259,10 +263,10 @@ project-status/CHALLENGES.json
 
 ## Next Task
 
-Next Recommended Task:
+Next Recommended Task / resume target:
 
 ```text
 XFX_MAIN_WECHAT_MINIPROGRAM_FIRST_COMPLETE_PRODUCT_BASELINE_01
 ```
 
-不要自动执行下一任务。Real Provider 继续延期；下一步是受控 WeChat Mini Program First Complete Product Baseline。M01 Contract Authority、Workflow V1、Platform Catalog 与 Backend Session Authority 保持不变；Scene Spatial、Live 与 Fine Tune 不在本任务集成，CH-003 保持 `IDENTIFIED / UNCHANGED`。
+不要开始新的正式任务。由 Owner 提供授权 AppID/domain、WeChat Developer Tools 和 OPPO K11 WeChat 环境后，恢复同一任务完成 G0-G9。Real Provider 继续延期；M01 Contract Authority、Workflow V1、Platform Catalog 与 Backend Session Authority 保持不变；Scene Spatial、Live、AI Director 与 Douyin 保持 `NOT_STARTED`，CH-003 保持 `IDENTIFIED / UNCHANGED`。
