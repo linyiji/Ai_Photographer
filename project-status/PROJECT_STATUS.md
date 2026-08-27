@@ -54,7 +54,7 @@ Branch: feature/wechat-miniprogram-first-complete-product-baseline
 Implementation: PASS
 Home V1 Import: PASS
 WeChat Build: PASS
-H5 Regression: PASS_WITH_WARNING
+H5 Regression: PASS
 TypeScript: PASS
 Frontend Tests: 87 / 87 PASS
 Backend Tests: 110 / 110 PASS

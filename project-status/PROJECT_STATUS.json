@@ -492,7 +492,7 @@
     "real_home_external_context": "NOT_YET_LOCKED",
     "wechat_bootstrap": "PASS",
     "wechat_build": "PASS",
-    "h5_regression": "PASS_WITH_WARNING",
+    "h5_regression": "PASS",
     "typescript": "PASS",
     "frontend_tests": "87 PASS",
     "backend_tests": "110 PASS",
