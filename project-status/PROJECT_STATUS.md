@@ -2,10 +2,10 @@
 
 **Project Baseline:** V0.6 Complete  
 **Current Product Prototype:** S01 V1.6.1  
-**Current Milestone:** M06 — Real Capability Integration Wave
-**Current Task:** XFX_MAIN_M06_PROVIDER_DEFERRED_AND_FRONTEND_SIMPLIFICATION_01
+**Current Milestone:** Product Platform Rebaseline
+**Current Task:** XFX_MAIN_TARGET_PLATFORM_REBASELINE_AFTER_H5_CAMERA_LIMITATION_01
 
-**Current Task Status:** PASS_WITH_WARNING
+**Current Task Status:** PASS
 
 **Overall Project Status:** IN_PROGRESS
 **Primary Environment:** Windows First
@@ -22,6 +22,29 @@
 | M05 MVP Golden Flow | PASS | Implementation PASS; Real Device PASS; M05 Final Gate PASS |
 | M06 Real Capability Replacement | PASS | Infrastructure PASS; Provider DEFERRED_BY_PRODUCT_DECISION |
 | M07 Cross-platform | NOT_STARTED | M07_CROSS_PLATFORM_BASELINE |
+
+## Target Platform Rebaseline
+
+```text
+H5 = DEVELOPMENT_AND_ALGORITHM_HARNESS
+H5_OPPO_NATIVE_STILL = PASS
+H5_OPPO_CAPTURE_TRANSPORT = PASS
+H5_OPPO_BACKEND_PERSISTENCE = PASS
+H5_OPPO_COMPOSITION_FIDELITY = UNSUPPORTED
+H5_OPPO_PRODUCT_CAMERA_PATH = UNSUPPORTED
+OLD_FIRST_COMPLETE_NON_AI_PRODUCT_BASELINE = NOT_YET_PASS
+WECHAT_MINIPROGRAM = PRIMARY_PRODUCT_PLATFORM_CANDIDATE / UNVERIFIED
+DOUYIN_MINIPROGRAM = SECONDARY_PRODUCT_PLATFORM_CANDIDATE / UNVERIFIED
+HOME_V1 = STAGED_FOR_SUCCESSOR_MAIN
+SCENE_SPATIAL_INTEGRATION = NOT_STARTED
+LIVE_INTEGRATION = NOT_STARTED
+FINE_TUNE = PRESERVED_FOR_PORTABILITY_REVIEW
+PROVIDER = 0
+LUNA = 0
+PUBLIC_PRODUCTION_READY = NO
+```
+
+H5 remains supported for UI, Workflow, backend, Replay, diagnostics, Scene/Live harnesses, Fine Tune and desktop QA. It is no longer product authority for OPPO Chrome Preview-to-Capture fidelity. Successor planning authority: `docs/platform/MINIPROGRAM_PRODUCT_PLATFORM_BASELINE_V01.md`.
 
 ## M05 Real User Golden Flow
 
@@ -352,7 +375,7 @@ Challenges Reopened: NONE
 ## Next Recommended Task
 
 ```text
-XFX_LOCAL_FINE_TUNE_INTEGRATION_01
+XFX_MAIN_WECHAT_MINIPROGRAM_FIRST_COMPLETE_PRODUCT_BASELINE_01
 ```
 
-这里只记录下一任务；本次不开始 Local Fine Tune Integration，不修改 `main`。Live/Fine Tune/AI Visual 并行 worktree 保持独立，CH-003 仍为 `IDENTIFIED / UNCHANGED`。
+这里只记录下一任务；本次不开始 WeChat Mini Program successor baseline，不修改 `main`。Scene Spatial、Live 与 Fine Tune 边界保持独立，CH-003 仍为 `IDENTIFIED / UNCHANGED`。

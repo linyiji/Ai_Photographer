@@ -1,13 +1,31 @@
 # GPT / Codex Handoff
 
 **Baseline:** V0.6 Complete  
-**Current Milestone:** M06 — PROVIDER DEFERRED / FRONTEND SIMPLIFICATION
+**Current Milestone:** TARGET PLATFORM REBASELINE
 
-**Current Task:** XFX_MAIN_M06_PROVIDER_DEFERRED_AND_FRONTEND_SIMPLIFICATION_01 — PASS_WITH_WARNING
+**Current Task:** XFX_MAIN_TARGET_PLATFORM_REBASELINE_AFTER_H5_CAMERA_LIMITATION_01 — PASS
 
 ## Project Context
 
 向风行是 Reality First AI Photographer。
+
+## Current platform handoff
+
+```text
+H5 = DEVELOPMENT_AND_ALGORITHM_HARNESS
+H5 OPPO native still / transport / persistence = PASS
+H5 OPPO Preview <-> native still fidelity = UNSUPPORTED
+H5 OPPO product Camera path = UNSUPPORTED
+Old First Complete Non-AI baseline = CLOSED_NOT_YET_PASS
+Primary product-platform candidate = WECHAT_MINIPROGRAM / UNVERIFIED
+Secondary candidate = DOUYIN_MINIPROGRAM / UNVERIFIED
+Provider = 0
+Luna = 0
+```
+
+Reuse M01 contracts, PhotographySession/Workflow, backend/persistence, asset lineage, deterministic QA/Reality+, Replay, Fine Tune semantics, Final/My Works and shared product logic. Replace and independently accept Mini Program Camera, permission/lifecycle, Preview-to-Capture fidelity, native/high-quality Capture, Album/Save and Share adapters. Home V1 is staged—not imported—under `D:\Projects\_bootstrap\main-next\home-v1\source\`. Scene Spatial and Live Main integration remain `NOT_STARTED`; Fine Tune is preserved for portability review.
+
+Read first: `docs/platform/MINIPROGRAM_PRODUCT_PLATFORM_BASELINE_V01.md` and `project-status/reports/XFX_MAIN_TARGET_PLATFORM_REBASELINE_AFTER_H5_CAMERA_LIMITATION_01.md`.
 
 ## Architecture Authority
 
@@ -244,7 +262,7 @@ project-status/CHALLENGES.json
 Next Recommended Task:
 
 ```text
-XFX_LOCAL_FINE_TUNE_INTEGRATION_01
+XFX_MAIN_WECHAT_MINIPROGRAM_FIRST_COMPLETE_PRODUCT_BASELINE_01
 ```
 
-不要自动执行下一任务。Real Provider 已按产品决定延期；下一步是受控 Local Fine Tune Integration。M01 Contract Authority、Workflow V1、Platform Catalog 与 Backend Session Authority 保持不变；Live/Fine Tune/AI Visual 并行 worktree 未触碰，CH-003 保持 `IDENTIFIED / UNCHANGED`。
+不要自动执行下一任务。Real Provider 继续延期；下一步是受控 WeChat Mini Program First Complete Product Baseline。M01 Contract Authority、Workflow V1、Platform Catalog 与 Backend Session Authority 保持不变；Scene Spatial、Live 与 Fine Tune 不在本任务集成，CH-003 保持 `IDENTIFIED / UNCHANGED`。

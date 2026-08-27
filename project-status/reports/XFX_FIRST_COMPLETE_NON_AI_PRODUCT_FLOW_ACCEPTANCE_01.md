@@ -277,3 +277,23 @@ No `PreviewMatchedCaptureAsset` was created and no unvalidated crop was promoted
 Full numeric evidence and the explicit evidence limitations for telemetry rows outside the supplied screenshots:
 
 `project-status/evidence/first-complete-non-ai/oppo-bounded-remediation/oppo-preview-native-still-registration.md`
+
+## FINAL_H5_PLATFORM_DISPOSITION — 2026-08-27
+
+The bounded H5/OPPO Camera investigation is closed. This section preserves all preceding history and does not promote the Parent to PASS.
+
+```text
+H5 Development Harness = SUPPORTED
+H5 OPPO Native Capture Quality = PASS / 3072x4096 / 12.58 MP
+H5 OPPO Capture Transport = PASS
+H5 OPPO Backend Persistence = PASS
+H5 OPPO Preview <-> Native Still Fidelity = UNSUPPORTED
+H5 OPPO Product Camera Path = UNSUPPORTED
+FULL_MAIN_GOLDEN_FLOW = FAIL / BLOCKED_BY_H5_CAMERA_COMPATIBILITY
+FIRST_COMPLETE_NON_AI_PRODUCT_BASELINE = NOT_YET_PASS
+PUBLIC_PRODUCTION_READY = NO
+```
+
+H5 remains the development and algorithm harness. The next product-platform candidate is an independently verified WeChat Mini Program baseline; this result does not assert that the H5 defect applies to WeChat or Douyin. No further speculative H5 Camera remediation is authorized by this Parent.
+
+Planning authority: `docs/platform/MINIPROGRAM_PRODUCT_PLATFORM_BASELINE_V01.md`.

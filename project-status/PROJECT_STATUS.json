@@ -5,9 +5,9 @@
   "current_prototype": "S01 V1.6.1",
   "primary_environment": "windows",
   "overall_status": "IN_PROGRESS",
-  "current_milestone": "M06",
-  "current_task": "XFX_LOCAL_FINE_TUNE_INTEGRATION_01",
-  "current_task_status": "PASS_WITH_WARNING",
+  "current_milestone": "PRODUCT_PLATFORM_REBASELINE",
+  "current_task": "XFX_MAIN_TARGET_PLATFORM_REBASELINE_AFTER_H5_CAMERA_LIMITATION_01",
+  "current_task_status": "PASS",
   "milestones": [
     { "id": "M00", "name": "Project Baseline", "status": "PASS", "gate": "M00_BASELINE_LOCK", "gate_status": "PASS" },
     { "id": "M01", "name": "Global Contracts", "status": "PASS", "gate": "M01_CONTRACT_LOCK", "gate_status": "PASS" },
@@ -459,11 +459,32 @@
     "oppo_main_regression": "UNVERIFIED",
     "public_production_ready": false
   },
-  "next_required_result": {
-    "task_id": "XFX_FIRST_COMPLETE_NON_AI_PRODUCT_FLOW_ACCEPTANCE_01",
-    "condition": "FIRST_COMPLETE_NON_AI_PRODUCT_FLOW_ACCEPTANCE"
+  "target_platform_rebaseline": {
+    "task_id": "XFX_MAIN_TARGET_PLATFORM_REBASELINE_AFTER_H5_CAMERA_LIMITATION_01",
+    "status": "PASS",
+    "h5_role": "DEVELOPMENT_AND_ALGORITHM_HARNESS",
+    "h5_oppo_native_still": "PASS",
+    "h5_oppo_capture_transport": "PASS",
+    "h5_oppo_backend_persistence": "PASS",
+    "h5_oppo_composition_fidelity": "UNSUPPORTED",
+    "h5_oppo_product_camera_path": "UNSUPPORTED",
+    "old_parent": "CLOSED_NOT_YET_PASS",
+    "old_first_complete_non_ai_product_baseline": "NOT_YET_PASS",
+    "primary_product_platform_candidate": "WECHAT_MINIPROGRAM_UNVERIFIED",
+    "secondary_product_platform_candidate": "DOUYIN_MINIPROGRAM_UNVERIFIED",
+    "home_v1": "STAGED_FOR_SUCCESSOR_MAIN",
+    "scene_spatial_integration": "NOT_STARTED",
+    "live_integration": "NOT_STARTED",
+    "fine_tune": "PRESERVED_FOR_PORTABILITY_REVIEW",
+    "provider_calls": 0,
+    "luna_calls": 0,
+    "public_production_ready": false
   },
-  "next_recommended_task": "XFX_FIRST_COMPLETE_NON_AI_PRODUCT_FLOW_ACCEPTANCE_01",
+  "next_required_result": {
+    "task_id": "XFX_MAIN_WECHAT_MINIPROGRAM_FIRST_COMPLETE_PRODUCT_BASELINE_01",
+    "condition": "WECHAT_MINIPROGRAM_FIRST_COMPLETE_PRODUCT_BASELINE"
+  },
+  "next_recommended_task": "XFX_MAIN_WECHAT_MINIPROGRAM_FIRST_COMPLETE_PRODUCT_BASELINE_01",
   "following_main_task": null,
   "live_parallel_track": {
     "status": "LIVE_P0_PASS_EVIDENCE_INGESTED",
