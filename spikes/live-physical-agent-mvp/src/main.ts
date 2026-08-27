@@ -191,6 +191,7 @@ const v3Trace = new V3HumanStepTraceRecorder();
 type ControlPolicy='V2'|'V3';
 const requestedDebugPolicy=new URLSearchParams(window.location.search).get('controlPolicy');
 controlPolicySelect.value=requestedDebugPolicy==='V3'?'V3':'V2';
+if(controlPolicySelect.value==='V3')scaleGateScenario.value='V3_FRAMING_ONLY';
 const activePolicy=():ControlPolicy=>controlPolicySelect.value==='V3'?'V3':'V2';
 
 const perceptionRuntime = new PerceptionRuntime({
@@ -802,7 +803,7 @@ guidanceGrid.addEventListener('change',()=>{ if(latestPerceptionState&&latestClo
 semanticDebug.addEventListener('change',renderSemanticDebug);
 guidanceTheme.addEventListener('change',()=>renderVisualGuidance());
 scaleGateScenario.addEventListener('change', () => { activeGate1PreArm = null; gate1ArmAttempted = false; renderGate1Precondition(); });
-controlPolicySelect.addEventListener('change',()=>{closedLoop.reset();v3Controller.reset();v3Projector.reset();scalarTrace.clear();v3Trace.clear();latestClosedLoop=null;latestV3Measurement=null;latestV3Snapshot=null;latestVisualGuidance=null;v3ControllerLatencies=[];displayedActionCopy=null;displayedActionUntilMs=0;activeGate1PreArm=null;gate1ArmAttempted=false;visualProjector.reset();renderClosedLoop();renderGate1Precondition();renderVisualGuidance();setMessage(activePolicy()==='V3'?'V3 实验控制已选择；仅本测试会话有效，V2 仍是默认。':'已恢复 V2 当前默认控制。');});
+controlPolicySelect.addEventListener('change',()=>{closedLoop.reset();v3Controller.reset();v3Projector.reset();scalarTrace.clear();v3Trace.clear();latestClosedLoop=null;latestV3Measurement=null;latestV3Snapshot=null;latestVisualGuidance=null;v3ControllerLatencies=[];displayedActionCopy=null;displayedActionUntilMs=0;activeGate1PreArm=null;gate1ArmAttempted=false;if(activePolicy()==='V3'&&!scaleGateScenario.value.startsWith('V3_'))scaleGateScenario.value='V3_FRAMING_ONLY';visualProjector.reset();renderClosedLoop();renderGate1Precondition();renderVisualGuidance();setMessage(activePolicy()==='V3'?'V3 实验控制已选择；仅本测试会话有效，V2 仍是默认。':'已恢复 V2 当前默认控制。');});
 
 closedLoopReset.addEventListener('click', () => {
   if(activePolicy()==='V3'){v3Controller.reset();v3Projector.reset();v3Trace.clear();latestV3Measurement=null;latestV3Snapshot=null;v3ControllerLatencies=[];renderClosedLoop();renderVisualGuidance();setMessage('V3 实验已重置；请选择 ARM 开始新的单步试验。');return;}
