@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import time
 from pathlib import Path
@@ -10,7 +9,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from solver import GeometrySolver, SOLVER_VERSION, _camera_matrix, solve_correspondences
+from solver import GeometrySolver, SOLVER_VERSION, _camera_matrix, frame_set_sha256, frame_sha256, solve_correspondences
 
 
 SCENARIOS = {
@@ -64,7 +63,8 @@ def cache_gate() -> dict:
     base = rng.integers(0, 256, (480, 640), np.uint8)
     for offset in (0, 2, 4):
         shifted = np.roll(base, offset, axis=1); ok, encoded = cv2.imencode(".jpg", shifted); assert ok; frames.append(encoded.tobytes())
-    request = {"scan_id": "cache-fixture", "frame_set_hash": hashlib.sha256(b"".join(frames)).hexdigest(), "geometry_version": SOLVER_VERSION, "platform": "fixture", "camera_model_evidence": {"status": "KNOWN", "focal_source": "CONTROLLED", "principal_point_assumption": "IMAGE_CENTER", "distortion_assumption": "NONE", "platform_device_profile": "FIXTURE", "confidence": 1.0}, "client_precheck": {"status": "POSSIBLE", "authority": "ROUTING_HINT_ONLY"}, "selected_geometry_frames": [{"frame_id": f"frame-{index}", "relative_yaw_deg": index * 2, "quality": 1.0, "width": 640, "height": 480} for index in range(3)]}
+    selected = [{"frame_id": f"frame-{index}", "relative_yaw_deg": index * 2, "quality": 1.0, "width": 640, "height": 480, "working_width": 640, "working_height": 480, "encoded_bytes": len(frame), "frame_sha256": frame_sha256(frame)} for index, frame in enumerate(frames)]
+    request = {"scan_id": "cache-fixture", "frame_set_hash": frame_set_sha256(selected), "geometry_version": SOLVER_VERSION, "platform": "fixture", "camera_model_evidence": {"status": "KNOWN", "focal_source": "CONTROLLED", "principal_point_assumption": "IMAGE_CENTER", "distortion_assumption": "NONE", "platform_device_profile": "FIXTURE", "confidence": 1.0}, "client_precheck": {"status": "POSSIBLE", "authority": "ROUTING_HINT_ONLY"}, "selected_geometry_frames": selected}
     first = solver.analyze(request, frames); second = solver.analyze(request, frames)
     return {"first": first["cache_status"], "second": second["cache_status"], "second_compute_ms": second["timing_ms"]["total_compute"], "pass": first["cache_status"] == "CACHE_MISS" and second["cache_status"] == "CACHE_HIT" and second["timing_ms"]["total_compute"] == 0.0}
 
@@ -79,7 +79,10 @@ def main() -> None:
     no_signal = [row for row in results if row["client_precheck"] == "NO_SIGNAL"]
     false_positive = sum(row["backend_status"] != "USABLE" for row in possible) / max(1, len(possible))
     false_negative = sum(row["backend_status"] == "USABLE" for row in no_signal) / max(1, len(no_signal))
-    stable = lambda rows: [{key: value for key, value in row.items() if key != "timing_ms"} for row in rows]
+    def stable(value):
+        if isinstance(value, dict): return {key: stable(item) for key, item in value.items() if key != "timing_ms"}
+        if isinstance(value, list): return [stable(item) for item in value]
+        return value
     output = {"schema": "xfx.p2-backend-controlled-matrix", "schema_version": "0.2", "solver_version": SOLVER_VERSION, "opencv_version": cv2.__version__, "role": "ALGORITHM_VALIDATION_AUTHORITY_NOT_SESSION_AUTHORITY", "results": results, "gates": {"deterministic": stable(results) == stable(repeat), "pure_rotation_false_usable": sum(row["backend_status"] == "USABLE" for row in results if row["scenario"] == "PURE_ROTATION"), "low_parallax_false_usable": sum(row["backend_status"] == "USABLE" for row in results if row["scenario"] == "LOW_PARALLAX"), "direction_sign_correct": all(row["direction_sign_correct"] is True for row in controlled), "direction_sign_cases": len(controlled), "client_precheck_false_positive_rate": false_positive, "client_precheck_false_negative_rate": false_negative, "cache": cache_gate()}, "performance_ms": {"p50": float(np.percentile(timings, 50)), "p95": float(np.percentile(timings, 95))}, "privacy": {"raw_video_upload": 0, "frame_stream_upload": 0, "selected_geometry_frame_upload": "FIRST_PARTY_BACKEND_ONLY", "provider": 0, "luna": 0, "real_user_media_in_git": 0}}
     path = Path(args.output); path.parent.mkdir(parents=True, exist_ok=True); path.write_text(json.dumps(output, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 

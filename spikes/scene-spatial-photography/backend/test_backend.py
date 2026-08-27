@@ -1,17 +1,32 @@
 from __future__ import annotations
 
-import unittest
 import http.client
-import hashlib
 import json
 import threading
+import unittest
 
 import cv2
 import numpy as np
 
 from controlled_matrix import cache_gate, run, solve_scenario
-from server import Handler, ThreadingHTTPServer
-from solver import GeometrySolver, SOLVER_VERSION
+from server import Handler, ThreadingHTTPServer, parse_multipart
+from solver import GeometrySolver, SOLVER_VERSION, frame_set_sha256, frame_sha256
+
+
+def selected_metadata(frames: list[bytes], width: int = 320, height: int = 240) -> list[dict]:
+    return [{"frame_id": f"api-{index}", "timestamp_ms": index * 250, "relative_yaw_deg": index * 2, "orientation_source": "CONTROLLED_FIXTURE", "width": width, "height": height, "working_width": width, "working_height": height, "source_width": width, "source_height": height, "encoded_bytes": len(frame), "frame_sha256": frame_sha256(frame), "quality": 1, "file_field": f"frame_{index}"} for index, frame in enumerate(frames)]
+
+
+def request_for(frames: list[bytes], selected: list[dict] | None = None, scan_id: str = "api-smoke") -> dict:
+    metadata = selected or selected_metadata(frames)
+    return {"scan_id": scan_id, "frame_set_hash": frame_set_sha256(metadata), "geometry_version": SOLVER_VERSION, "platform": "fixture", "camera_model_evidence": {"status": "KNOWN", "focal_source": "CONTROLLED", "principal_point_assumption": "IMAGE_CENTER", "distortion_assumption": "NONE", "platform_device_profile": "FIXTURE", "confidence": 1}, "client_precheck": {"status": "POSSIBLE", "authority": "ROUTING_HINT_ONLY"}, "selected_geometry_frames": metadata}
+
+
+def multipart_body(metadata: dict, frames: list[bytes], boundary: str = "xfx-browser-formdata-boundary") -> bytes:
+    chunks = [f"--{boundary}\r\nContent-Disposition: form-data; name=\"metadata\"\r\n\r\n{json.dumps(metadata)}\r\n".encode()]
+    for index, frame in enumerate(frames):
+        chunks.extend([f"--{boundary}\r\nContent-Disposition: form-data; name=\"frame_{index}\"; filename=\"frame-{index}.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n".encode(), frame, b"\r\n"])
+    chunks.append(f"--{boundary}--\r\n".encode()); return b"".join(chunks)
 
 
 class BackendGeometryTests(unittest.TestCase):
@@ -37,23 +52,49 @@ class BackendGeometryTests(unittest.TestCase):
         self.assertEqual(status, "PARTIAL"); self.assertIn("CAMERA_MODEL_EVIDENCE_LIMITED", reasons)
 
     def test_frame_set_hash_mismatch_is_rejected(self) -> None:
-        request = {"scan_id": "hash", "frame_set_hash": "0" * 64, "geometry_version": SOLVER_VERSION, "platform": "fixture", "camera_model_evidence": {"status": "UNKNOWN"}, "client_precheck": {"status": "UNRELIABLE"}, "selected_geometry_frames": [{"width": 1, "height": 1}] * 3}
-        with self.assertRaisesRegex(ValueError, "FRAME_SET_HASH_MISMATCH"):
-            GeometrySolver().analyze(request, [b"a", b"b", b"c"])
+        frames = [b"a", b"b", b"c"]; request = request_for(frames); request["frame_set_hash"] = "0" * 64
+        with self.assertRaisesRegex(ValueError, "FRAME_SET_HASH_MISMATCH"): GeometrySolver._validate(request, frames)
 
-    def test_multipart_api_emits_backend_authority(self) -> None:
+    def test_one_changed_binary_byte_is_rejected(self) -> None:
+        frames = [b"jpeg-a\r\n\x00", b"jpeg-b", b"jpeg-c"]; request = request_for(frames); changed = [frames[0][:-1] + b"\x01", *frames[1:]]
+        with self.assertRaisesRegex(ValueError, "FRAME_BINARY_HASH_MISMATCH"): GeometrySolver._validate(request, changed)
+
+    def test_frame_order_changes_frame_set_hash(self) -> None:
+        frames = [b"a", b"b", b"c"]; selected = selected_metadata(frames)
+        self.assertNotEqual(frame_set_sha256(selected), frame_set_sha256([selected[1], selected[0], selected[2]]))
+
+    def test_browser_multipart_preserves_binary_bytes(self) -> None:
+        frames = [b"\xff\xd8\x00\r\n\x80\xfe\r\n\xff\xd9", b"\x00\x01\r\n\x02\xff", b"end-with-crlf\r\n"]
+        metadata = request_for(frames); boundary = "----WebKitFormBoundaryXFX123"; body = multipart_body(metadata, frames, boundary)
+        parsed, uploaded = parse_multipart(f"multipart/form-data; boundary={boundary}", body)
+        self.assertEqual(uploaded, frames); self.assertEqual([frame_sha256(value) for value in uploaded], [item["frame_sha256"] for item in parsed["selected_geometry_frames"]]); self.assertEqual(frame_set_sha256(parsed["selected_geometry_frames"]), parsed["frame_set_hash"])
+
+    def test_backend_long_edge_validation_matrix(self) -> None:
+        frames = [b"a", b"b", b"c"]
+        for width, height in ((360, 640), (640, 360), (640, 640)):
+            selected = selected_metadata(frames, width, height); GeometrySolver._validate(request_for(frames, selected), frames)
+        for width, height in ((640, 1138), (961, 640)):
+            selected = selected_metadata(frames, width, height)
+            with self.assertRaisesRegex(ValueError, "GEOMETRY_WORKING_RESOLUTION_OUT_OF_BOUNDS"): GeometrySolver._validate(request_for(frames, selected), frames)
+
+    def test_browser_multipart_request_reaches_solver(self) -> None:
         server = ThreadingHTTPServer(("127.0.0.1", 0), Handler); thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
         try:
             rng = np.random.default_rng(9); base = rng.integers(0, 256, (240, 320), np.uint8); frames = []
             for offset in (0, 2, 4):
                 ok, encoded = cv2.imencode(".jpg", np.roll(base, offset, axis=1)); self.assertTrue(ok); frames.append(encoded.tobytes())
-            selected = [{"frame_id": f"api-{index}", "timestamp_ms": index * 250, "relative_yaw_deg": index * 2, "orientation_source": "CONTROLLED_FIXTURE", "width": 320, "height": 240, "quality": 1, "file_field": f"frame_{index}"} for index in range(3)]
-            metadata = {"scan_id": "api-smoke", "frame_set_hash": hashlib.sha256(b"".join(frames)).hexdigest(), "geometry_version": SOLVER_VERSION, "platform": "fixture", "camera_model_evidence": {"status": "KNOWN", "focal_source": "CONTROLLED", "principal_point_assumption": "IMAGE_CENTER", "distortion_assumption": "NONE", "platform_device_profile": "FIXTURE", "confidence": 1}, "client_precheck": {"status": "POSSIBLE", "authority": "ROUTING_HINT_ONLY"}, "selected_geometry_frames": selected}
-            boundary = "xfx-boundary"; chunks = [f"--{boundary}\r\nContent-Disposition: form-data; name=\"metadata\"\r\n\r\n{json.dumps(metadata)}\r\n".encode()]
-            for index, frame in enumerate(frames): chunks.extend([f"--{boundary}\r\nContent-Disposition: form-data; name=\"frame_{index}\"; filename=\"frame-{index}.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n".encode(), frame, b"\r\n"])
-            chunks.append(f"--{boundary}--\r\n".encode()); body = b"".join(chunks)
+            metadata = request_for(frames); boundary = "----WebKitFormBoundaryReachSolver"; body = multipart_body(metadata, frames, boundary)
             connection = http.client.HTTPConnection("127.0.0.1", server.server_port, timeout=10); connection.request("POST", "/scene-spatial/geometry/analyze", body, {"Content-Type": f"multipart/form-data; boundary={boundary}", "Content-Length": str(len(body))}); response = connection.getresponse(); value = json.loads(response.read()); connection.close()
-            self.assertEqual(response.status, 200); self.assertEqual(value["spatial_evidence"]["schema_version"], "0.2"); self.assertEqual(value["spatial_evidence"]["status_authority"], "FIRST_PARTY_BACKEND_GEOMETRY_SOLVER"); self.assertLess(len(body), 6 * 1024 * 1024)
+            self.assertEqual(response.status, 200); self.assertEqual(value["spatial_evidence"]["schema_version"], "0.2"); self.assertEqual(value["spatial_evidence"]["status_authority"], "FIRST_PARTY_BACKEND_GEOMETRY_SOLVER"); self.assertIn(value["spatial_evidence"]["status"], {"INSUFFICIENT", "PARTIAL", "USABLE"}); self.assertIn("multipart_parse", value["timing_ms"])
+        finally:
+            server.shutdown(); server.server_close(); thread.join(timeout=2)
+
+    def test_wrong_declared_hash_returns_http_400_code(self) -> None:
+        server = ThreadingHTTPServer(("127.0.0.1", 0), Handler); thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
+        try:
+            frames = [b"a", b"b", b"c"]; metadata = request_for(frames); metadata["frame_set_hash"] = "0" * 64; boundary = "xfx-negative"; body = multipart_body(metadata, frames, boundary)
+            connection = http.client.HTTPConnection("127.0.0.1", server.server_port, timeout=10); connection.request("POST", "/scene-spatial/geometry/analyze", body, {"Content-Type": f"multipart/form-data; boundary={boundary}", "Content-Length": str(len(body))}); response = connection.getresponse(); value = json.loads(response.read()); connection.close()
+            self.assertEqual(response.status, 400); self.assertEqual(value["error"], "FRAME_SET_HASH_MISMATCH")
         finally:
             server.shutdown(); server.server_close(); thread.join(timeout=2)
 

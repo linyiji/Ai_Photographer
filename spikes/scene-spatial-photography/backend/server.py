@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import argparse
 import json
-from email.parser import BytesParser
-from email.policy import default
+import re
+import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from solver import GeometrySolver, SOLVER_VERSION
@@ -15,15 +15,29 @@ SOLVER = GeometrySolver()
 
 
 def parse_multipart(content_type: str, body: bytes) -> tuple[dict, list[bytes]]:
-    message = BytesParser(policy=default).parsebytes(b"Content-Type: " + content_type.encode("ascii") + b"\r\nMIME-Version: 1.0\r\n\r\n" + body)
-    if not message.is_multipart():
-        raise ValueError("MULTIPART_REQUIRED")
-    metadata = None; files: dict[str, bytes] = {}
-    for part in message.iter_parts():
-        name = part.get_param("name", header="content-disposition")
-        payload = part.get_payload(decode=True) or b""
+    match = re.search(r"boundary=(?:\"([^\"]+)\"|([^;\s]+))", content_type, re.IGNORECASE)
+    if match is None:
+        raise ValueError("MULTIPART_BOUNDARY_REQUIRED")
+    boundary = (match.group(1) or match.group(2)).encode("ascii"); marker = b"--" + boundary; delimiter = b"\r\n" + marker
+    if not body.startswith(marker + b"\r\n"):
+        raise ValueError("MULTIPART_BODY_INVALID")
+    metadata = None; files: dict[str, bytes] = {}; cursor = len(marker) + 2
+    while cursor < len(body):
+        header_end = body.find(b"\r\n\r\n", cursor)
+        if header_end < 0:
+            raise ValueError("MULTIPART_PART_INVALID")
+        header_bytes = body[cursor:header_end]; payload_start = header_end + 4; next_boundary = body.find(delimiter, payload_start)
+        if next_boundary < 0:
+            raise ValueError("MULTIPART_CLOSING_BOUNDARY_REQUIRED")
+        payload = body[payload_start:next_boundary]
+        disposition = next((line.decode("latin-1") for line in header_bytes.split(b"\r\n") if line.lower().startswith(b"content-disposition:")), "")
+        name_match = re.search(r'name="([^"]+)"', disposition); name = name_match.group(1) if name_match else None
         if name == "metadata": metadata = json.loads(payload.decode("utf-8"))
         elif name and name.startswith("frame_"): files[name] = payload
+        cursor = next_boundary + len(delimiter)
+        if body[cursor:cursor + 2] == b"--": break
+        if body[cursor:cursor + 2] != b"\r\n": raise ValueError("MULTIPART_BOUNDARY_INVALID")
+        cursor += 2
     if metadata is None:
         raise ValueError("METADATA_REQUIRED")
     ordered = [files[frame["file_field"]] for frame in metadata.get("selected_geometry_frames", []) if frame.get("file_field") in files]
@@ -46,8 +60,8 @@ class Handler(BaseHTTPRequestHandler):
             length = int(self.headers.get("Content-Length", "0"))
             if length <= 0 or length > MAX_BODY_BYTES:
                 raise ValueError("PAYLOAD_SIZE_OUT_OF_BOUNDS")
-            metadata, frames = parse_multipart(self.headers.get("Content-Type", ""), self.rfile.read(length))
-            self._json(200, SOLVER.analyze(metadata, frames))
+            parse_started = time.perf_counter(); metadata, frames = parse_multipart(self.headers.get("Content-Type", ""), self.rfile.read(length)); parse_ms = round((time.perf_counter() - parse_started) * 1000, 3)
+            result = SOLVER.analyze(metadata, frames); result["timing_ms"]["multipart_parse"] = parse_ms; self._json(200, result)
         except (ValueError, KeyError, json.JSONDecodeError) as error:
             self._json(400, {"error": str(error)})
         except Exception as error:  # pragma: no cover - bounded spike diagnostic

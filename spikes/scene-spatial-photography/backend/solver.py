@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import copy
 import hashlib
+import json
 import re
 import time
 from dataclasses import dataclass, field
@@ -13,6 +14,19 @@ import numpy as np
 
 
 SOLVER_VERSION = "p2-backend-v0.2"
+
+
+def frame_sha256(value: bytes) -> str:
+    return hashlib.sha256(value).hexdigest()
+
+
+def canonical_frame_set_bytes(metadata: list[dict[str, Any]]) -> bytes:
+    canonical = [[frame["frame_id"], str(frame["frame_sha256"]).lower()] for frame in metadata]
+    return json.dumps(canonical, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+
+
+def frame_set_sha256(metadata: list[dict[str, Any]]) -> str:
+    return hashlib.sha256(canonical_frame_set_bytes(metadata)).hexdigest()
 
 
 def _ms(started: float) -> float:
@@ -118,8 +132,8 @@ class GeometrySolver:
         return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
     def analyze(self, request: dict[str, Any], encoded_frames: list[bytes]) -> dict[str, Any]:
-        started = time.perf_counter()
-        self._validate(request, encoded_frames)
+        started = time.perf_counter(); validation_started = time.perf_counter()
+        self._validate(request, encoded_frames); validation_ms = _ms(validation_started)
         key = self.cache_key(request)
         if key in self._result_cache:
             result = copy.deepcopy(self._result_cache[key])
@@ -165,7 +179,7 @@ class GeometrySolver:
             "spatial_evidence": evidence,
             "cache_status": "CACHE_MISS",
             "diagnostics": {"primary_pair": list(primary_pair), "verification_pairs": [list(value) for value in verification_pairs], "primary": primary.diagnostics(), "verification": [value.diagnostics() for value in verification_results], "pair_consistency": consistency, "camera_model_evidence": request["camera_model_evidence"], "frame_cache": {"decode_ms": decode_ms, "feature_ms": feature_ms, "cache_reuse_count": sum(value["reuse"] for value in frame_cache)}, "early_exit": early_exit},
-            "timing_ms": {"request_decode": decode_ms, "feature": feature_ms, "primary_pair": primary_ms, "verification_pairs": verification_ms, "pose": primary.timing_ms.get("pose", 0.0), "triangulation": primary.timing_ms.get("triangulation", 0.0), "validation": 0.0, "total_compute": _ms(started)},
+            "timing_ms": {"request_decode": decode_ms, "feature": feature_ms, "primary_pair": primary_ms, "verification_pairs": verification_ms, "pose": primary.timing_ms.get("pose", 0.0), "triangulation": primary.timing_ms.get("triangulation", 0.0), "validation": validation_ms, "total_compute": _ms(started)},
             "payload_bytes": sum(len(value) for value in encoded_frames),
         }
         self._result_cache[key] = copy.deepcopy(result)
@@ -182,12 +196,15 @@ class GeometrySolver:
             raise ValueError("SCAN_ID_INVALID")
         if not isinstance(request["frame_set_hash"], str) or re.fullmatch(r"[0-9a-fA-F]{64}", request["frame_set_hash"]) is None:
             raise ValueError("FRAME_SET_HASH_INVALID")
-        actual_hash = hashlib.sha256(b"".join(frames)).hexdigest()
-        if actual_hash.lower() != request["frame_set_hash"].lower():
-            raise ValueError("FRAME_SET_HASH_MISMATCH")
         if not 3 <= len(frames) <= 8 or len(frames) != len(request["selected_geometry_frames"]):
             raise ValueError("GEOMETRY_FRAME_COUNT_OUT_OF_BOUNDS")
-        if any(max(int(frame.get("width", 0)), int(frame.get("height", 0))) > 960 or min(int(frame.get("width", 0)), int(frame.get("height", 0))) <= 0 for frame in request["selected_geometry_frames"]):
+        metadata = request["selected_geometry_frames"]
+        for frame, encoded in zip(metadata, frames):
+            if frame_sha256(encoded) != str(frame.get("frame_sha256", "")).lower() or len(encoded) != int(frame.get("encoded_bytes", -1)):
+                raise ValueError("FRAME_BINARY_HASH_MISMATCH")
+        if frame_set_sha256(metadata) != request["frame_set_hash"].lower():
+            raise ValueError("FRAME_SET_HASH_MISMATCH")
+        if any(max(int(frame.get("working_width", frame.get("width", 0))), int(frame.get("working_height", frame.get("height", 0)))) > 960 or min(int(frame.get("working_width", frame.get("width", 0))), int(frame.get("working_height", frame.get("height", 0)))) <= 0 for frame in metadata):
             raise ValueError("GEOMETRY_WORKING_RESOLUTION_OUT_OF_BOUNDS")
         if request["camera_model_evidence"].get("status") not in {"KNOWN", "ESTIMATED_VALIDATED", "UNKNOWN"}:
             raise ValueError("CAMERA_MODEL_EVIDENCE_INVALID")

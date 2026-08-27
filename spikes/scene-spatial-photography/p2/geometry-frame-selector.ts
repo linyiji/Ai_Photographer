@@ -18,14 +18,14 @@ export class GeometryFrameSelector {
     if (this.lastMetrics && Math.abs(metrics.yaw_deg - this.lastMetrics.yaw_deg) > this.config.max_yaw_step_deg) return false;
     return true;
   }
-  observe(metrics: FrameMetrics, pixels: PixelFrame, orientationSource: GeometryFrameObservation['orientation_source']): boolean {
+  observe(metrics: FrameMetrics, pixels: PixelFrame, orientationSource: GeometryFrameObservation['orientation_source'], sourceSize: { width: number; height: number } = pixels, resizeMs = 0): boolean {
     const started = performance.now();
     try {
       if (!this.accepts(metrics)) return false;
       const last = this.lastMetrics;
       const technicalQuality = clamp01((metrics.blur_score / 30) * (1 - Math.abs(metrics.exposure_mean - 128) / 128));
       const copy = { width: pixels.width, height: pixels.height, data: new Uint8ClampedArray(pixels.data) };
-      this.frames.push({ frame_id: `geo-${this.frames.length + 1}`, sequence: this.frames.length, timestamp_ms: metrics.timestamp_ms, relative_yaw_deg: metrics.yaw_deg, width: pixels.width, height: pixels.height, blur_score: metrics.blur_score, exposure_mean: metrics.exposure_mean, technical_quality: technicalQuality, motion_diagnostic: fingerprintDistance(last?.fingerprint, metrics.fingerprint), parallax_diagnostic: 'PENDING_POST_SCAN', orientation_source: orientationSource, pixels: copy });
+      this.frames.push({ frame_id: `geo-${this.frames.length + 1}`, sequence: this.frames.length, timestamp_ms: metrics.timestamp_ms, relative_yaw_deg: metrics.yaw_deg, width: pixels.width, height: pixels.height, source_width: sourceSize.width, source_height: sourceSize.height, resize_ms: resizeMs, blur_score: metrics.blur_score, exposure_mean: metrics.exposure_mean, technical_quality: technicalQuality, motion_diagnostic: fingerprintDistance(last?.fingerprint, metrics.fingerprint), parallax_diagnostic: 'PENDING_POST_SCAN', orientation_source: orientationSource, pixels: copy });
       this.lastMetrics = metrics; return true;
     } finally { this.selection_latency_ms += performance.now() - started; }
   }
