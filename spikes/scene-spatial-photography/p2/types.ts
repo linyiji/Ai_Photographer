@@ -2,7 +2,7 @@ import type { PixelFrame, PhotographyViewCandidateV01 } from '../p1/types.js';
 
 export type ParallaxClassification = 'ROTATION_DOMINANT' | 'LOW_PARALLAX' | 'TRANSLATION_EVIDENCE_PRESENT' | 'UNCLASSIFIED';
 export type SpatialEvidenceStatus = 'USABLE' | 'PARTIAL' | 'INSUFFICIENT';
-export type CorrespondenceEngine = 'GFTT_PYRLK' | 'ORB_DESCRIPTOR_MATCHING';
+export type CorrespondenceEngine = 'GFTT_PYRLK' | 'ORB_DESCRIPTOR_MATCHING' | 'LIGHTWEIGHT_BLOCK_FLOW';
 
 export interface GeometryFrameObservation {
   frame_id: string; sequence: number; timestamp_ms: number; relative_yaw_deg: number;

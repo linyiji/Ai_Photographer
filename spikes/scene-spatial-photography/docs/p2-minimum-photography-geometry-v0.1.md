@@ -8,13 +8,13 @@ P2 is an internal capability branch of the same user-operated Scene Scan. `Geome
 Platform Capture Adapter
   ├─ P0 angular sampler → P1 frame/direction/view candidates (max 3)
   └─ GeometryFrameSelector → SceneScanGeometryInputV01 (max 10)
-       → GFTT + PyrLK → homography RANSAC residual / parallax class
+       → lightweight block flow → robust global-motion residual / parallax diagnostic
        → SpatialEvidenceV01
 ```
 
-The H5 client uses OpenCV.js only after scan completion. The pinned Web build exposes GFTT, PyrLK, ORB and homography, but not Essential Matrix, `recoverPose`, or triangulation. Therefore a device result is never promoted above `PARTIAL`; robust pose/triangulation is a controlled native reference responsibility until a portable implementation is validated.
+The H5 client deliberately excludes OpenCV.js/WASM after OPPO Chrome showed more than 30 seconds of main-thread loading/parsing after QUICK completion. It uses only a bounded overlap/parallax diagnostic and never promotes a device result above `PARTIAL`; GFTT/PyrLK, pose and triangulation remain controlled reference responsibilities until a portable implementation is validated.
 
-The mobile envelope uses at most seven distributed adjacent pairs, 180 GFTT points, a 15×15 LK window and two pyramid levels. The WASM asset is fetched into browser cache during scanning, but is not parsed or executed until the scan has completed.
+The mobile envelope uses at most four distributed adjacent pairs and 48 local gradient features per pair with a bounded 3×3 block search. It estimates a robust global image displacement and treats only residual motion as a parallax diagnostic. It makes no RANSAC, pose, triangulation or metric claim. Controlled OpenCV comparison still selects GFTT/PyrLK over ORB as the primary reference engine.
 
 ## Coordinate and authority convention
 
@@ -33,4 +33,4 @@ Sparse geometry may expose NEAR/MID/FAR categories and bounded visibility/occlus
 
 ## Portability
 
-Contracts and evidence classification contain no DOM APIs. Camera acquisition and OpenCV loading are adapters. This preserves a path to WeChat/Douyin Mini Program adapters without creating a cross-Worktree runtime dependency.
+Contracts and evidence classification contain no DOM APIs. Camera acquisition is an adapter and the lightweight diagnostic is portable TypeScript. This preserves a path to WeChat/Douyin Mini Program adapters without creating a cross-Worktree runtime dependency.

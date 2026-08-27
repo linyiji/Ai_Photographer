@@ -13,5 +13,7 @@
 - platform capture adapter separated from geometry contracts/core
 - Main/Live/Fine Tune mutation: none
 - cross-Worktree runtime dependency: none
+- mobile OpenCV.js/WASM runtime dependency: none
+- mobile diagnostic: portable bounded TypeScript block flow, at most four pairs
 
 The native Python/OpenCV reference environment is development-only under `D:\Projects\_bootstrap\.runtime\p2-opencv-python`; it is not a product runtime dependency. Reproducibility versions are pinned in `p2/reference/requirements.txt`.

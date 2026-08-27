@@ -6,8 +6,7 @@ import { analyzeSceneSweep } from '../p1/analyze-scene-sweep.js';
 import { clonePixelFrame, syntheticVisualFixtures } from '../p1/synthetic-fixtures.js';
 import type { PhotographyViewCandidateV01, PlacementAnchor, SceneSweepAnalysisResult, TransientKeyframePixels } from '../p1/types.js';
 import { GeometryFrameSelector } from '../p2/geometry-frame-selector.js';
-import { analyzeCorrespondence } from '../p2/opencv-correspondence.js';
-import { loadOpenCv, preloadOpenCvAsset } from '../p2/opencv-loader.js';
+import { analyzeLightweightCorrespondence } from '../p2/lightweight-correspondence.js';
 import { buildClientSpatialEvidence } from '../p2/spatial-evidence.js';
 import type { CorrespondenceDiagnostics, SpatialEvidenceV01 } from '../p2/types.js';
 import { canonicalManifestJson } from '../spatial/scene-sweep-manifest.js';
@@ -131,16 +130,16 @@ const runP1Analysis = (): void => {
   updateP1EvidenceText();
 };
 
-const emptyCorrespondence = (reason: string): CorrespondenceDiagnostics => ({ engine: 'GFTT_PYRLK', detected_feature_count: 0, tracked_feature_count: 0, match_retention: 0, inlier_ratio: 0, median_displacement_px: 0, median_parallax_px: 0, p75_parallax_px: 0, latency_ms: 0, pair_count: 0, failure_reason: reason });
+const emptyCorrespondence = (reason: string): CorrespondenceDiagnostics => ({ engine: 'LIGHTWEIGHT_BLOCK_FLOW', detected_feature_count: 0, tracked_feature_count: 0, match_retention: 0, inlier_ratio: 0, median_displacement_px: 0, median_parallax_px: 0, p75_parallax_px: 0, latency_ms: 0, pair_count: 0, failure_reason: reason });
 const runP2Analysis = async (): Promise<void> => {
   if (!runtime || runtime.session.status !== 'COMPLETE' || analyzedP2SweepIds.has(runtime.session.sweep_id)) return;
   const sweepId = runtime.session.sweep_id; analyzedP2SweepIds.add(sweepId); p2Busy = true; setText('p2-status', '分析中'); $('p2-results').hidden = false; render();
   try {
     const input = geometrySelector.input(sweepId);
-    let correspondence = emptyCorrespondence(input.frames.length < 2 ? 'INSUFFICIENT_FRAMES' : 'OPENCV_WASM_UNAVAILABLE');
+    let correspondence = emptyCorrespondence('INSUFFICIENT_FRAMES');
     if (input.frames.length >= 2) {
-      try { const cv = await loadOpenCv(); await new Promise<void>(resolve => requestAnimationFrame(() => resolve())); correspondence = analyzeCorrespondence(cv, input, 'GFTT_PYRLK'); }
-      catch (error) { correspondence = emptyCorrespondence(error instanceof Error ? error.message : 'OPENCV_WASM_UNAVAILABLE'); }
+      await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+      correspondence = analyzeLightweightCorrespondence(input);
     }
     if (runtime?.session.sweep_id !== sweepId) return;
     latestP2Correspondence = correspondence; latestP2Evidence = buildClientSpatialEvidence(input, correspondence, geometrySelector.selection_latency_ms);
@@ -253,7 +252,6 @@ $('start').addEventListener('click', async () => {
   const [cameraState, orientationState] = await Promise.all([camera.start(), orientation.requestPermission()]);
   if (cameraState.state !== 'ACTIVE') { setText('message', cameraState.message ?? '相机不可用'); $<HTMLButtonElement>('start').disabled = false; $<HTMLButtonElement>('start').textContent = '重试'; $<HTMLSelectElement>('mode').disabled = false; render(); return; }
   runtime.setCameraSourceDimensions(cameraState.width, cameraState.height);
-  void preloadOpenCvAsset();
   $<HTMLButtonElement>('start').textContent = '扫描中';
   $('empty').style.display = 'none'; $('finish').toggleAttribute('disabled', false); $('cancel').toggleAttribute('disabled', false);
   orientation.start((sample) => {

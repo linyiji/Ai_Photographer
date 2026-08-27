@@ -38,11 +38,11 @@ The deterministic native OpenCV reference uses homography RANSAC residuals for t
 
 The noiseless zero reprojection figure is fixture evidence only and is not a device expectation.
 
-## Browser/WASM vs backend reference
+## Mobile diagnostic vs controlled reference
 
-The pinned OpenCV.js runtime exposes GFTT, PyrLK, ORB and homography. Its actual runtime does not expose Essential Matrix, `recoverPose` or triangulation despite broad TypeScript declarations. Therefore:
+OPPO Chrome exposed more than 30 seconds of post-QUICK main-thread work while loading/parsing the 10.87 MB OpenCV.js/WASM asset. The client therefore uses a bounded portable block-flow diagnostic while OpenCV remains controlled reference tooling. Therefore:
 
-- client/WASM: bounded frame selection, correspondence and parallax diagnostics;
+- client: max four pairs and 48 features/pair for overlap/global-motion-residual diagnostics, with no RANSAC claim;
 - controlled native/backend reference: pose, triangulation and geometry validation;
 - client translation evidence is at most `PARTIAL`; rotation/low-parallax is `INSUFFICIENT`;
 - no per-frame backend requests are introduced.
@@ -59,9 +59,9 @@ Validated sparse geometry may produce relative `NEAR/MID/FAR`; metric distance r
 
 ## Performance and privacy
 
-- geometry budget: max 10 frames / max 7 distributed adjacent pairs / max 180 GFTT points;
+- mobile geometry budget: max 10 frames / max 4 distributed adjacent pairs / max 48 block-flow features per pair;
 - real capture analysis size: 160 px wide RGBA;
-- OpenCV.js is lazy-loaded after scan completion (10.87 MB build asset);
+- production H5 bundle: 49.21 kB JavaScript, no OpenCV.js/WASM asset;
 - controlled native total: 0.2–64.7 ms per scenario on this workstation;
 - latest controlled Web two-scenario comparison: 190–563 ms by route; GFTT fell 43.3% from the preceding 335 ms run;
 - Provider/Luna/raw video upload/frame stream upload: 0;
@@ -72,17 +72,21 @@ Device latency/memory/UX numbers remain pending and no arbitrary device performa
 
 ## Regression
 
-- automated suite: 158/158 PASS, including near-target WIDE, QUICK→reversed-WIDE and bounded correspondence regressions;
+- automated suite: 161/161 PASS, including near-target WIDE, QUICK→reversed-WIDE and bounded lightweight-diagnostic regressions;
 - replay: P0 11/11 + P1 5/5 PASS;
 - P1 max 3 ViewCandidates, region/candidate separation and LEFT/CENTER/RIGHT markers preserved;
 - typecheck and production build PASS;
-- initial browser DOM PASS; post-WASM Fixture inspection timed out and is not counted as browser PASS.
+- initial browser DOM PASS; replacement client runtime awaits renewed OPPO gate.
 
 The OPPO continuation exposed a display/runtime boundary defect: 109.6° rendered as a full 110° bar while strict runtime completion still required 110.0°. The runtime now uses a matching 0.5° completion tolerance, incomplete visual progress is capped at 99%, and the completed action is restored synchronously as “再拍一次”.
 
-A following OPPO run exposed overlap between completed-scan P2/WASM work and the next WIDE scan. Repeat actions are now gated by a visible `空间分析中…` state until P2 returns. Mixed reversal over an already-covered arc now displays an explicit retrace message; replay proves `0→150→−30` produces 180° unique coverage and completes as `MIXED` without leaking QUICK state.
+A following OPPO run exposed overlap between completed-scan P2 work and the next WIDE scan. Repeat actions are now gated by a visible `空间分析中…` state until P2 returns. Mixed reversal over an already-covered arc now displays an explicit retrace message; replay proves `0→150→−30` produces 180° unique coverage and completes as `MIXED` without leaking QUICK state.
 
-The next OPPO run showed prolonged QUICK analysis and WIDE stalling in the final few degrees. The client now prefetches (but does not execute) the WASM asset during scanning, reduces geometry work to the measured 10-frame/7-pair envelope, and accepts WIDE at an honest sensor tolerance of 174° while preserving the actual Manifest coverage. The UI labels WIDE as approximately 180°.
+The next OPPO run showed WIDE stalling in the final few degrees. WIDE now accepts an honest sensor tolerance of 174° while preserving the actual Manifest coverage, and the UI labels the target as approximately 180°.
+
+The following OPPO QUICK run isolated a distinct failure: scanning had already completed (`看完了`) but `空间分析中…` remained for more than 30 seconds. This was not bounded geometry compute; the browser main thread was occupied loading/parsing OpenCV.js/WASM, so its JavaScript timeout could not run on schedule. The mobile path now excludes OpenCV entirely and performs a bounded lightweight diagnostic measured at about 16–18 ms on synthetic regressions. Controlled GFTT/PyrLK remains primary reference evidence; device output still cannot exceed `PARTIAL` without pose/triangulation.
+
+Two consecutive local browser QUICK fixtures completed P2 in 12.1 ms and 3.4 ms, restored the enabled `再拍一次` action, and loaded no OpenCV resource. This closes the local regression but does not substitute for the OPPO HTTPS gate.
 
 ## OPPO and final gate
 
