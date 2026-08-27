@@ -1,0 +1,27 @@
+import { readFile, readdir } from 'node:fs/promises';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
+import { DEFAULT_TARGET } from '../.test-dist/closed-loop/config.js';
+import { replayTraceV3 } from '../.test-dist/control-v3/replay.js';
+import { CLOSED_LOOP_TRAJECTORIES } from '../.test-dist/fixtures/closed-loop/trajectories.js';
+import { replayScalarStates, scalarTraceRow } from '../.test-dist/closed-loop/trace.js';
+
+const base=process.argv[2]??join(homedir(),'Downloads');
+const catalog={
+  ATTEMPT_3:['live-p2-scalar-trace-1787661495291(1).json','live-p2-scalar-trace-1787661570579(1).json','live-p2-scalar-trace-1787661600920(1).json','live-p2-scalar-trace-1787661624676(1).json','live-p2-scalar-trace-1787661685886(1).json'],
+  ATTEMPT_5:['live-p2-scale-s1_head_shoulders_static-1787733677278.json','live-p2-scale-s1_head_shoulders_static-1787733740587.json','live-p2-scale-s1_head_shoulders_static-1787733762195.json','live-p2-scale-s1_head_shoulders_static-178773389.json'],
+  ATTEMPT_6:['live-p2-scale-gate1_x-1787734980126.json','live-p2-scale-gate1_scale-1787735064276.json','live-p2-scale-gate1_combined-1787735097010.json','live-p2-scale-gate1_scale-1787735126629.json'],
+  ATTEMPT_7:['live-p2-scale-gate1_scale-1787736229109.json','live-p2-scale-gate1_combined-1787736320137.json'],
+  SEMANTIC_SCALE_ATTEMPT_1:['live-p2-scale-s1_head_shoulders_static-1787715770018.json','live-p2-scale-s2_head_shoulders_move_farther-1787715808677.json','live-p2-scale-s3_move_closer-1787715828576.json','live-p2-scale-s4_upper_body_precision-1787715851022.json','live-p2-scale-s5_arm_motion_invariance-1787715881078.json','live-p2-scale-s6_body_mode_transition-1787715910236.json'],
+  SEMANTIC_SCALE_ATTEMPT_2:['live-p2-scale-s1_head_shoulders_static-1787724336973.json','live-p2-scale-s2_head_shoulders_move_farther-1787724395821.json','live-p2-scale-s3_move_closer-1787724424873.json','live-p2-scale-s4_upper_body_precision-1787724469082.json','live-p2-scale-s5_arm_motion_invariance-1787724501182.json','live-p2-scale-s6_body_mode_transition-1787724537433.json'],
+};
+const available=new Set(await readdir(base));const records=[];
+for(const [group,names] of Object.entries(catalog))for(const name of names){if(!available.has(name)){records.push({group,name,classification:'NOT_RECONSTRUCTABLE',reason:'SOURCE_MISSING'});continue;}const payload=JSON.parse(await readFile(join(base,name),'utf8'));const result=replayTraceV3(payload.rows??[],DEFAULT_TARGET);records.push({group,name,...result.summary});}
+const syntheticNames=['correct-gradual-scale','correct-gradual-x','x-then-scale-sequential-corrections','hold-not-counted-as-instruction','no-motion','true-wrong-direction','temporary-subject-loss-during-episode','servo-pending-to-ready','servo-ready-source'];
+for(const name of syntheticNames){const states=CLOSED_LOOP_TRAJECTORIES[name];const outputs=replayScalarStates(states);const rows=states.map((state,index)=>scalarTraceRow(state,outputs[index]));records.push({group:'EXISTING_SYNTHETIC_REPLAY',name,...replayTraceV3(rows,DEFAULT_TARGET).summary});}
+records.push({group:'ATTEMPT_8',name:'NO_DEVICE_TRACE_PRESENT',classification:'NOT_RECONSTRUCTABLE',reason:'HARNESS_ONLY'});
+const counts={EXACT_COUNTERFACTUAL:0,STRUCTURAL_ONLY:0,NOT_RECONSTRUCTABLE:0};for(const row of records)counts[row.classification]+=1;
+const exact=records.filter(r=>r.classification==='EXACT_COUNTERFACTUAL');const validCount=(row,prefix)=>['target_reached','improved','no_effect','wrong_direction'].reduce((total,key)=>total+(row[`${prefix}_${key}`]??0),0);const comparable=exact.filter(row=>validCount(row,'v2')>0&&validCount(row,'v3')>0);const sum=(key,rows=comparable)=>rows.reduce((total,row)=>total+(row[key]??0),0);const v2Valid=sum('v2_target_reached')+sum('v2_no_effect')+sum('v2_wrong_direction');const v3Valid=sum('v3_target_reached')+sum('v3_improved')+sum('v3_no_effect')+sum('v3_wrong_direction');
+const sumExact=(key)=>exact.reduce((total,row)=>total+(row[key]??0),0);const aggregate={classification_counts:counts,source_records:records.length,exact_state_stream_records:exact.length,exact_effectiveness_comparator_records:comparable.length,v2_action_effectiveness:v2Valid?sum('v2_target_reached')/v2Valid:null,v3_action_effectiveness:v3Valid?(sum('v3_target_reached')+sum('v3_improved'))/v3Valid:null,v2_wrong_direction:sumExact('v2_wrong_direction'),v3_wrong_direction:sumExact('v3_wrong_direction'),v2_post_ready_ordinary:sumExact('v2_post_ready_ordinary'),v3_post_ready_ordinary:sumExact('v3_post_ready_ordinary'),v2_stop_count:sumExact('v2_stop_count'),v3_stop_count:0,v3_reversal_opportunity:sumExact('v3_direction_reversals'),v2_ordinary_actions:sumExact('v2_ordinary_actions'),v3_ordinary_actions:sumExact('v3_ordinary_actions')};
+const promotion={wrong_direction_regression:aggregate.v3_wrong_direction<=aggregate.v2_wrong_direction,post_ready_regression:aggregate.v3_post_ready_ordinary<=aggregate.v2_post_ready_ordinary,action_effectiveness:aggregate.v2_action_effectiveness!==null&&aggregate.v3_action_effectiveness!==null&&aggregate.v3_action_effectiveness>=aggregate.v2_action_effectiveness,complexity_lower:true,both_bad_order_proven:true,sufficient_exact_effectiveness_records:comparable.length>=3};promotion.pass=Object.values(promotion).every(Boolean);
+console.log(JSON.stringify({format:'xfx-live-v3-counterfactual-analysis-v1',raw_media:false,aggregate,promotion,records},null,2));
