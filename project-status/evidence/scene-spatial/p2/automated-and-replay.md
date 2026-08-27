@@ -2,7 +2,7 @@
 
 Date: 2026-08-26
 
-- TypeScript automated suite: **153/153 PASS** (P0 + P1 + P2, including displayed-target completion tolerance regression).
+- TypeScript automated suite: **155/155 PASS** (P0 + P1 + P2, including displayed-target completion and QUICK→reversed-WIDE regressions).
 - Deterministic replay: **P0 11/11 + P1 5/5 PASS**.
 - Typecheck: **PASS**.
 - Production Vite build: **PASS**; OpenCV.js emitted as a lazy 10,872.78 kB asset.
@@ -13,3 +13,5 @@ Date: 2026-08-26
 Browser initial page/DOM load passed. In-app Fixture post-WASM result inspection timed out and is not counted as browser PASS. The OPPO Chrome HTTPS gate remains required.
 
 OPPO continuation hotfix: coverage that displays as the target (for example QUICK 109.6° → 110.0°) now completes with a 0.5° tolerance; an incomplete scan caps the visual bar at 99%. This prevents a visually full bar from leaving the session `SWEEPING` and the repeat button disabled.
+
+Second OPPO continuation hotfix: post-scan P2/WASM work now owns a visible `空间分析中…` gate and repeat/WIDE actions remain disabled until it returns, preventing old-scan computation from overlapping a new camera scan. A WIDE `0→150→−30` mixed-direction replay completes at 180°; retracing already-covered angles is not double-counted and is explicitly labelled in the UI.

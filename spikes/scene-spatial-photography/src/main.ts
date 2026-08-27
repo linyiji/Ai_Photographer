@@ -66,6 +66,8 @@ const analyzedP2SweepIds = new Set<string>();
 const p2Trials: P2TrialEvidence[] = [];
 let latestP2Evidence: SpatialEvidenceV01 | null = null;
 let latestP2Correspondence: CorrespondenceDiagnostics | null = null;
+let p2Busy = false;
+let retracingCoveredArc = false;
 
 const currentMode = (): SweepMode => $<HTMLSelectElement>('mode').value as SweepMode;
 const modeTarget = (): number => ({ QUICK_SWEEP: 110, WIDE_SWEEP: 180, FULL_SWEEP: 360 })[currentMode()];
@@ -132,18 +134,23 @@ const runP1Analysis = (): void => {
 const emptyCorrespondence = (reason: string): CorrespondenceDiagnostics => ({ engine: 'GFTT_PYRLK', detected_feature_count: 0, tracked_feature_count: 0, match_retention: 0, inlier_ratio: 0, median_displacement_px: 0, median_parallax_px: 0, p75_parallax_px: 0, latency_ms: 0, pair_count: 0, failure_reason: reason });
 const runP2Analysis = async (): Promise<void> => {
   if (!runtime || runtime.session.status !== 'COMPLETE' || analyzedP2SweepIds.has(runtime.session.sweep_id)) return;
-  const sweepId = runtime.session.sweep_id; analyzedP2SweepIds.add(sweepId); setText('p2-status', '分析中'); $('p2-results').hidden = false;
-  const input = geometrySelector.input(sweepId);
-  let correspondence = emptyCorrespondence(input.frames.length < 2 ? 'INSUFFICIENT_FRAMES' : 'OPENCV_WASM_UNAVAILABLE');
-  if (input.frames.length >= 2) {
-    try { correspondence = analyzeCorrespondence(await loadOpenCv(), input, 'GFTT_PYRLK'); }
-    catch (error) { correspondence = emptyCorrespondence(error instanceof Error ? error.message : 'OPENCV_WASM_UNAVAILABLE'); }
+  const sweepId = runtime.session.sweep_id; analyzedP2SweepIds.add(sweepId); p2Busy = true; setText('p2-status', '分析中'); $('p2-results').hidden = false; render();
+  try {
+    const input = geometrySelector.input(sweepId);
+    let correspondence = emptyCorrespondence(input.frames.length < 2 ? 'INSUFFICIENT_FRAMES' : 'OPENCV_WASM_UNAVAILABLE');
+    if (input.frames.length >= 2) {
+      try { const cv = await loadOpenCv(); await new Promise<void>(resolve => requestAnimationFrame(() => resolve())); correspondence = analyzeCorrespondence(cv, input, 'GFTT_PYRLK'); }
+      catch (error) { correspondence = emptyCorrespondence(error instanceof Error ? error.message : 'OPENCV_WASM_UNAVAILABLE'); }
+    }
+    if (runtime?.session.sweep_id !== sweepId) return;
+    latestP2Correspondence = correspondence; latestP2Evidence = buildClientSpatialEvidence(input, correspondence, geometrySelector.selection_latency_ms);
+    const trial = completedTrials.find(item => item.sweep_id === sweepId);
+    p2Trials.push({ sweep_id: sweepId, geometry_frame_count: input.frames.length, frame_budget: input.selection_budget, estimated_memory_bytes: input.estimated_memory_bytes, correspondence, spatial_evidence: latestP2Evidence, preview_fps_median: trial?.preview_fps_median ?? null }); updateP2EvidenceText();
+    setText('p2-status', latestP2Evidence.status); setText('p2-frames', `${input.frames.length} / ${input.selection_budget}`); setText('p2-classification', latestP2Evidence.parallax_classification); setText('p2-tracks', String(correspondence.tracked_feature_count)); setText('p2-inliers', correspondence.inlier_ratio.toFixed(3)); setText('p2-parallax', `${correspondence.median_parallax_px.toFixed(2)} px`); setText('p2-latency', `${latestP2Evidence.diagnostics.total_latency_ms.toFixed(1)} ms`); $<HTMLButtonElement>('download-p2').disabled = false;
+  } finally {
+    p2Busy = false;
+    if (runtime?.session.sweep_id === sweepId && runtime.session.status === 'COMPLETE') render();
   }
-  if (runtime?.session.sweep_id !== sweepId) return;
-  latestP2Correspondence = correspondence; latestP2Evidence = buildClientSpatialEvidence(input, correspondence, geometrySelector.selection_latency_ms);
-  const trial = completedTrials.find(item => item.sweep_id === sweepId);
-  p2Trials.push({ sweep_id: sweepId, geometry_frame_count: input.frames.length, frame_budget: input.selection_budget, estimated_memory_bytes: input.estimated_memory_bytes, correspondence, spatial_evidence: latestP2Evidence, preview_fps_median: trial?.preview_fps_median ?? null }); updateP2EvidenceText();
-  setText('p2-status', latestP2Evidence.status); setText('p2-frames', `${input.frames.length} / ${input.selection_budget}`); setText('p2-classification', latestP2Evidence.parallax_classification); setText('p2-tracks', String(correspondence.tracked_feature_count)); setText('p2-inliers', correspondence.inlier_ratio.toFixed(3)); setText('p2-parallax', `${correspondence.median_parallax_px.toFixed(2)} px`); setText('p2-latency', `${latestP2Evidence.diagnostics.total_latency_ms.toFixed(1)} ms`); $<HTMLButtonElement>('download-p2').disabled = false;
 };
 
 const recordTrial = (): void => {
@@ -209,14 +216,15 @@ const render = (): void => {
   setText('privacy-counters', `${metrics.queue_length} / ${metrics.raw_video_upload}`);
   const progressPercent = coverage.span_deg / modeTarget() * 100;
   $('arc-fill').style.width = `${runtime.session.status === 'COMPLETE' ? 100 : Math.min(99, progressPercent)}%`;
-  setText('hero', runtime.session.status === 'COMPLETE' ? '看完了' : '慢慢转动手机');
+  setText('hero', runtime.session.status === 'COMPLETE' ? '看完了' : retracingCoveredArc ? '正在扫回已覆盖区域' : '慢慢转动手机');
   if (runtime.session.status === 'COMPLETE') {
     recordTrial(); runP1Analysis(); void runP2Analysis(); stopAcquisition();
-    $<HTMLButtonElement>('start').disabled = false;
-    $<HTMLButtonElement>('start').textContent = '再拍一次';
+    $<HTMLButtonElement>('start').disabled = p2Busy;
+    $<HTMLButtonElement>('start').textContent = p2Busy ? '空间分析中…' : '再拍一次';
     $<HTMLButtonElement>('next-sweep').hidden = false;
+    $<HTMLButtonElement>('next-sweep').disabled = p2Busy;
     $<HTMLButtonElement>('next-sweep').textContent = runtime.session.mode === 'QUICK_SWEEP' ? '扫更广一点（WIDE）' : '再拍一个 QUICK';
-    $<HTMLSelectElement>('mode').disabled = false;
+    $<HTMLSelectElement>('mode').disabled = p2Busy;
   }
 };
 
@@ -236,10 +244,11 @@ const sampleFrame = (): void => {
 };
 
 $('start').addEventListener('click', async () => {
+  if (p2Busy) return;
   $<HTMLButtonElement>('start').disabled = true; $<HTMLButtonElement>('start').textContent = '启动中…';
   $<HTMLButtonElement>('next-sweep').hidden = true; $<HTMLSelectElement>('mode').disabled = true;
   runtime = new SceneSweepRuntime(currentMode(), `sweep-${Date.now()}`, Date.now());
-  telemetry.start(performance.now()); resetTrialTelemetry(); transientKeyframes.clear(); geometrySelector.reset(); latestP1Analysis = null; latestP2Evidence = null; latestP2Correspondence = null; $('p1-results').hidden = true; $('p2-results').hidden = true; $<HTMLButtonElement>('download-p1').disabled = true; $<HTMLButtonElement>('download-p2').disabled = true; orientation.resetBaseline(); orientationSource = 'DEVICE_ORIENTATION';
+  telemetry.start(performance.now()); resetTrialTelemetry(); transientKeyframes.clear(); geometrySelector.reset(); retracingCoveredArc = false; latestP1Analysis = null; latestP2Evidence = null; latestP2Correspondence = null; $('p1-results').hidden = true; $('p2-results').hidden = true; $<HTMLButtonElement>('download-p1').disabled = true; $<HTMLButtonElement>('download-p2').disabled = true; orientation.resetBaseline(); orientationSource = 'DEVICE_ORIENTATION';
   setText('message', '正在请求相机与方向权限…');
   const [cameraState, orientationState] = await Promise.all([camera.start(), orientation.requestPermission()]);
   if (cameraState.state !== 'ACTIVE') { setText('message', cameraState.message ?? '相机不可用'); $<HTMLButtonElement>('start').disabled = false; $<HTMLButtonElement>('start').textContent = '重试'; $<HTMLSelectElement>('mode').disabled = false; render(); return; }
@@ -250,7 +259,11 @@ $('start').addEventListener('click', async () => {
     latestYaw = sample.relative_yaw_deg; orientationSource = sample.source; telemetry.orientation();
     if (firstOrientationAt === null) firstOrientationAt = sample.timestamp_ms;
     if (sample.timestamp_ms - firstOrientationAt <= 3000) initialYawSamples.push(sample.relative_yaw_deg);
-    runtime?.observeOrientation(sample); latestYaw = runtime?.currentYawDeg() ?? sample.relative_yaw_deg; render();
+    const spanBefore = runtime?.coverage.snapshot().span_deg ?? 0;
+    runtime?.observeOrientation(sample); latestYaw = runtime?.currentYawDeg() ?? sample.relative_yaw_deg;
+    const coverageAfter = runtime?.coverage.snapshot();
+    retracingCoveredArc = runtime?.session.status === 'SWEEPING' && coverageAfter?.direction === 'MIXED' && (coverageAfter.span_deg <= spanBefore + 0.05);
+    render();
   });
   candidateTimer = window.setInterval(sampleFrame, 125);
   setText('message', orientationState === 'ACTIVE' ? '方向传感器已启用；先静止约 3 秒，再缓慢转动。' : '相机可用，但方向传感器不可用。'); render();
@@ -260,7 +273,7 @@ $('fixture').addEventListener('click', () => {
   clearInterval(fixtureTimer);
   const target = modeTarget();
   runtime = new SceneSweepRuntime(currentMode(), `fixture-${currentMode().toLowerCase()}-${Date.now()}`, Date.now());
-  telemetry.start(performance.now()); resetTrialTelemetry(); transientKeyframes.clear(); geometrySelector.reset(); latestP1Analysis = null; latestP2Evidence = null; latestP2Correspondence = null; $('p1-results').hidden = true; $('p2-results').hidden = true; $<HTMLButtonElement>('download-p1').disabled = true; $<HTMLButtonElement>('download-p2').disabled = true; orientationSource = 'CONTROLLED_FIXTURE';
+  telemetry.start(performance.now()); resetTrialTelemetry(); transientKeyframes.clear(); geometrySelector.reset(); retracingCoveredArc = false; latestP1Analysis = null; latestP2Evidence = null; latestP2Correspondence = null; $('p1-results').hidden = true; $('p2-results').hidden = true; $<HTMLButtonElement>('download-p1').disabled = true; $<HTMLButtonElement>('download-p2').disabled = true; orientationSource = 'CONTROLLED_FIXTURE';
   $('empty').style.display = 'none'; $('finish').toggleAttribute('disabled', false); $('cancel').toggleAttribute('disabled', false);
   setText('message', '确定性 Fixture：无相机、无网络、无 Provider。');
   let yaw = 0, fixtureSequence = 0;
@@ -290,6 +303,7 @@ $('fixture').addEventListener('click', () => {
 });
 
 $('next-sweep').addEventListener('click', () => {
+  if (p2Busy) return;
   $<HTMLSelectElement>('mode').value = runtime?.session.mode === 'QUICK_SWEEP' ? 'WIDE_SWEEP' : 'QUICK_SWEEP';
   $<HTMLButtonElement>('start').click();
 });
