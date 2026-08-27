@@ -229,3 +229,51 @@ PUBLIC_PRODUCTION_READY = NO
 The result does not authorize replacing the native still with a video-frame capture or manufacturing an unproven static mapping. Full evidence:
 
 `project-status/evidence/first-complete-non-ai/oppo-bounded-remediation/oppo-camera-stream-constraint-fov-ab.md`
+
+## OPPO_PREVIEW_NATIVE_STILL_REGISTRATION_AND_CAPTURE_AUTHORITY_06 — 2026-08-27
+
+The final bounded H5 Camera registration experiment has completed. The implementation captured one transient shutter-time displayed Preview Reference, preserved the `3072×4096` native ImageCapture source, tested the simplest admissible transform first, and failed closed when registration evidence was insufficient.
+
+Five fresh OPPO pairs covered centered, left-edge, right-edge, environment-heavy, and different-distance compositions. All five were `LOW_CONFIDENCE`; the first four exposed only non-authoritative scale/translation candidates and the different-distance case rejected every model (`NONE`, 67 matches, 0 inliers). Cross-capture stability is therefore `UNSUPPORTED`.
+
+```text
+CAMERA_GEOMETRY = PASS
+CONSTRAINT_TRIGGER = CONFIRMED
+SELECTED_STREAM_PROFILE = LIVE_LIKE
+STREAM_COMPOSITION_DECOUPLED = YES
+PREVIEW_NATIVE_STILL_REGISTRATION = FAIL
+REGISTRATION_METHOD = LOCAL_FEATURE_MATCHING + DETERMINISTIC_RANSAC / ONCE_PER_SHUTTER
+MAPPING_STABILITY = UNSUPPORTED
+REGISTRATION_CONFIDENCE = INSUFFICIENT / 5 OF 5 LOW_CONFIDENCE
+ALIGNMENT_MODE = UNSUPPORTED
+NATIVE_STILL = PASS
+NATIVE_SOURCE_DIMENSIONS = 3072×4096
+NATIVE_SOURCE_MP = 12.58
+PREVIEW_MATCHED_CAPTURE = NOT_CREATED
+DERIVED_CAPTURE_QUALITY = NOT_CREATED
+COMPOSITION_GUIDE = NOT_CREATED
+OPPO_FINAL_3_CASE_AB = NOT_REACHED
+CAMERA_COMPOSITION_FIDELITY = FAIL
+H5_OPPO_CAMERA_COMPATIBILITY = UNSUPPORTED
+CAPTURE_TRANSPORT = PASS / PRESERVED
+BACKEND_PERSISTENCE = PASS / PRESERVED
+FINE_TUNE_DEVICE_GATE = NOT_REACHED
+FINAL_DEVICE_SAVE = NOT_REACHED
+MY_WORKS_READBACK = NOT_REACHED
+FULL_MAIN_GOLDEN_FLOW = FAIL
+OPPO_MAIN_GATE = FAIL
+FIRST_COMPLETE_NON_AI_PRODUCT_BASELINE = NOT_YET_PASS
+PUBLIC_PRODUCTION_READY = NO
+Provider = 0
+Luna = 0
+Raw Video Upload = 0
+Frame Stream Upload = 0
+Automated Regression = Frontend 81/81 / Backend 106/106 / TypeScript PASS / H5 PASS_WITH_WARNING
+Implementation Commit = bab6124b8bbd7ed5be622ca3ca31225143cf7031
+```
+
+No `PreviewMatchedCaptureAsset` was created and no unvalidated crop was promoted into Review. Because registration failed, 3:4 guide mapping and the downstream Parent gates were not admissible. This is the final H5-specific Camera mapping experiment for this Parent; it must not trigger another speculative H5 Camera algorithm task. WeChat and Douyin Camera adapters remain independent future validation targets.
+
+Full numeric evidence and the explicit evidence limitations for telemetry rows outside the supplied screenshots:
+
+`project-status/evidence/first-complete-non-ai/oppo-bounded-remediation/oppo-preview-native-still-registration.md`
