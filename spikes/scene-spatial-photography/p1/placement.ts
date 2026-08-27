@@ -1,5 +1,5 @@
 import { framingRect, P1_RANKING_CONFIG } from './config.js';
-import type { FramingProfile, KeyframeVisualDescriptor, NormalizedRect, PixelFrame, PlacementAnchor, SubjectPlacementZone } from './types.js';
+import type { CompositionAnchorZoneV01, FramingProfile, KeyframeVisualDescriptor, NormalizedRect, PixelFrame, PlacementAnchor } from './types.js';
 
 const anchors: PlacementAnchor[] = ['LEFT_THIRD', 'CENTER', 'RIGHT_THIRD'];
 const clamp01 = (value: number): number => Math.max(0, Math.min(1, value));
@@ -27,10 +27,13 @@ const zoneStats = (frame: PixelFrame, rect: NormalizedRect): { clutter: number; 
 };
 const edgeClearance = (rect: NormalizedRect): number => clamp01(Math.min(rect.x, rect.y, 1 - rect.x - rect.width, 1 - rect.y - rect.height) / 0.14);
 
-export const evaluatePlacementZones = (descriptor: KeyframeVisualDescriptor, frame: PixelFrame, profile: FramingProfile): SubjectPlacementZone[] => anchors.map((anchor) => {
+export const evaluateCompositionAnchorZones = (descriptor: KeyframeVisualDescriptor, frame: PixelFrame, profile: FramingProfile): CompositionAnchorZoneV01[] => anchors.map((anchor) => {
   const rect = framingRect(profile, anchor), stats = zoneStats(frame, rect), clearance = edgeClearance(rect);
   const descriptorClutter = anchor === 'LEFT_THIRD' ? descriptor.left_third_clutter_score : anchor === 'RIGHT_THIRD' ? descriptor.right_third_clutter_score : descriptor.center_clutter_score;
   const clutter = clamp01(0.55 * stats.clutter + 0.45 * descriptorClutter);
   const score = clamp01(0.34 * (1 - clutter) + 0.26 * stats.exposure + 0.18 * clearance + 0.22 * (1 - stats.edgeConflict));
   return { zone_id: `${descriptor.keyframe_id}-${profile.toLowerCase()}-${anchor.toLowerCase()}`, normalized_rect: rect, anchor, framing_profile: profile, clutter_score: round(clutter), exposure_score: round(stats.exposure), clearance_score: round(clearance), edge_conflict_score: round(stats.edgeConflict), placement_score: round(score), confidence: round(clamp01(0.55 + 0.35 * descriptor.quality_confidence)) };
 }).sort((a, b) => b.placement_score - a.placement_score || anchors.indexOf(a.anchor) - anchors.indexOf(b.anchor));
+
+/** @deprecated V0.2 canonical name is evaluateCompositionAnchorZones. */
+export const evaluatePlacementZones = evaluateCompositionAnchorZones;

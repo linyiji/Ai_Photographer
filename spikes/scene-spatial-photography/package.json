@@ -8,7 +8,10 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit && vite build",
     "replay": "tsc -p tsconfig.replay.json && node .replay-dist/replay/cli.js",
-    "p2:opencvjs": "tsc -p tsconfig.test.json && node p2/reference/opencvjs_correspondence.mjs"
+    "p2:opencvjs": "tsc -p tsconfig.test.json && node p2/reference/opencvjs_correspondence.mjs",
+    "p2:backend:test": "python -m unittest discover -s backend -p test_*.py -v",
+    "p2:backend:matrix": "python backend/controlled_matrix.py --output ../../project-status/evidence/scene-spatial/p2/backend-geometry-matrix-v0.2.json",
+    "p2:backend:benchmark": "python backend/runtime_benchmark.py --output ../../project-status/evidence/scene-spatial/p2/backend-runtime-benchmark-v0.2.json --runs 20"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

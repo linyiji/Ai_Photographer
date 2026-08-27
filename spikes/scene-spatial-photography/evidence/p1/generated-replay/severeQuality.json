@@ -244,12 +244,12 @@
       "technical_reason_codes": [
         "PENALTY_OVEREXPOSED"
       ],
-      "placement_candidates": [
+      "composition_anchor_candidates": [
         {
+          "schema": "xfx.composition-anchor-candidate",
           "schema_version": "0.1",
           "candidate_id": "view-01-right_third",
           "view_id": "view-01",
-          "action": "STAND",
           "image_anchor": "RIGHT_THIRD",
           "framing_profile": "ENVIRONMENTAL",
           "evidence_class": "CANDIDATE",
@@ -258,14 +258,14 @@
             "CLEAN_RIGHT_PLACEMENT"
           ],
           "confidence": 0.687007,
-          "physical_position": "UNKNOWN",
-          "safety": "UNKNOWN_REQUIRES_USER_CONFIRMATION"
+          "authority": "IMAGE_PLANE_COMPOSITION_ANCHOR_ONLY",
+          "physical_position": "NOT_APPLICABLE_P1"
         },
         {
+          "schema": "xfx.composition-anchor-candidate",
           "schema_version": "0.1",
           "candidate_id": "view-01-left_third",
           "view_id": "view-01",
-          "action": "STAND",
           "image_anchor": "LEFT_THIRD",
           "framing_profile": "ENVIRONMENTAL",
           "evidence_class": "CANDIDATE",
@@ -274,14 +274,14 @@
             "CLEAN_LEFT_PLACEMENT"
           ],
           "confidence": 0.687007,
-          "physical_position": "UNKNOWN",
-          "safety": "UNKNOWN_REQUIRES_USER_CONFIRMATION"
+          "authority": "IMAGE_PLANE_COMPOSITION_ANCHOR_ONLY",
+          "physical_position": "NOT_APPLICABLE_P1"
         },
         {
+          "schema": "xfx.composition-anchor-candidate",
           "schema_version": "0.1",
           "candidate_id": "view-01-center",
           "view_id": "view-01",
-          "action": "STAND",
           "image_anchor": "CENTER",
           "framing_profile": "ENVIRONMENTAL",
           "evidence_class": "CANDIDATE",
@@ -290,8 +290,58 @@
             "CLEAN_CENTER_PLACEMENT"
           ],
           "confidence": 0.687007,
-          "physical_position": "UNKNOWN",
-          "safety": "UNKNOWN_REQUIRES_USER_CONFIRMATION"
+          "authority": "IMAGE_PLANE_COMPOSITION_ANCHOR_ONLY",
+          "physical_position": "NOT_APPLICABLE_P1"
+        }
+      ],
+      "placement_candidates": [
+        {
+          "schema": "xfx.composition-anchor-candidate",
+          "schema_version": "0.1",
+          "candidate_id": "view-01-right_third",
+          "view_id": "view-01",
+          "image_anchor": "RIGHT_THIRD",
+          "framing_profile": "ENVIRONMENTAL",
+          "evidence_class": "CANDIDATE",
+          "technical_usability": 0.522372,
+          "reason_codes": [
+            "CLEAN_RIGHT_PLACEMENT"
+          ],
+          "confidence": 0.687007,
+          "authority": "IMAGE_PLANE_COMPOSITION_ANCHOR_ONLY",
+          "physical_position": "NOT_APPLICABLE_P1"
+        },
+        {
+          "schema": "xfx.composition-anchor-candidate",
+          "schema_version": "0.1",
+          "candidate_id": "view-01-left_third",
+          "view_id": "view-01",
+          "image_anchor": "LEFT_THIRD",
+          "framing_profile": "ENVIRONMENTAL",
+          "evidence_class": "CANDIDATE",
+          "technical_usability": 0.51655,
+          "reason_codes": [
+            "CLEAN_LEFT_PLACEMENT"
+          ],
+          "confidence": 0.687007,
+          "authority": "IMAGE_PLANE_COMPOSITION_ANCHOR_ONLY",
+          "physical_position": "NOT_APPLICABLE_P1"
+        },
+        {
+          "schema": "xfx.composition-anchor-candidate",
+          "schema_version": "0.1",
+          "candidate_id": "view-01-center",
+          "view_id": "view-01",
+          "image_anchor": "CENTER",
+          "framing_profile": "ENVIRONMENTAL",
+          "evidence_class": "CANDIDATE",
+          "technical_usability": 0.511596,
+          "reason_codes": [
+            "CLEAN_CENTER_PLACEMENT"
+          ],
+          "confidence": 0.687007,
+          "authority": "IMAGE_PLANE_COMPOSITION_ANCHOR_ONLY",
+          "physical_position": "NOT_APPLICABLE_P1"
         }
       ],
       "final_photography_decision": "NOT_P1_RESPONSIBILITY",
@@ -318,12 +368,12 @@
       "technical_reason_codes": [
         "BALANCED_EXPOSURE"
       ],
-      "placement_candidates": [
+      "composition_anchor_candidates": [
         {
+          "schema": "xfx.composition-anchor-candidate",
           "schema_version": "0.1",
           "candidate_id": "view-02-center",
           "view_id": "view-02",
-          "action": "STAND",
           "image_anchor": "CENTER",
           "framing_profile": "ENVIRONMENTAL",
           "evidence_class": "CANDIDATE",
@@ -332,14 +382,14 @@
             "CLEAN_CENTER_PLACEMENT"
           ],
           "confidence": 0.76938,
-          "physical_position": "UNKNOWN",
-          "safety": "UNKNOWN_REQUIRES_USER_CONFIRMATION"
+          "authority": "IMAGE_PLANE_COMPOSITION_ANCHOR_ONLY",
+          "physical_position": "NOT_APPLICABLE_P1"
         },
         {
+          "schema": "xfx.composition-anchor-candidate",
           "schema_version": "0.1",
           "candidate_id": "view-02-right_third",
           "view_id": "view-02",
-          "action": "STAND",
           "image_anchor": "RIGHT_THIRD",
           "framing_profile": "ENVIRONMENTAL",
           "evidence_class": "CANDIDATE",
@@ -348,14 +398,14 @@
             "CLEAN_RIGHT_PLACEMENT"
           ],
           "confidence": 0.76938,
-          "physical_position": "UNKNOWN",
-          "safety": "UNKNOWN_REQUIRES_USER_CONFIRMATION"
+          "authority": "IMAGE_PLANE_COMPOSITION_ANCHOR_ONLY",
+          "physical_position": "NOT_APPLICABLE_P1"
         },
         {
+          "schema": "xfx.composition-anchor-candidate",
           "schema_version": "0.1",
           "candidate_id": "view-02-left_third",
           "view_id": "view-02",
-          "action": "STAND",
           "image_anchor": "LEFT_THIRD",
           "framing_profile": "ENVIRONMENTAL",
           "evidence_class": "CANDIDATE",
@@ -364,8 +414,58 @@
             "CLEAN_LEFT_PLACEMENT"
           ],
           "confidence": 0.76938,
-          "physical_position": "UNKNOWN",
-          "safety": "UNKNOWN_REQUIRES_USER_CONFIRMATION"
+          "authority": "IMAGE_PLANE_COMPOSITION_ANCHOR_ONLY",
+          "physical_position": "NOT_APPLICABLE_P1"
+        }
+      ],
+      "placement_candidates": [
+        {
+          "schema": "xfx.composition-anchor-candidate",
+          "schema_version": "0.1",
+          "candidate_id": "view-02-center",
+          "view_id": "view-02",
+          "image_anchor": "CENTER",
+          "framing_profile": "ENVIRONMENTAL",
+          "evidence_class": "CANDIDATE",
+          "technical_usability": 0.761003,
+          "reason_codes": [
+            "CLEAN_CENTER_PLACEMENT"
+          ],
+          "confidence": 0.76938,
+          "authority": "IMAGE_PLANE_COMPOSITION_ANCHOR_ONLY",
+          "physical_position": "NOT_APPLICABLE_P1"
+        },
+        {
+          "schema": "xfx.composition-anchor-candidate",
+          "schema_version": "0.1",
+          "candidate_id": "view-02-right_third",
+          "view_id": "view-02",
+          "image_anchor": "RIGHT_THIRD",
+          "framing_profile": "ENVIRONMENTAL",
+          "evidence_class": "CANDIDATE",
+          "technical_usability": 0.74206,
+          "reason_codes": [
+            "CLEAN_RIGHT_PLACEMENT"
+          ],
+          "confidence": 0.76938,
+          "authority": "IMAGE_PLANE_COMPOSITION_ANCHOR_ONLY",
+          "physical_position": "NOT_APPLICABLE_P1"
+        },
+        {
+          "schema": "xfx.composition-anchor-candidate",
+          "schema_version": "0.1",
+          "candidate_id": "view-02-left_third",
+          "view_id": "view-02",
+          "image_anchor": "LEFT_THIRD",
+          "framing_profile": "ENVIRONMENTAL",
+          "evidence_class": "CANDIDATE",
+          "technical_usability": 0.699588,
+          "reason_codes": [
+            "CLEAN_LEFT_PLACEMENT"
+          ],
+          "confidence": 0.76938,
+          "authority": "IMAGE_PLANE_COMPOSITION_ANCHOR_ONLY",
+          "physical_position": "NOT_APPLICABLE_P1"
         }
       ],
       "final_photography_decision": "NOT_P1_RESPONSIBILITY",
@@ -392,12 +492,12 @@
       "technical_reason_codes": [
         "BALANCED_EXPOSURE"
       ],
-      "placement_candidates": [
+      "composition_anchor_candidates": [
         {
+          "schema": "xfx.composition-anchor-candidate",
           "schema_version": "0.1",
           "candidate_id": "view-03-left_third",
           "view_id": "view-03",
-          "action": "STAND",
           "image_anchor": "LEFT_THIRD",
           "framing_profile": "ENVIRONMENTAL",
           "evidence_class": "CANDIDATE",
@@ -406,14 +506,14 @@
             "CLEAN_LEFT_PLACEMENT"
           ],
           "confidence": 0.76938,
-          "physical_position": "UNKNOWN",
-          "safety": "UNKNOWN_REQUIRES_USER_CONFIRMATION"
+          "authority": "IMAGE_PLANE_COMPOSITION_ANCHOR_ONLY",
+          "physical_position": "NOT_APPLICABLE_P1"
         },
         {
+          "schema": "xfx.composition-anchor-candidate",
           "schema_version": "0.1",
           "candidate_id": "view-03-center",
           "view_id": "view-03",
-          "action": "STAND",
           "image_anchor": "CENTER",
           "framing_profile": "ENVIRONMENTAL",
           "evidence_class": "CANDIDATE",
@@ -422,14 +522,14 @@
             "CLEAN_CENTER_PLACEMENT"
           ],
           "confidence": 0.76938,
-          "physical_position": "UNKNOWN",
-          "safety": "UNKNOWN_REQUIRES_USER_CONFIRMATION"
+          "authority": "IMAGE_PLANE_COMPOSITION_ANCHOR_ONLY",
+          "physical_position": "NOT_APPLICABLE_P1"
         },
         {
+          "schema": "xfx.composition-anchor-candidate",
           "schema_version": "0.1",
           "candidate_id": "view-03-right_third",
           "view_id": "view-03",
-          "action": "STAND",
           "image_anchor": "RIGHT_THIRD",
           "framing_profile": "ENVIRONMENTAL",
           "evidence_class": "CANDIDATE",
@@ -438,8 +538,58 @@
             "CLEAN_RIGHT_PLACEMENT"
           ],
           "confidence": 0.76938,
-          "physical_position": "UNKNOWN",
-          "safety": "UNKNOWN_REQUIRES_USER_CONFIRMATION"
+          "authority": "IMAGE_PLANE_COMPOSITION_ANCHOR_ONLY",
+          "physical_position": "NOT_APPLICABLE_P1"
+        }
+      ],
+      "placement_candidates": [
+        {
+          "schema": "xfx.composition-anchor-candidate",
+          "schema_version": "0.1",
+          "candidate_id": "view-03-left_third",
+          "view_id": "view-03",
+          "image_anchor": "LEFT_THIRD",
+          "framing_profile": "ENVIRONMENTAL",
+          "evidence_class": "CANDIDATE",
+          "technical_usability": 0.889159,
+          "reason_codes": [
+            "CLEAN_LEFT_PLACEMENT"
+          ],
+          "confidence": 0.76938,
+          "authority": "IMAGE_PLANE_COMPOSITION_ANCHOR_ONLY",
+          "physical_position": "NOT_APPLICABLE_P1"
+        },
+        {
+          "schema": "xfx.composition-anchor-candidate",
+          "schema_version": "0.1",
+          "candidate_id": "view-03-center",
+          "view_id": "view-03",
+          "image_anchor": "CENTER",
+          "framing_profile": "ENVIRONMENTAL",
+          "evidence_class": "CANDIDATE",
+          "technical_usability": 0.87924,
+          "reason_codes": [
+            "CLEAN_CENTER_PLACEMENT"
+          ],
+          "confidence": 0.76938,
+          "authority": "IMAGE_PLANE_COMPOSITION_ANCHOR_ONLY",
+          "physical_position": "NOT_APPLICABLE_P1"
+        },
+        {
+          "schema": "xfx.composition-anchor-candidate",
+          "schema_version": "0.1",
+          "candidate_id": "view-03-right_third",
+          "view_id": "view-03",
+          "image_anchor": "RIGHT_THIRD",
+          "framing_profile": "ENVIRONMENTAL",
+          "evidence_class": "CANDIDATE",
+          "technical_usability": 0.869173,
+          "reason_codes": [
+            "CLEAN_RIGHT_PLACEMENT"
+          ],
+          "confidence": 0.76938,
+          "authority": "IMAGE_PLANE_COMPOSITION_ANCHOR_ONLY",
+          "physical_position": "NOT_APPLICABLE_P1"
         }
       ],
       "final_photography_decision": "NOT_P1_RESPONSIBILITY",

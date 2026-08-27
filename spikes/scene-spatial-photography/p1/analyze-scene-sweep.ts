@@ -3,7 +3,7 @@ import type { YawMapData } from '../spatial/types.js';
 import { segmentAngularRegions } from './angular-regions.js';
 import { DEFAULT_PHOTOGRAPHY_INTENT } from './config.js';
 import { createSceneDirectionMap, createSceneFrameSet, generatePhotographyViewCandidates } from './candidate-generator.js';
-import { evaluatePlacementZones } from './placement.js';
+import { evaluateCompositionAnchorZones } from './placement.js';
 import type { PhotographyIntent, SceneSpatialContextV01, SceneSweepAnalysisResult, TransientKeyframePixels } from './types.js';
 import { describeKeyframe } from './visual-descriptor.js';
 
@@ -19,7 +19,7 @@ export const analyzeSceneSweep = (manifest: SceneSweepManifest, yawMap: YawMapDa
     return pixels ? [describeKeyframe(keyframe, pixels)] : [];
   });
   const descriptorMs = clock() - descriptorStarted;
-  const placements = new Map(descriptors.map((descriptor) => [descriptor.keyframe_id, evaluatePlacementZones(descriptor, pixelsById.get(descriptor.keyframe_id)!, intent.preferred_framing)]));
+  const placements = new Map(descriptors.map((descriptor) => [descriptor.keyframe_id, evaluateCompositionAnchorZones(descriptor, pixelsById.get(descriptor.keyframe_id)!, intent.preferred_framing)]));
   const regionStarted = clock(), regions = segmentAngularRegions(descriptors, placements), regionMs = clock() - regionStarted;
   const candidateStarted = clock();
   const frameSet = createSceneFrameSet(manifest, descriptors, transientKeyframes);

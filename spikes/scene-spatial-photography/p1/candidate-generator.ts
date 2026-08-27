@@ -1,8 +1,8 @@
 import { P1_RANKING_CONFIG } from './config.js';
 import type {
   KeyframeVisualDescriptor, PhotographyReasonCode, PhotographyViewCandidateV01,
-  PlacementCandidateV01, SceneAngularRegion, SceneDirectionMapV01, SceneFrameSetV01,
-  SubjectPlacementZone, TransientKeyframePixels,
+  CompositionAnchorCandidateV01, CompositionAnchorZoneV01, SceneAngularRegion, SceneDirectionMapV01, SceneFrameSetV01,
+  TransientKeyframePixels,
 } from './types.js';
 import type { SceneSweepManifest } from '../spatial/scene-sweep-manifest.js';
 
@@ -67,13 +67,14 @@ const chooseDiverseDescriptors = (descriptors: readonly KeyframeVisualDescriptor
   }
   return selected.sort((a, b) => a.relative_yaw_deg - b.relative_yaw_deg);
 };
-const placementReason = (anchor: SubjectPlacementZone['anchor']): PhotographyReasonCode => ({ LEFT_THIRD: 'CLEAN_LEFT_PLACEMENT', CENTER: 'CLEAN_CENTER_PLACEMENT', RIGHT_THIRD: 'CLEAN_RIGHT_PLACEMENT' } as const)[anchor];
-const placementCandidates = (viewId: string, zones: readonly SubjectPlacementZone[]): PlacementCandidateV01[] => zones.map((zone) => ({ schema_version: '0.1', candidate_id: `${viewId}-${zone.anchor.toLowerCase()}`, view_id: viewId, action: 'STAND', image_anchor: zone.anchor, framing_profile: zone.framing_profile, evidence_class: 'CANDIDATE', technical_usability: zone.placement_score, reason_codes: [placementReason(zone.anchor)], confidence: zone.confidence, physical_position: 'UNKNOWN', safety: 'UNKNOWN_REQUIRES_USER_CONFIRMATION' }));
+const anchorReason = (anchor: CompositionAnchorZoneV01['anchor']): PhotographyReasonCode => ({ LEFT_THIRD: 'CLEAN_LEFT_PLACEMENT', CENTER: 'CLEAN_CENTER_PLACEMENT', RIGHT_THIRD: 'CLEAN_RIGHT_PLACEMENT' } as const)[anchor];
+const compositionAnchorCandidates = (viewId: string, zones: readonly CompositionAnchorZoneV01[]): CompositionAnchorCandidateV01[] => zones.map((zone) => ({ schema: 'xfx.composition-anchor-candidate', schema_version: '0.1', candidate_id: `${viewId}-${zone.anchor.toLowerCase()}`, view_id: viewId, image_anchor: zone.anchor, framing_profile: zone.framing_profile, evidence_class: 'CANDIDATE', technical_usability: zone.placement_score, reason_codes: [anchorReason(zone.anchor)], confidence: zone.confidence, authority: 'IMAGE_PLANE_COMPOSITION_ANCHOR_ONLY', physical_position: 'NOT_APPLICABLE_P1' }));
 
-export const generatePhotographyViewCandidates = (descriptors: readonly KeyframeVisualDescriptor[], directionMap: SceneDirectionMapV01, regions: readonly SceneAngularRegion[], placements: ReadonlyMap<string, readonly SubjectPlacementZone[]>): PhotographyViewCandidateV01[] => {
+export const generatePhotographyViewCandidates = (descriptors: readonly KeyframeVisualDescriptor[], directionMap: SceneDirectionMapV01, regions: readonly SceneAngularRegion[], placements: ReadonlyMap<string, readonly CompositionAnchorZoneV01[]>): PhotographyViewCandidateV01[] => {
   const count = targetCandidateCount(descriptors.length, directionMap.coverage.span_deg);
   return chooseDiverseDescriptors(descriptors, count).map((descriptor, index) => {
     const viewId = `view-${String(index + 1).padStart(2, '0')}`;
-    return { schema_version: '0.1', view_id: viewId, representative_keyframe_id: descriptor.keyframe_id, relative_camera_yaw_deg: descriptor.relative_yaw_deg, direction_node_id: `frame-${descriptor.keyframe_id}`, region_id: regionFor(descriptor.relative_yaw_deg, regions), evidence_class: 'CANDIDATE', selection_basis: ['ANGULAR_DIVERSITY', 'TECHNICAL_USABILITY'], technical_usability: descriptor.photography_frame_quality_score, technical_reason_codes: technicalReasons(descriptor), placement_candidates: placementCandidates(viewId, placements.get(descriptor.keyframe_id) ?? []), final_photography_decision: 'NOT_P1_RESPONSIBILITY', limitations: ['NOT_AN_AESTHETIC_RANKING', 'IMAGE_PLANE_ANCHORS_ONLY', 'NO_PHYSICAL_POSITION', 'NO_SEMANTIC_SCENE_UNDERSTANDING'] };
+    const anchors = compositionAnchorCandidates(viewId, placements.get(descriptor.keyframe_id) ?? []);
+    return { schema_version: '0.1', view_id: viewId, representative_keyframe_id: descriptor.keyframe_id, relative_camera_yaw_deg: descriptor.relative_yaw_deg, direction_node_id: `frame-${descriptor.keyframe_id}`, region_id: regionFor(descriptor.relative_yaw_deg, regions), evidence_class: 'CANDIDATE', selection_basis: ['ANGULAR_DIVERSITY', 'TECHNICAL_USABILITY'], technical_usability: descriptor.photography_frame_quality_score, technical_reason_codes: technicalReasons(descriptor), composition_anchor_candidates: anchors, placement_candidates: anchors, final_photography_decision: 'NOT_P1_RESPONSIBILITY', limitations: ['NOT_AN_AESTHETIC_RANKING', 'IMAGE_PLANE_ANCHORS_ONLY', 'NO_PHYSICAL_POSITION', 'NO_SEMANTIC_SCENE_UNDERSTANDING'] };
   });
 };

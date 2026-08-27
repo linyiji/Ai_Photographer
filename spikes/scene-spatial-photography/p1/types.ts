@@ -30,11 +30,13 @@ export interface KeyframeVisualDescriptor {
   quality_confidence: number;
 }
 export interface NormalizedRect { x: number; y: number; width: number; height: number; }
-export interface SubjectPlacementZone {
+export interface CompositionAnchorZoneV01 {
   zone_id: string; normalized_rect: NormalizedRect; anchor: PlacementAnchor; framing_profile: FramingProfile;
   clutter_score: number; exposure_score: number; clearance_score: number; edge_conflict_score: number;
   placement_score: number; confidence: number;
 }
+/** @deprecated Historical internal name; this has never been a physical placement zone. */
+export type SubjectPlacementZone = CompositionAnchorZoneV01;
 export interface SceneAngularRegion {
   region_id: string; yaw_start_deg: number; yaw_end_deg: number; yaw_center_deg: number; span_deg: number;
   keyframe_ids: string[]; representative_keyframe_id: string;
@@ -79,18 +81,22 @@ export interface SceneDirectionMapV01 {
   nodes: SceneDirectionNodeV01[]; depth: 'UNKNOWN'; metric_geometry: 'NOT_SUPPORTED';
   spatial_evidence_status: 'NOT_EVALUATED_P1'; limitations: string[];
 }
-export interface PlacementCandidateV01 {
-  schema_version: '0.1'; candidate_id: string; view_id: string; action: 'STAND';
+export interface CompositionAnchorCandidateV01 {
+  schema: 'xfx.composition-anchor-candidate'; schema_version: '0.1'; candidate_id: string; view_id: string;
   image_anchor: PlacementAnchor; framing_profile: FramingProfile; evidence_class: 'CANDIDATE';
   technical_usability: number; reason_codes: PhotographyReasonCode[]; confidence: number;
-  physical_position: 'UNKNOWN'; safety: 'UNKNOWN_REQUIRES_USER_CONFIRMATION';
+  authority: 'IMAGE_PLANE_COMPOSITION_ANCHOR_ONLY'; physical_position: 'NOT_APPLICABLE_P1';
 }
+/** @deprecated V0.2 canonical name is CompositionAnchorCandidateV01. */
+export type PlacementCandidateV01 = CompositionAnchorCandidateV01;
 export interface PhotographyViewCandidateV01 {
   schema_version: '0.1'; view_id: string; representative_keyframe_id: string;
   relative_camera_yaw_deg: number; direction_node_id: string; region_id: string | null;
   evidence_class: 'CANDIDATE'; selection_basis: ['ANGULAR_DIVERSITY', 'TECHNICAL_USABILITY'];
   technical_usability: number; technical_reason_codes: PhotographyReasonCode[];
-  placement_candidates: PlacementCandidateV01[]; final_photography_decision: 'NOT_P1_RESPONSIBILITY';
+  composition_anchor_candidates: CompositionAnchorCandidateV01[];
+  /** @deprecated Backward-compatible serialized alias. */ placement_candidates: PlacementCandidateV01[];
+  final_photography_decision: 'NOT_P1_RESPONSIBILITY';
   limitations: string[];
 }
 export interface P1AnalysisTimings { descriptor_ms: number; region_ms: number; candidate_ms: number; total_ms: number; }

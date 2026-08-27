@@ -1,5 +1,5 @@
 import { P1_RANKING_CONFIG } from './config.js';
-import type { KeyframeVisualDescriptor, SceneAngularRegion, SubjectPlacementZone } from './types.js';
+import type { CompositionAnchorZoneV01, KeyframeVisualDescriptor, SceneAngularRegion } from './types.js';
 import { descriptorDistance } from './visual-descriptor.js';
 
 const round = (value: number): number => Number(value.toFixed(6));
@@ -20,7 +20,7 @@ const mergeSingletons = (groups: Group[]): Group[] => {
   }
   return merged;
 };
-export const segmentAngularRegions = (descriptors: readonly KeyframeVisualDescriptor[], placements: ReadonlyMap<string, readonly SubjectPlacementZone[]>): SceneAngularRegion[] => {
+export const segmentAngularRegions = (descriptors: readonly KeyframeVisualDescriptor[], placements: ReadonlyMap<string, readonly CompositionAnchorZoneV01[]>): SceneAngularRegion[] => {
   const sorted = [...descriptors].sort((a, b) => a.relative_yaw_deg - b.relative_yaw_deg);
   if (!sorted.length) return [];
   const groups: Group[] = [{ descriptors: [sorted[0]!], boundary: 'START' }];
