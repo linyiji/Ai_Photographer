@@ -253,6 +253,7 @@ h2 { margin: 0; font-size: 1rem; letter-spacing: -0.02em; }
 .instruction-copy { min-height: 2rem; margin: 0.75rem 0 0; padding: 0.7rem; border-radius: 0.7rem; color: #ffdc9b; background: rgba(255, 190, 70, 0.08); font-size: 1rem; font-weight: 800; text-align: center; }
 .gate1-precondition { margin-top: .7rem; padding: .7rem; border: 1px solid rgba(255,144,122,.48); border-radius: .8rem; background: rgba(20,10,8,.72); }
 .gate1-precondition[data-valid="true"] { border-color: rgba(114,255,194,.62); background: rgba(7,25,18,.78); }
+.gate1-precondition[data-arm-blocked="true"] { border-color:#ff907a; background:rgba(55,14,10,.9); }
 .gate1-precondition__header { display:flex; justify-content:space-between; gap:.6rem; color:#ff907a; font:850 .68rem/1.2 ui-monospace,SFMono-Regular,Consolas,monospace; letter-spacing:.06em; }
 .gate1-precondition[data-valid="true"] .gate1-precondition__header { color:#72ffc2; }
 .gate1-precondition dl { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.4rem; margin:.6rem 0 0; }

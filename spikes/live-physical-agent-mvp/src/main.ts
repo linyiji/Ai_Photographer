@@ -157,6 +157,7 @@ let latestVisualGuidance: VisualGuidanceState | null = null;
 let displayedActionCopy: string | null = null;
 let displayedActionUntilMs = 0;
 let activeGate1PreArm: Gate1PreArmTelemetry | null = null;
+let gate1ArmAttempted = false;
 const cameraSessionGuard = new CameraSessionGuard();
 
 const simulatedUnsupported = new URLSearchParams(window.location.search).get('simulateUnsupported') === '1';
@@ -233,8 +234,11 @@ function renderGate1Precondition(): void {
   gate1Precondition.hidden = !isGate1Scenario(scenario);
   if (!isGate1Scenario(scenario)) return;
   const current = activeGate1PreArm ?? evaluateGate1PreArm(scenario, latestPerceptionState, currentTarget);
+  const blocked = gate1ArmAttempted && !current.precondition_valid;
   gate1Precondition.dataset.valid = String(current.precondition_valid);
-  gate1PreconditionResult.textContent = current.precondition_valid ? `${current.expected_trial_coverage} READY TO ARM ✓` : 'NOT READY';
+  gate1Precondition.dataset.armBlocked = String(blocked);
+  gate1PreconditionResult.textContent = current.precondition_valid ? `${current.expected_trial_coverage} READY TO ARM ✓` : blocked ? 'ARM 已阻止 ✕' : 'NOT READY';
+  closedLoopArm.textContent = blocked ? 'ARM 条件未满足' : 'ARM 新试验';
   gate1Expected.textContent = current.expected_trial_coverage;
   gate1BodyMode.textContent = `${current.pre_arm_body_mode} ${current.pre_arm_body_mode_stable ? '✓' : '✕'}`;
   gate1X.textContent = `${formatMetric(current.pre_arm_anchor_x)} / ${current.pre_arm_x_relation}`;
@@ -243,7 +247,7 @@ function renderGate1Precondition(): void {
   gate1ScaleValid.textContent = current.pre_arm_scale_valid ? 'VALID ✓' : 'INVALID ✕';
   gate1PreconditionReason.textContent = current.precondition_valid
     ? '起始覆盖有效；现在可以 ARM。移动要慢，看到“停一下”立即停止并保持不动。'
-    : current.precondition_failure_reason.map((reason) => GATE1_REASON_COPY[reason] ?? reason).join('；');
+    : `${blocked ? '无法 ARM：' : ''}${current.precondition_failure_reason.map((reason) => GATE1_REASON_COPY[reason] ?? reason).join('；')}`;
 }
 
 function formatElapsed(milliseconds: number): string {
@@ -735,14 +739,14 @@ targetPreset.addEventListener('change', () => {
   const selected = TARGET_PRESETS.find((preset) => preset.id === targetPreset.value) ?? TARGET_PRESETS[0];
   currentTarget = selected; closedLoop.setTarget(selected); latestClosedLoop = null;
   visualProjector.reset(); latestVisualGuidance = null;
-  displayedActionCopy = null; displayedActionUntilMs = 0; activeGate1PreArm = null; renderClosedLoop(); renderGate1Precondition(); renderVisualGuidance();
+  displayedActionCopy = null; displayedActionUntilMs = 0; activeGate1PreArm = null; gate1ArmAttempted = false; renderClosedLoop(); renderGate1Precondition(); renderVisualGuidance();
 });
 
 guidanceMode.addEventListener('change',()=>{ if(latestPerceptionState&&latestClosedLoop) latestVisualGuidance=visualProjector.update(latestPerceptionState,latestClosedLoop,latestRawMeasurement,{mode:guidanceMode.value as VisualServoMode,grid:guidanceGrid.checked,now:performance.now()}); renderVisualGuidance(); renderClosedLoop(); });
 guidanceGrid.addEventListener('change',()=>{ if(latestPerceptionState&&latestClosedLoop) latestVisualGuidance=visualProjector.update(latestPerceptionState,latestClosedLoop,latestRawMeasurement,{mode:guidanceMode.value as VisualServoMode,grid:guidanceGrid.checked,now:performance.now()}); renderVisualGuidance(); });
 semanticDebug.addEventListener('change',renderSemanticDebug);
 guidanceTheme.addEventListener('change',()=>renderVisualGuidance());
-scaleGateScenario.addEventListener('change', () => { activeGate1PreArm = null; renderGate1Precondition(); });
+scaleGateScenario.addEventListener('change', () => { activeGate1PreArm = null; gate1ArmAttempted = false; renderGate1Precondition(); });
 
 closedLoopReset.addEventListener('click', () => {
   if (latestClosedLoop?.runtime_state === 'LOCAL_RECOVERY_REQUIRED' && closedLoop.resumeAfterLocalRecovery(performance.now())) {
@@ -750,18 +754,24 @@ closedLoopReset.addEventListener('click', () => {
     setMessage('已继续本机引导；历史 Episode 与标量 Trace 保留，不会重复编号。');
     return;
   }
-  closedLoop.reset(); latestClosedLoop = null; displayedActionCopy = null; displayedActionUntilMs = 0; activeGate1PreArm = null;
+  closedLoop.reset(); latestClosedLoop = null; displayedActionCopy = null; displayedActionUntilMs = 0; activeGate1PreArm = null; gate1ArmAttempted = false;
   visualProjector.reset(); latestVisualGuidance = null; renderClosedLoop(); renderGate1Precondition(); renderVisualGuidance();
 });
 closedLoopArm.addEventListener('click', () => {
   const scenario = scaleGateScenario.value;
   const preArm = isGate1Scenario(scenario) ? evaluateGate1PreArm(scenario, latestPerceptionState, currentTarget) : null;
   if (preArm && !preArm.precondition_valid) {
-    activeGate1PreArm = null; renderGate1Precondition();
+    activeGate1PreArm = null; gate1ArmAttempted = true; renderGate1Precondition();
+    gate1Precondition.animate([
+      { transform: 'scale(1)', boxShadow: '0 0 0 rgba(255,144,122,0)' },
+      { transform: 'scale(1.012)', boxShadow: '0 0 0 4px rgba(255,144,122,.42)' },
+      { transform: 'scale(1)', boxShadow: '0 0 0 rgba(255,144,122,0)' },
+    ], { duration: 650, easing: 'ease-out' });
     setMessage(`Gate 1 ARM 已阻止：${preArm.precondition_failure_reason.map((reason) => GATE1_REASON_COPY[reason] ?? reason).join('；')}`, 'error');
     return;
   }
   closedLoop.armTrial(performance.now()); scalarTrace.clear();
+  gate1ArmAttempted = false;
   if (preArm) { activeGate1PreArm = preArm; scalarTrace.beginGate1Trial(preArm); } else activeGate1PreArm = null;
   latestClosedLoop = null; displayedActionCopy = null; displayedActionUntilMs = 0;
   visualProjector.reset(); latestVisualGuidance = null; renderClosedLoop(); renderGate1Precondition(); renderVisualGuidance(); setMessage('试验已 ARM；起始覆盖已锁定。缓慢连续移动，看到“停一下”立即停止并保持不动。');

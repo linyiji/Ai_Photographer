@@ -111,7 +111,7 @@ Source fingerprints:
 ## Gate 1 attempt 8 — acceptance harness ready, device evidence pending
 
 - A debug-only Pre-ARM panel now evaluates X, Scale, and Combined starting coverage against the existing target, deadband, precision calibration, measurement validity, and stable compatible BodyMode. It does not tune controller semantics.
-- Invalid Gate 1 ARM is prevented with an explicit failure reason. A valid ARM locks the Pre-ARM scalar snapshot into the downloaded trace.
+- Invalid Gate 1 ARM is prevented with an explicit inline failure reason beside the button; the button changes to `ARM 条件未满足`, the panel reports `ARM 已阻止`, and the Trial remains DISARMED. A valid ARM locks the Pre-ARM scalar snapshot into the downloaded trace.
 - Trace export now reports expected/actual coverage, precision Episode/success counts, READY source, post-READY ordinary count, and per-STOP scalar causality: measurement version/epoch, X/Scale at STOP, first newer measurement, continued motion, settle time, maximum excursion, and opposite reissue age.
 - Automated regression: 215/215 PASS. TypeScript PASS. Production build PASS / 30 modules.
 - Browser Replay: READY / EPISODE_SUCCESS, ordinary/STOP/HOLD/success `1/1/1/1`, Provider/Backend/Luna/Upload `0/0/0/0`, console errors 0. Invalid ARM smoke remains DISARMED and shows the bounded failure reason.
