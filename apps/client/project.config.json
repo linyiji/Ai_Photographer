@@ -1,1 +1,1 @@
-{"miniprogramRoot":"dist/","projectname":"xfx-client","description":"XFX M02 shell","appid":"touristappid","setting":{"urlCheck":false,"es6":true,"postcss":true,"minified":true}}
+{"miniprogramRoot":"dist/weapp/","projectname":"xfx-client","description":"XFX M02 shell","appid":"touristappid","setting":{"urlCheck":false,"es6":true,"postcss":true,"minified":true}}

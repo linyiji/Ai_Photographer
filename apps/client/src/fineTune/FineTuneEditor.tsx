@@ -3,10 +3,10 @@ import Taro from '@tarojs/taro'
 import {useEffect,useRef,useState} from 'react'
 import {api,type Session} from '../api/client'
 import {platformRegistry} from '../platform/runtime'
-import {MAX_LOCAL_REGIONS,PARAMETERS,clampRegion,cloneRecipe,createRecipe,defaultRegion,setAdjustment,type AdjustmentParameter,type AdjustmentRecipe,type AdjustmentScope,type LocalRegion} from './core'
+import {MAX_LOCAL_REGIONS,PARAMETERS,RUNTIME_VERSION,clampRegion,cloneRecipe,createRecipe,defaultRegion,setAdjustment,type AdjustmentParameter,type AdjustmentRecipe,type AdjustmentScope,type LocalRegion} from './core'
 import {LatestOnlyQueue,V1_ADJUSTMENT_LIMIT,clampV1,deleteRegion,pointerRatioToUiRaw,recipeValueToUi,regionsFromRecipe,uiRawToRecipe,updateRegionGeometry} from './interactive'
-import {MainFineTuneRuntime,RUNTIME_VERSION,type FineTuneSession,type PreviewProjection} from './runtime'
-import {WeChatFineTuneRuntime} from './wechatRuntime'
+import {createFineTuneRuntime} from './runtimeProvider'
+import type {FineTuneSession,PreviewProjection} from './runtime'
 import './FineTuneEditor.css'
 
 const labels:Record<AdjustmentParameter,string>={BRIGHTNESS:'亮度',WARMTH:'色温',SATURATION:'饱和度',SOFTNESS:'柔和',BLUR:'背景虚化'}
@@ -85,8 +85,7 @@ export function FineTuneEditor({session,onComplete,onError}:{session:Session;onC
   const source=await api.fineTuneSource(session.session_id)
   const saved=await api.fineTuneRecipe<AdjustmentRecipe>(session.session_id)
   const initial=saved?.recipe||createRecipe(session.session_id,source.asset_id)
-  const Runtime=platformRegistry.platform==='WECHAT'?WeChatFineTuneRuntime:MainFineTuneRuntime
-  const opened=await new Runtime().open({source:{asset_id:source.asset_id,checksum:source.checksum,content_url:api.fineTuneSourceContentUrl(session.session_id)},recipe:initial,options:{preview_long_edge:480,jpeg_quality:.92}})
+  const opened=await createFineTuneRuntime().open({source:{asset_id:source.asset_id,checksum:source.checksum,content_url:api.fineTuneSourceContentUrl(session.session_id)},recipe:initial,options:{preview_long_edge:480,jpeg_quality:.92}})
   if(cancelled){opened.close();return}
   runtime.current=opened;history.current=[cloneRecipe(initial)];cursor.current=0;latestRecipe.current=initial
   const restored=regionsFromRecipe(initial);setRegions(restored);setSelectedRegionId(restored[0]?.id||null)
