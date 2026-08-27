@@ -13,7 +13,7 @@
 - P1 disposition: `ACTIVE_ACCEPTED_P1`; accepted runtime head `f0e8baf6600f52ca6f8d509cc959b4edc04e93ee`
 - Design Authority: `SCENE_SPATIAL_DESIGN_AUTHORITY_V0_2`
 - P2 Client SpatialPrecheck: `PASS / ROUTING_HINT_ONLY`
-- P2 spike-local Backend Geometry: `PASS_WITH_WARNING`; controlled solver/API/cache gates pass, OPPO V0.2 payload/network gate pending
+- P2 spike-local Backend Geometry: transport remediation automated gates `PASS`; prior OPPO HTTP 400 / `FRAME_SET_HASH_MISMATCH` retained as negative evidence; exactly one fresh QUICK and one fresh WIDE revalidation pending, so current OPPO runtime gate remains `FAIL` until both produce `SpatialEvidenceV02`
 - P3 Photography Affordance / physical placement: `NOT_STARTED`
 - P2 current-session Spatial Status Authority: `FIRST_PARTY_BACKEND_ONLY`
 - Main Integration: `NOT_STARTED`; selective migration only

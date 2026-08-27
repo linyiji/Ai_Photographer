@@ -37,3 +37,15 @@ OPPO performance continuation: GFTT/PyrLK is bounded to 10 frames, seven distrib
 QUICK completion continuation: OPPO Chrome showed `看完了` followed by `空间分析中…` for more than 30 seconds. Root cause is the 10.87 MB OpenCV.js/WASM asset parsing on the main thread; a JavaScript timeout cannot fire while parsing blocks that thread. The H5 runtime now excludes that asset and runs a four-pair/48-feature lightweight block-flow diagnostic. Synthetic global/layered-motion regression measured about 16–18 ms on the development host. This diagnostic remains at most `PARTIAL`; controlled GFTT/PyrLK remains the primary geometry reference.
 
 Local browser UI regression ran two consecutive QUICK fixtures after the replacement: P2 completed in 12.1 ms and 3.4 ms, `再拍一次` was enabled after completion, and the browser resource inventory contained zero OpenCV requests. This is local evidence only; OPPO HTTPS confirmation remains pending.
+
+## Backend frame identity and bounded working-image remediation 02
+
+- Real-device negative evidence retained: `sweep-1787832539640` returned HTTP 400 `FRAME_SET_HASH_MISMATCH`; a superseded request displayed `CANCELLED` locally while the backend still recorded 400; a two-frame attempt correctly remained `NOT_REQUESTED`.
+- Canonical binary identity: per-frame SHA-256 of exact uploaded JPEG bytes; ordered frame-set hash over compact UTF-8 `[[frame_id, frame_sha256], ...]`.
+- Browser-style multipart binary preservation, including CRLF, NUL and high-byte patterns: PASS.
+- One-byte mutation, wrong declared frame-set hash and frame ordering negative tests: PASS.
+- Request → validation → Solver → `SpatialEvidenceV02` local HTTP integration: PASS.
+- Resize matrix: `1080×1920 → 360×640`, `1920×1080 → 640×360`, `1200×1200 → 640×640`, `300×500 → 300×500`, `500×300 → 500×300`: PASS.
+- Backend resolution validation accepts bounded cases and rejects `640×1138` / 961px long edge: PASS.
+- Current frontend tests: 160/160 PASS; backend tests: 13/13 PASS; production build: PASS (55.93kB JS); controlled semantic matrix deterministic and all prior algorithm gates PASS.
+- Exactly one fresh OPPO QUICK and one fresh OPPO WIDE remain pending; no additional scans are requested before this automated closure.

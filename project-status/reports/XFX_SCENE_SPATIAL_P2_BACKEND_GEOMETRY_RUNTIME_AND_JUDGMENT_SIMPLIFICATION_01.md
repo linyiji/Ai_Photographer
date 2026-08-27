@@ -85,3 +85,7 @@ REAL_USER_MEDIA_IN_GIT = 0
 - Main Integration: NOT_STARTED.
 
 P2 Backend Geometry is `PASS_WITH_WARNING`: core solver and Authority boundaries pass; H5 Camera Model Evidence is UNKNOWN and OPPO selected-frame upload/end-to-end P50/P95 remain pending.
+
+## Remediation continuation 02
+
+Fresh OPPO evidence subsequently proved that the selected-frame request path failed before Solver execution with HTTP 400 `FRAME_SET_HASH_MISMATCH`; this is not `SpatialEvidenceV02.status = INSUFFICIENT`. The bounded remediation is tracked in `XFX_SCENE_SPATIAL_P2_BACKEND_FRAME_HASH_AND_WORKING_IMAGE_BOUNDED_REMEDIATION_02.md`. Automated transport, binary multipart, resize and request-to-Solver gates now pass. The historical 400 remains evidence, and the OPPO runtime gate remains failed until exactly one fresh QUICK and one fresh WIDE both reach the Solver and produce `SpatialEvidenceV02`.

@@ -6,12 +6,12 @@
   "frame_count": 4,
   "working_resolution": "640x480",
   "backend_compute_ms": {
-    "p50": 55.123,
-    "p95": 67.039
+    "p50": 64.295,
+    "p95": 90.76
   },
   "local_process_wall_ms": {
-    "p50": 56.004,
-    "p95": 68.193
+    "p50": 65.211,
+    "p95": 92.074
   },
   "payload_bytes": {
     "p50": 721487.5,
