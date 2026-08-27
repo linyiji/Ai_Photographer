@@ -15,9 +15,14 @@ export interface Gate1PreArmTelemetry {
   pre_arm_body_mode: BodyMode | 'UNKNOWN';
   pre_arm_body_mode_stable: boolean;
   pre_arm_anchor_x: number | null;
+  pre_arm_x_target: number;
+  pre_arm_x_tolerance: number;
   pre_arm_x_valid: boolean;
   pre_arm_x_relation: Gate1XRelation;
   pre_arm_scale: number | null;
+  pre_arm_scale_metric_type: string | null;
+  pre_arm_scale_target: number | null;
+  pre_arm_scale_tolerance: number | null;
   pre_arm_scale_valid: boolean;
   pre_arm_scale_relation: Gate1ScaleRelation;
   expected_trial_coverage: Gate1ExpectedCoverage;
@@ -72,8 +77,8 @@ export function evaluateGate1PreArm(scenario: Gate1Scenario, state: StructuredPe
   if (!xValid) reasons.push('X_MEASUREMENT_INVALID');
   if (!scaleValid) reasons.push('SCALE_MEASUREMENT_INVALID');
   if (scenario === 'GATE1_X' && relationX === 'IN_TARGET') reasons.push('X_MUST_START_OUTSIDE_TARGET');
-  if (scenario === 'GATE1_X' && relationScale !== 'IN_TARGET') reasons.push('SCALE_MUST_START_IN_TARGET');
-  if (scenario === 'GATE1_SCALE' && relationX !== 'IN_TARGET') reasons.push('X_MUST_START_IN_TARGET');
+  if (scenario === 'GATE1_X' && relationScale !== 'IN_TARGET' && relationScale !== 'UNKNOWN') reasons.push('SCALE_MUST_START_IN_TARGET');
+  if (scenario === 'GATE1_SCALE' && relationX !== 'IN_TARGET' && relationX !== 'UNKNOWN') reasons.push('X_MUST_START_IN_TARGET');
   if (scenario === 'GATE1_SCALE' && relationScale === 'IN_TARGET') reasons.push('SCALE_MUST_START_OUTSIDE_TARGET');
   if (scenario === 'GATE1_COMBINED' && relationX === 'IN_TARGET') reasons.push('X_MUST_START_OUTSIDE_TARGET');
   if (scenario === 'GATE1_COMBINED' && relationScale === 'IN_TARGET') reasons.push('SCALE_MUST_START_OUTSIDE_TARGET');
@@ -86,9 +91,14 @@ export function evaluateGate1PreArm(scenario: Gate1Scenario, state: StructuredPe
     pre_arm_body_mode: bodyMode,
     pre_arm_body_mode_stable: bodyModeStable,
     pre_arm_anchor_x: framing?.anchor_x ?? null,
+    pre_arm_x_target: target.center_x,
+    pre_arm_x_tolerance: target.tolerance_x,
     pre_arm_x_valid: xValid,
     pre_arm_x_relation: relationX,
     pre_arm_scale: framing?.scale ?? null,
+    pre_arm_scale_metric_type: calibration?.metric_type ?? null,
+    pre_arm_scale_target: calibration?.target_scale_value ?? null,
+    pre_arm_scale_tolerance: calibration?.target_scale_tolerance ?? null,
     pre_arm_scale_valid: scaleValid,
     pre_arm_scale_relation: relationScale,
     expected_trial_coverage: expectedCoverageFor(scenario),
@@ -96,4 +106,3 @@ export function evaluateGate1PreArm(scenario: Gate1Scenario, state: StructuredPe
     precondition_failure_reason: reasons,
   };
 }
-

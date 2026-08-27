@@ -12,6 +12,7 @@ import { projectBoxToCover } from '../visual-guidance/viewport.js';
 import { GUIDANCE_THEMES, renderGuidanceTheme } from '../visual-guidance/themes.js';
 import { CameraSessionGuard, ownsActiveCameraSession } from '../camera/session-guard.js';
 import { evaluateGate1PreArm, isGate1Scenario, type Gate1PreArmTelemetry } from '../closed-loop/gate1-acceptance.js';
+import { precisionScaleCalibrationFor } from '../semantic-framing/profiles.js';
 
 type FacingMode = 'user' | 'environment';
 type PermissionStateLabel = PermissionState | 'not_requested' | 'unsupported' | 'error';
@@ -70,6 +71,8 @@ const gate1Expected = requireElement<HTMLElement>('gate1-expected');
 const gate1BodyMode = requireElement<HTMLElement>('gate1-body-mode');
 const gate1X = requireElement<HTMLElement>('gate1-x');
 const gate1Scale = requireElement<HTMLElement>('gate1-scale');
+const gate1XTarget = requireElement<HTMLElement>('gate1-x-target');
+const gate1ScaleTarget = requireElement<HTMLElement>('gate1-scale-target');
 const gate1XValid = requireElement<HTMLElement>('gate1-x-valid');
 const gate1ScaleValid = requireElement<HTMLElement>('gate1-scale-valid');
 const gate1PreconditionReason = requireElement<HTMLElement>('gate1-precondition-reason');
@@ -217,10 +220,10 @@ function setPermission(next: PermissionStateLabel): void {
 const GATE1_REASON_COPY: Readonly<Record<string, string>> = Object.freeze({
   SUBJECT_NOT_PRESENT: '人物未进入画面',
   BODY_MODE_NOT_STABLE: 'BodyMode 尚未稳定 600ms',
-  BODY_MODE_MUST_BE_UPPER_BODY: '需要稳定 UPPER_BODY',
-  BODY_MODE_NOT_PRECISION_COMPATIBLE: '当前 BodyMode 不支持精调',
-  X_MEASUREMENT_INVALID: 'X 测量无效',
-  SCALE_MEASUREMENT_INVALID: 'Scale 测量无效',
+  BODY_MODE_MUST_BE_UPPER_BODY: '请退后并保持，直到 BodyMode=UPPER_BODY',
+  BODY_MODE_NOT_PRECISION_COMPATIBLE: '当前身体范围不足：请退后直到 UPPER_BODY',
+  X_MEASUREMENT_INVALID: 'X 精调不稳定：请正对镜头并静止片刻',
+  SCALE_MEASUREMENT_INVALID: 'Scale 精调尚不可用：先完成 UPPER_BODY',
   X_MUST_START_OUTSIDE_TARGET: 'X 必须在目标区外',
   SCALE_MUST_START_IN_TARGET: 'Scale 必须在目标区内',
   X_MUST_START_IN_TARGET: 'X 必须在目标区内',
@@ -243,6 +246,10 @@ function renderGate1Precondition(): void {
   gate1BodyMode.textContent = `${current.pre_arm_body_mode} ${current.pre_arm_body_mode_stable ? '✓' : '✕'}`;
   gate1X.textContent = `${formatMetric(current.pre_arm_anchor_x)} / ${current.pre_arm_x_relation}`;
   gate1Scale.textContent = `${formatMetric(current.pre_arm_scale)} / ${current.pre_arm_scale_relation}`;
+  gate1XTarget.textContent = `${(current.pre_arm_x_target-current.pre_arm_x_tolerance).toFixed(3)}–${(current.pre_arm_x_target+current.pre_arm_x_tolerance).toFixed(3)}`;
+  gate1ScaleTarget.textContent = current.pre_arm_scale_target === null || current.pre_arm_scale_tolerance === null
+    ? '需先进入 UPPER_BODY'
+    : `${(current.pre_arm_scale_target-current.pre_arm_scale_tolerance).toFixed(3)}–${(current.pre_arm_scale_target+current.pre_arm_scale_tolerance).toFixed(3)} · ${current.pre_arm_scale_metric_type}`;
   gate1XValid.textContent = current.pre_arm_x_valid ? 'VALID ✓' : 'INVALID ✕';
   gate1ScaleValid.textContent = current.pre_arm_scale_valid ? 'VALID ✓' : 'INVALID ✕';
   gate1PreconditionReason.textContent = current.precondition_valid
@@ -367,7 +374,11 @@ function renderPerceptionTelemetry(): void {
 function renderClosedLoop(): void {
   const snapshot = latestClosedLoop;
   const target = snapshot?.target ?? currentTarget;
-  closedLoopFields.target.textContent = `${formatMetric(target.center_x)} / ${formatMetric(target.center_y)} / ${formatMetric(target.height_ratio)}`;
+  const currentFraming = latestPerceptionState?.framing;
+  const semanticScaleTarget = currentFraming
+    ? precisionScaleCalibrationFor(target,currentFraming.body_mode,currentFraming.scale_metric_type)?.target_scale_value ?? null
+    : target.height_ratio;
+  closedLoopFields.target.textContent = `${formatMetric(target.center_x)} / ${formatMetric(target.center_y)} / ${formatMetric(semanticScaleTarget)}`;
   if (!snapshot) {
     closedLoopFields.runtimeState.textContent = 'STATE · IDLE'; closedLoopFields.ready.textContent = 'READY · FALSE';
     closedLoopFields.instruction.textContent = '等待本机状态输入';
