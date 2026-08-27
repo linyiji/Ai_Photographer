@@ -6,8 +6,8 @@
     "mode": "WIDE_SWEEP",
     "status": "COMPLETE",
     "started_at": 0,
-    "ended_at": 3000,
-    "coverage_deg": 180,
+    "ended_at": 2900,
+    "coverage_deg": 174,
     "direction": "LEFT_TO_RIGHT",
     "camera": {
       "facing": "environment",
@@ -295,7 +295,7 @@
       "BLUR": 0,
       "UNDEREXPOSED": 0,
       "OVEREXPOSED": 0,
-      "ANGULAR_NOVELTY": 15,
+      "ANGULAR_NOVELTY": 14,
       "DUPLICATE": 0,
       "BUSY": 0,
       "CAP": 0
@@ -606,8 +606,8 @@
   },
   "coverage": {
     "min_observed_yaw": -90,
-    "max_observed_yaw": 90,
-    "span_deg": 180,
+    "max_observed_yaw": 84,
+    "span_deg": 174,
     "direction": "LEFT_TO_RIGHT",
     "rejected_spikes": 0
   },
@@ -615,7 +615,7 @@
     "BLUR": 0,
     "UNDEREXPOSED": 0,
     "OVEREXPOSED": 0,
-    "ANGULAR_NOVELTY": 15,
+    "ANGULAR_NOVELTY": 14,
     "DUPLICATE": 0,
     "BUSY": 0,
     "CAP": 0
