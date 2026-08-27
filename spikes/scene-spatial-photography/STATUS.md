@@ -11,5 +11,10 @@
 - P1 V1 deterministic opportunity: `CHECKPOINT / NOT_ACCEPTED` after 4 OPPO sweeps collapsed to 1 region / 1 opportunity
 - P1 V2 SceneFrameSet / SceneDirectionMap / multi-view and multi-anchor candidate runtime: `PASS_WITH_WARNING`; automated/replay/browser/OPPO V2 PASS
 - P1 disposition: `ACTIVE_ACCEPTED_P1`; accepted runtime head `f0e8baf6600f52ca6f8d509cc959b4edc04e93ee`
-- P2 Photography Geometry readiness: `READY_FOR_ALGORITHM_SPIKE`; implementation not started
-- Panorama stitching / AI provider: off
+- Design Authority: `SCENE_SPATIAL_DESIGN_AUTHORITY_V0_2`
+- P2 Client SpatialPrecheck: `PASS / ROUTING_HINT_ONLY`
+- P2 spike-local Backend Geometry: `PASS_WITH_WARNING`; controlled solver/API/cache gates pass, OPPO V0.2 payload/network gate pending
+- P3 Photography Affordance / physical placement: `NOT_STARTED`
+- P2 current-session Spatial Status Authority: `FIRST_PARTY_BACKEND_ONLY`
+- Main Integration: `NOT_STARTED`; selective migration only
+- Panorama stitching / AI Provider / Luna: off

@@ -1,5 +1,7 @@
 # XFX_SCENE_SPATIAL_P1_SCENE_CONTEXT_AND_PHOTOGRAPHY_OPPORTUNITY_01
 
+> V0.2 TERMINOLOGY AMENDMENT: accepted LEFT/CENTER/RIGHT behavior is now canonical `CompositionAnchorCandidateV01` image-plane output. Historical `PlacementCandidateV01` / `STAND` wording below never grants physical placement Authority.
+
 Status: **PASS_WITH_WARNING**  
 Amendment: `XFX_SCENE_SPATIAL_P1_DIRECTION_MAP_AND_CANDIDATE_GENERATION_AMENDMENT_01`  
 Authority: `SCENE_SPATIAL_TRACK_DESIGN_AUTHORITY_V0_1`  

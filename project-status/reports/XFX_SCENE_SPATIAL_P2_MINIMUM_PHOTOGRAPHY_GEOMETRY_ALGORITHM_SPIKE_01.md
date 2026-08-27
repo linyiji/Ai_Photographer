@@ -1,5 +1,7 @@
 # XFX_SCENE_SPATIAL_P2_MINIMUM_PHOTOGRAPHY_GEOMETRY_ALGORITHM_SPIKE_01
 
+> HISTORICAL V0.1 REPORT: algorithm evidence remains valid, but V0.2 supersedes its judgment authority. Controlled Reference validates the solver and cannot create current-session Spatial Status; client diagnostics are routing-only; P3 Affordance is separate and `NOT_STARTED`.
+
 Status: **MANUAL_REVIEW_REQUIRED — OPPO K11 gate pending**  
 Authority: `SCENE_SPATIAL_TRACK_DESIGN_AUTHORITY_V0_1`  
 Start Head: `1380a741f54b144d52d9013e855257a9268ccf8f`  

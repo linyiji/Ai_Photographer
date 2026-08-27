@@ -1,5 +1,7 @@
 # XFX_SCENE_SPATIAL_TRACK_BOOTSTRAP_AND_P0_SCENE_SWEEP_RUNTIME_01
 
+> V0.2 CHECKPOINT AMENDMENT: P1 anchors are canonical `CompositionAnchorCandidateV01`; P2 is Backend Geometry; P3 physical Affordance is `NOT_STARTED`. Older readiness wording below is historical.
+
 Status: **PASS_WITH_WARNING**
 Continuation: `XFX_SCENE_SPATIAL_P0_OPPO_REAL_DEVICE_ACCEPTANCE_CONTINUATION_01`
 

@@ -1,0 +1,349 @@
+{
+  "schema": "xfx.p2-backend-controlled-matrix",
+  "schema_version": "0.2",
+  "solver_version": "p2-backend-v0.2",
+  "opencv_version": "4.12.0",
+  "role": "ALGORITHM_VALIDATION_AUTHORITY_NOT_SESSION_AUTHORITY",
+  "results": [
+    {
+      "scenario": "PURE_ROTATION",
+      "client_precheck": "NO_SIGNAL",
+      "backend_status": "INSUFFICIENT",
+      "reason": "PURE_ROTATION_OR_HOMOGRAPHY_DOMINANT",
+      "diagnostics": {
+        "status": "INSUFFICIENT",
+        "reason": "PURE_ROTATION_OR_HOMOGRAPHY_DOMINANT",
+        "classification": "ROTATION_DOMINANT",
+        "feature_count": 173,
+        "tracked_count": 173,
+        "inlier_ratio": 1.0,
+        "normalized_median_residual": 1.9486867400096724e-09,
+        "normalized_p75_residual": 3.3398455410230626e-09,
+        "pose_stability": 0.0,
+        "translation_direction": "UNKNOWN",
+        "triangulated_point_count": 0,
+        "positive_depth_ratio": 0.0,
+        "reprojection_error_px": null,
+        "timing_ms": {}
+      },
+      "direction_sign_correct": null,
+      "timing_ms": 25.671
+    },
+    {
+      "scenario": "LOW_PARALLAX",
+      "client_precheck": "NO_SIGNAL",
+      "backend_status": "INSUFFICIENT",
+      "reason": "LOW_PARALLAX",
+      "diagnostics": {
+        "status": "INSUFFICIENT",
+        "reason": "LOW_PARALLAX",
+        "classification": "LOW_PARALLAX",
+        "feature_count": 180,
+        "tracked_count": 180,
+        "inlier_ratio": 0.9833333333333333,
+        "normalized_median_residual": 0.0010833874688602324,
+        "normalized_p75_residual": 0.0014717286988373407,
+        "pose_stability": 0.0,
+        "translation_direction": "UNKNOWN",
+        "triangulated_point_count": 0,
+        "positive_depth_ratio": 0.0,
+        "reprojection_error_px": null,
+        "timing_ms": {}
+      },
+      "direction_sign_correct": null,
+      "timing_ms": 0.941
+    },
+    {
+      "scenario": "LATERAL_LEFT",
+      "client_precheck": "POSSIBLE",
+      "backend_status": "USABLE",
+      "reason": "POSE_AND_TRIANGULATION_VALIDATED",
+      "diagnostics": {
+        "status": "USABLE",
+        "reason": "POSE_AND_TRIANGULATION_VALIDATED",
+        "classification": "TRANSLATION_EVIDENCE_PRESENT",
+        "feature_count": 179,
+        "tracked_count": 179,
+        "inlier_ratio": 0.43575418994413406,
+        "normalized_median_residual": 0.004698427168448831,
+        "normalized_p75_residual": 0.010429338122763887,
+        "pose_stability": 1.0,
+        "translation_direction": "LEFT",
+        "triangulated_point_count": 179,
+        "positive_depth_ratio": 1.0,
+        "reprojection_error_px": 6.821210263296962e-13,
+        "timing_ms": {
+          "correspondence": 5.233,
+          "pose": 2.997,
+          "triangulation": 0.743,
+          "total": 8.99
+        }
+      },
+      "direction_sign_correct": true,
+      "timing_ms": 9.191
+    },
+    {
+      "scenario": "LATERAL_RIGHT",
+      "client_precheck": "POSSIBLE",
+      "backend_status": "USABLE",
+      "reason": "POSE_AND_TRIANGULATION_VALIDATED",
+      "diagnostics": {
+        "status": "USABLE",
+        "reason": "POSE_AND_TRIANGULATION_VALIDATED",
+        "classification": "TRANSLATION_EVIDENCE_PRESENT",
+        "feature_count": 179,
+        "tracked_count": 179,
+        "inlier_ratio": 0.46368715083798884,
+        "normalized_median_residual": 0.00402483925132008,
+        "normalized_p75_residual": 0.00786901654902057,
+        "pose_stability": 1.0,
+        "translation_direction": "RIGHT",
+        "triangulated_point_count": 179,
+        "positive_depth_ratio": 1.0,
+        "reprojection_error_px": 1.7053025658242404e-13,
+        "timing_ms": {
+          "correspondence": 5.025,
+          "pose": 1.631,
+          "triangulation": 0.57,
+          "total": 7.237
+        }
+      },
+      "direction_sign_correct": true,
+      "timing_ms": 7.452
+    },
+    {
+      "scenario": "MOVE_FORWARD",
+      "client_precheck": "POSSIBLE",
+      "backend_status": "USABLE",
+      "reason": "POSE_AND_TRIANGULATION_VALIDATED",
+      "diagnostics": {
+        "status": "USABLE",
+        "reason": "POSE_AND_TRIANGULATION_VALIDATED",
+        "classification": "TRANSLATION_EVIDENCE_PRESENT",
+        "feature_count": 176,
+        "tracked_count": 176,
+        "inlier_ratio": 0.6136363636363636,
+        "normalized_median_residual": 0.0026947643388748254,
+        "normalized_p75_residual": 0.006570568602534172,
+        "pose_stability": 1.0,
+        "translation_direction": "FORWARD",
+        "triangulated_point_count": 176,
+        "positive_depth_ratio": 1.0,
+        "reprojection_error_px": 3.3625587704038085e-13,
+        "timing_ms": {
+          "correspondence": 1.603,
+          "pose": 1.526,
+          "triangulation": 1.211,
+          "total": 4.355
+        }
+      },
+      "direction_sign_correct": true,
+      "timing_ms": 4.58
+    },
+    {
+      "scenario": "MOVE_BACKWARD",
+      "client_precheck": "POSSIBLE",
+      "backend_status": "USABLE",
+      "reason": "POSE_AND_TRIANGULATION_VALIDATED",
+      "diagnostics": {
+        "status": "USABLE",
+        "reason": "POSE_AND_TRIANGULATION_VALIDATED",
+        "classification": "TRANSLATION_EVIDENCE_PRESENT",
+        "feature_count": 180,
+        "tracked_count": 180,
+        "inlier_ratio": 0.6055555555555555,
+        "normalized_median_residual": 0.0025843780590016152,
+        "normalized_p75_residual": 0.006310803791377519,
+        "pose_stability": 1.0,
+        "translation_direction": "BACKWARD",
+        "triangulated_point_count": 180,
+        "positive_depth_ratio": 1.0,
+        "reprojection_error_px": 4.1641358561397174e-11,
+        "timing_ms": {
+          "correspondence": 2.603,
+          "pose": 1.911,
+          "triangulation": 0.659,
+          "total": 5.185
+        }
+      },
+      "direction_sign_correct": true,
+      "timing_ms": 6.261
+    },
+    {
+      "scenario": "MIXED_ROTATE_TRANSLATE",
+      "client_precheck": "POSSIBLE",
+      "backend_status": "USABLE",
+      "reason": "POSE_AND_TRIANGULATION_VALIDATED",
+      "diagnostics": {
+        "status": "USABLE",
+        "reason": "POSE_AND_TRIANGULATION_VALIDATED",
+        "classification": "TRANSLATION_EVIDENCE_PRESENT",
+        "feature_count": 179,
+        "tracked_count": 179,
+        "inlier_ratio": 0.4972067039106145,
+        "normalized_median_residual": 0.0037603176590337334,
+        "normalized_p75_residual": 0.006391647254039138,
+        "pose_stability": 1.0,
+        "translation_direction": "RIGHT",
+        "triangulated_point_count": 179,
+        "positive_depth_ratio": 1.0,
+        "reprojection_error_px": 3.7220148738542783e-13,
+        "timing_ms": {
+          "correspondence": 3.558,
+          "pose": 1.719,
+          "triangulation": 0.635,
+          "total": 5.92
+        }
+      },
+      "direction_sign_correct": null,
+      "timing_ms": 6.159
+    },
+    {
+      "scenario": "WEAK_TEXTURE",
+      "client_precheck": "UNRELIABLE",
+      "backend_status": "INSUFFICIENT",
+      "reason": "CORRESPONDENCE_UNRELIABLE",
+      "diagnostics": {
+        "status": "INSUFFICIENT",
+        "reason": "CORRESPONDENCE_UNRELIABLE",
+        "classification": "UNCLASSIFIED",
+        "feature_count": 12,
+        "tracked_count": 12,
+        "inlier_ratio": 0.0,
+        "normalized_median_residual": 0.0,
+        "normalized_p75_residual": 0.0,
+        "pose_stability": 0.0,
+        "translation_direction": "UNKNOWN",
+        "triangulated_point_count": 0,
+        "positive_depth_ratio": 0.0,
+        "reprojection_error_px": null,
+        "timing_ms": {}
+      },
+      "direction_sign_correct": null,
+      "timing_ms": 0.205
+    },
+    {
+      "scenario": "REPETITIVE_TEXTURE",
+      "client_precheck": "UNRELIABLE",
+      "backend_status": "INSUFFICIENT",
+      "reason": "CORRESPONDENCE_UNRELIABLE",
+      "diagnostics": {
+        "status": "INSUFFICIENT",
+        "reason": "CORRESPONDENCE_UNRELIABLE",
+        "classification": "UNCLASSIFIED",
+        "feature_count": 179,
+        "tracked_count": 179,
+        "inlier_ratio": 0.0335195530726257,
+        "normalized_median_residual": 0.27547715258924266,
+        "normalized_p75_residual": 0.4885324343535063,
+        "pose_stability": 0.0,
+        "translation_direction": "UNKNOWN",
+        "triangulated_point_count": 0,
+        "positive_depth_ratio": 0.0,
+        "reprojection_error_px": null,
+        "timing_ms": {}
+      },
+      "direction_sign_correct": null,
+      "timing_ms": 63.071
+    },
+    {
+      "scenario": "BLUR",
+      "client_precheck": "UNRELIABLE",
+      "backend_status": "INSUFFICIENT",
+      "reason": "CORRESPONDENCE_UNRELIABLE",
+      "diagnostics": {
+        "status": "INSUFFICIENT",
+        "reason": "CORRESPONDENCE_UNRELIABLE",
+        "classification": "UNCLASSIFIED",
+        "feature_count": 12,
+        "tracked_count": 12,
+        "inlier_ratio": 0.0,
+        "normalized_median_residual": 0.0,
+        "normalized_p75_residual": 0.0,
+        "pose_stability": 0.0,
+        "translation_direction": "UNKNOWN",
+        "triangulated_point_count": 0,
+        "positive_depth_ratio": 0.0,
+        "reprojection_error_px": null,
+        "timing_ms": {}
+      },
+      "direction_sign_correct": null,
+      "timing_ms": 0.284
+    },
+    {
+      "scenario": "EXPOSURE_FAILURE",
+      "client_precheck": "UNRELIABLE",
+      "backend_status": "INSUFFICIENT",
+      "reason": "CORRESPONDENCE_UNRELIABLE",
+      "diagnostics": {
+        "status": "INSUFFICIENT",
+        "reason": "CORRESPONDENCE_UNRELIABLE",
+        "classification": "UNCLASSIFIED",
+        "feature_count": 12,
+        "tracked_count": 12,
+        "inlier_ratio": 0.0,
+        "normalized_median_residual": 0.0,
+        "normalized_p75_residual": 0.0,
+        "pose_stability": 0.0,
+        "translation_direction": "UNKNOWN",
+        "triangulated_point_count": 0,
+        "positive_depth_ratio": 0.0,
+        "reprojection_error_px": null,
+        "timing_ms": {}
+      },
+      "direction_sign_correct": null,
+      "timing_ms": 0.138
+    },
+    {
+      "scenario": "INSUFFICIENT_FRAMES",
+      "client_precheck": "UNRELIABLE",
+      "backend_status": "INSUFFICIENT",
+      "reason": "CORRESPONDENCE_UNRELIABLE",
+      "diagnostics": {
+        "status": "INSUFFICIENT",
+        "reason": "CORRESPONDENCE_UNRELIABLE",
+        "classification": "UNCLASSIFIED",
+        "feature_count": 0,
+        "tracked_count": 0,
+        "inlier_ratio": 0.0,
+        "normalized_median_residual": 0.0,
+        "normalized_p75_residual": 0.0,
+        "pose_stability": 0.0,
+        "translation_direction": "UNKNOWN",
+        "triangulated_point_count": 0,
+        "positive_depth_ratio": 0.0,
+        "reprojection_error_px": null,
+        "timing_ms": {}
+      },
+      "direction_sign_correct": null,
+      "timing_ms": 0.162
+    }
+  ],
+  "gates": {
+    "deterministic": false,
+    "pure_rotation_false_usable": 0,
+    "low_parallax_false_usable": 0,
+    "direction_sign_correct": true,
+    "direction_sign_cases": 4,
+    "client_precheck_false_positive_rate": 0.0,
+    "client_precheck_false_negative_rate": 0.0,
+    "cache": {
+      "first": "CACHE_MISS",
+      "second": "CACHE_HIT",
+      "second_compute_ms": 0.0,
+      "pass": true
+    }
+  },
+  "performance_ms": {
+    "p50": 2.5235000000000003,
+    "p95": 60.23835
+  },
+  "privacy": {
+    "raw_video_upload": 0,
+    "frame_stream_upload": 0,
+    "selected_geometry_frame_upload": "FIRST_PARTY_BACKEND_ONLY",
+    "provider": 0,
+    "luna": 0,
+    "real_user_media_in_git": 0
+  }
+}

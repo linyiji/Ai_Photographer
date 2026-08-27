@@ -1,8 +1,8 @@
 # Scene Spatial / Photography Track
 
-Independent P0 exploration of where and which direction to shoot. It owns a local Scene Sweep runtime: rear-camera preview, relative yaw, useful angular coverage, bounded quality-aware keyframes, deterministic manifest, YawMap, and offline replay.
+Independent Scene Spatial track implementing `P0 SCAN → P1 VIEW → P2 GEOMETRY`. P3 Photography Affordance and AI Director are not started.
 
-Boundaries: Scene Spatial answers **WHERE / WHICH DIRECTION / WHICH AREA**. Live answers how to align to an already-selected target. Main owns Session, Workflow, and product integration. This spike is not a panorama stitcher, Photography Director AI, or a Main `PhotographySession`.
+V0.2 boundaries: P1 provides view candidates and image-plane `CompositionAnchorCandidateV01`; client P2A provides routing-only `SpatialPrecheckV01`; the isolated first-party Backend is the only current-session `SpatialEvidenceV02.status` authority. Physical placement is future P3. Main Integration remains `NOT_STARTED`.
 
 Run from this directory:
 
@@ -14,4 +14,6 @@ npm run build
 npm run replay
 ```
 
-Camera and motion permissions are requested only by the **开始扫描** user action. Runtime data and transient keyframes remain in browser memory; the export contains scalar metadata only.
+Backend tests use the pinned isolated Python dependencies documented in `backend/README.md`.
+
+Camera and motion permissions are requested only by **开始扫描**. Raw video and frame streams never upload. A bounded set of 3–8 selected 640px geometry JPEG frames may be uploaded only to the same first-party spike Backend. Provider and Luna remain zero.

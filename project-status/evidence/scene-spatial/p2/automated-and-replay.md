@@ -1,5 +1,21 @@
 # P2 automated and replay evidence
 
+## V0.2 current evidence — 2026-08-27
+
+- TypeScript suite: **156/156 PASS**; client produces only `UNRELIABLE / NO_SIGNAL / POSSIBLE` routing hints.
+- Backend unittest + multipart API: **8/8 PASS**, including UNKNOWN Camera Model `PARTIAL` ceiling and frame-set hash rejection.
+- Controlled Backend matrix: deterministic 12/12; pure rotation and low parallax false `USABLE` = 0; direction sign 4/4; triangulation 176–180.
+- Precheck confusion matrix on controlled set: false positive 0.0, false negative 0.0.
+- Backend result cache: MISS → HIT, repeated compute 0ms.
+- Controlled compute: P50 2.524ms, P95 60.238ms.
+- Full Backend generated-media early-exit benchmark (20×, 4×640×480): compute P50 55.123ms / P95 67.039ms; payload P50 721,488B / P95 721,808B. All cases were deliberately limited planar/early-exit workloads, not successful geometry or device network evidence.
+- P0 replay **11/11**, P1 replay **5/5**.
+- Production H5 build: **PASS**, 52.51kB JS, no OpenCV.js/WASM asset.
+- Local browser: P1 visible about 53ms after scan completion; precheck 17.7ms then 3.7ms; repeat enabled; Fixture upload 0.
+- OPPO V0.2 selected-frame payload/network/end-to-end evidence: **PENDING**.
+
+Everything below this point is retained as V0.1 historical evidence; its client Spatial Status and Controlled Reference session-authority semantics are superseded by V0.2.
+
 Date: 2026-08-26
 
 - TypeScript automated suite: **161/161 PASS** (P0 + P1 + P2, including near-target WIDE and bounded client-diagnostic regressions).

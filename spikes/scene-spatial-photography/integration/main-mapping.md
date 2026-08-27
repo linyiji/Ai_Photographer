@@ -9,7 +9,7 @@ Scene Sweep
 ↓
 SceneFrameSetV01 + SceneDirectionMapV01
 ↓
-PhotographyViewCandidateV01[] + PlacementCandidateV01[]
+PhotographyViewCandidateV01[] + CompositionAnchorCandidateV01[]
 ↓
 Photography Director
 ↓

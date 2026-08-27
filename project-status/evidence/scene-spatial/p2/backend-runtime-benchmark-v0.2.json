@@ -1,0 +1,29 @@
+{
+  "schema": "xfx.p2-backend-runtime-benchmark",
+  "schema_version": "0.2",
+  "source": "GENERATED_MEDIA_ONLY",
+  "runs": 20,
+  "frame_count": 4,
+  "working_resolution": "640x480",
+  "backend_compute_ms": {
+    "p50": 55.123,
+    "p95": 67.039
+  },
+  "local_process_wall_ms": {
+    "p50": 56.004,
+    "p95": 68.193
+  },
+  "payload_bytes": {
+    "p50": 721487.5,
+    "p95": 721808.0
+  },
+  "status_counts": {
+    "INSUFFICIENT": 20
+  },
+  "limitations": [
+    "EARLY_EXIT_WORKLOAD_ALL_INSUFFICIENT",
+    "LOCAL_GENERATED_MEDIA_NOT_OPPO_NETWORK",
+    "NO_CLIENT_JPEG_PREPARATION",
+    "NOT_RELEASE_HARDWARE_GATE"
+  ]
+}
