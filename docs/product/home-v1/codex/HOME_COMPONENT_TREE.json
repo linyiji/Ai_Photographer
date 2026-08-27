@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "home-component-tree.v1",
+  "page": {
+    "name": "HomePage",
+    "file": "src/pages/home/index.tsx",
+    "style": "src/pages/home/index.scss",
+    "children": [
+      {
+        "component": "HomeTopBar",
+        "file": "src/components/home/HomeTopBar/index.tsx"
+      },
+      {
+        "component": "HomeHero",
+        "file": "src/components/home/HomeHero/index.tsx",
+        "children": [
+          {
+            "component": "HeroFixedContent",
+            "file": "src/components/home/HeroFixedContent/index.tsx",
+            "dynamicProps": [
+              "cityName",
+              "weatherType"
+            ]
+          },
+          {
+            "component": "WeatherStage",
+            "file": "src/components/home/WeatherStage/index.tsx",
+            "dynamicProps": [
+              "weatherType"
+            ],
+            "children": [
+              "SkyLayer",
+              "AtmosphereLayer"
+            ]
+          },
+          {
+            "component": "LandmarkStage",
+            "file": "src/components/home/LandmarkStage/index.tsx",
+            "dynamicProps": [
+              "landmark"
+            ],
+            "rule": "Fixed stage; dynamic asset only"
+          },
+          {
+            "component": "WeatherDynamicOverlay",
+            "file": "src/components/home/WeatherDynamicOverlay/index.tsx",
+            "dynamicProps": [
+              "weatherType"
+            ],
+            "rule": "rain/snow only; z-index above LandmarkStage; clipped to right 46%"
+          }
+        ]
+      },
+      {
+        "component": "ReferenceEntry",
+        "file": "src/components/home/ReferenceEntry/index.tsx"
+      },
+      {
+        "component": "ShootMethodCarousel",
+        "file": "src/components/home/ShootMethodCarousel/index.tsx",
+        "dynamicProps": [
+          "methods"
+        ]
+      },
+      {
+        "component": "HomeBottomTabs",
+        "file": "src/components/home/HomeBottomTabs/index.tsx"
+      }
+    ]
+  },
+  "supportFiles": [
+    "src/types/home.ts",
+    "src/constants/weather.ts",
+    "src/constants/landmarks.ts",
+    "src/services/location.service.ts",
+    "src/services/weather.service.ts",
+    "src/services/home.service.ts",
+    "src/stores/home.store.ts",
+    "src/utils/fitLandmark.ts",
+    "src/utils/pickLandmark.ts"
+  ]
+}

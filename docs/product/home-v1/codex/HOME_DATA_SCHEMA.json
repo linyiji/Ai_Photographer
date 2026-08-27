@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xiangfengxing.local/schemas/ai-photographer-home-v1.json",
+  "title": "AI Photographer Home V1 Data Contract",
+  "type": "object",
+  "required": [
+    "location",
+    "weather",
+    "landmarks",
+    "shootMethods"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "home.v1"
+    },
+    "location": {
+      "$ref": "#/$defs/CityContext"
+    },
+    "weather": {
+      "$ref": "#/$defs/Weather"
+    },
+    "landmarks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/LandmarkCandidate"
+      },
+      "description": "0..N city-level landmark candidates. Client selects once when cityCode changes."
+    },
+    "shootMethods": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ShootMethod"
+      }
+    }
+  },
+  "$defs": {
+    "WeatherVisualType": {
+      "type": "string",
+      "enum": [
+        "sunny",
+        "cloudy",
+        "rain",
+        "snow"
+      ]
+    },
+    "CityContext": {
+      "type": "object",
+      "required": [
+        "cityCode",
+        "cityName"
+      ],
+      "properties": {
+        "cityCode": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cityName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8
+        },
+        "lat": {
+          "type": "number"
+        },
+        "lng": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Weather": {
+      "type": "object",
+      "required": [
+        "type",
+        "label"
+      ],
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/WeatherVisualType"
+        },
+        "label": {
+          "type": "string",
+          "enum": [
+            "晴天",
+            "阴天",
+            "雨天",
+            "雪天"
+          ]
+        },
+        "temperatureC": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "observedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "ttlSeconds": {
+          "type": "integer",
+          "minimum": 60,
+          "default": 900
+        }
+      },
+      "additionalProperties": false
+    },
+    "LandmarkCandidate": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "assetUrl",
+        "intrinsicWidth",
+        "intrinsicHeight"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "assetUrl": {
+          "type": "string"
+        },
+        "intrinsicWidth": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "intrinsicHeight": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "assetVersion": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "isFallback": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "ShootMethod": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "subtitle",
+        "tag",
+        "coverUrl"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "subtitle": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        },
+        "coverUrl": {
+          "type": "string"
+        },
+        "priority": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

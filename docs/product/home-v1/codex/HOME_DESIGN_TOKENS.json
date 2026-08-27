@@ -1,0 +1,252 @@
+{
+  "schemaVersion": "home-design-tokens.v1",
+  "visualSourceOfTruth": "prototype/ai-photographer-home-v1.html",
+  "designViewport": {
+    "width": 390,
+    "height": 844,
+    "unit": "px"
+  },
+  "taro": {
+    "designWidth": 390,
+    "deviceRatio": {
+      "390": 1
+    },
+    "preferredStyle": "SCSS",
+    "darkMode": false
+  },
+  "colors": {
+    "pageBackground": "#F6F2EC",
+    "outerBackground": "#E9ECE7",
+    "ink": "#18251F",
+    "muted": "#7E8C85",
+    "line": "#E7E0D7",
+    "brandGreen": "#2F6B5B",
+    "brandGreenSoft": "#EAF2ED",
+    "title": "#273630",
+    "chipText": "#476257"
+  },
+  "layout": {
+    "phone": {
+      "width": 390,
+      "height": 844,
+      "radius": 34,
+      "minHeight": 720
+    },
+    "page": {
+      "top": 24,
+      "right": 18,
+      "bottom": 10,
+      "left": 18,
+      "bottomTabReserved": 82
+    },
+    "topbar": {
+      "height": 42,
+      "marginBottom": 16
+    },
+    "hero": {
+      "height": 276,
+      "radius": 32,
+      "marginBottom": 9,
+      "border": "1px solid #ECE3D9"
+    },
+    "heroCopy": {
+      "widthPercent": 62,
+      "paddingTop": 18,
+      "paddingRight": 0,
+      "paddingBottom": 16,
+      "paddingLeft": 16
+    },
+    "weatherStage": {
+      "widthPercent": 46,
+      "right": 0,
+      "top": 0,
+      "bottom": 0
+    },
+    "landmarkStage": {
+      "width": 136,
+      "height": 246,
+      "right": 4,
+      "bottom": -3,
+      "scale": 1.0
+    },
+    "referenceEntry": {
+      "height": 54
+    },
+    "recommendHeader": {
+      "height": 38
+    },
+    "carousel": {
+      "minHeight": 150,
+      "maxHeight": 178,
+      "sideBleed": 18,
+      "gap": 11
+    },
+    "shootCard": {
+      "width": 250,
+      "radius": 22
+    },
+    "carouselMeta": {
+      "height": 24
+    },
+    "bottomTab": {
+      "height": 82
+    }
+  },
+  "typography": {
+    "brand": {
+      "size": 21,
+      "weight": 800
+    },
+    "chip": {
+      "size": 11,
+      "height": 32
+    },
+    "eyebrow": {
+      "size": 9,
+      "weight": 700,
+      "letterSpacingEm": 0.2
+    },
+    "heroTitle": {
+      "referenceAsset": "assets/hero-title-calligraphy.png",
+      "sourceFontBehavior": "calligraphy artwork; do not depend on remote fonts in Taro"
+    },
+    "heroDescription": {
+      "size": 13,
+      "lineHeight": 1.55,
+      "maxWidth": 178
+    },
+    "primaryButton": {
+      "size": 14,
+      "weight": 700,
+      "height": 44
+    },
+    "sectionTitle": {
+      "size": 19,
+      "weight": 800
+    },
+    "sectionLink": {
+      "size": 13,
+      "weight": 700
+    },
+    "cardTitle": {
+      "size": 19,
+      "lineHeight": 1.12
+    },
+    "cardSubtitle": {
+      "size": 10
+    },
+    "bottomTab": {
+      "size": 11
+    }
+  },
+  "controls": {
+    "contextGap": 7,
+    "ctaDock": {
+      "width": 168,
+      "height": 52,
+      "padding": 4,
+      "radius": 999
+    },
+    "underline": {
+      "width": 82,
+      "height": 5,
+      "radius": 999
+    }
+  },
+  "zIndex": {
+    "sky": 0,
+    "weatherAtmosphere": 2,
+    "weatherHaze": 4,
+    "landmark": 9,
+    "fixedCopy": 10,
+    "weatherDynamicOverlay": 12,
+    "bottomTab": 20,
+    "toast": 50
+  },
+  "weather": {
+    "allowedTypes": [
+      "sunny",
+      "cloudy",
+      "rain",
+      "snow"
+    ],
+    "labels": {
+      "sunny": "晴天",
+      "cloudy": "阴天",
+      "rain": "雨天",
+      "snow": "雪天"
+    },
+    "sunny": {
+      "skyTop": "#C9E4F2",
+      "skyMid1": "#D8EBF3",
+      "skyMid2": "#E6F0EE",
+      "skyBottom": "#F4EFE8",
+      "sun": {
+        "width": 58,
+        "height": 58,
+        "top": 21,
+        "right": -18,
+        "opacity": 0.72
+      },
+      "sunBloomOpacity": 0.62
+    },
+    "cloudy": {
+      "skyTop": "#D4DFE1",
+      "skyMid": "#DCE4E3",
+      "skyBottom": "#F0ECE6",
+      "cloudCount": 5,
+      "cloudFieldOpacity": 1.0,
+      "hazeOpacity": 0.68
+    },
+    "rain": {
+      "skyTop": "#BCCBD0",
+      "skyMid": "#CAD6D6",
+      "skyBottom": "#E2E1DB",
+      "overlayWidthPercent": 46,
+      "dropBaseCount": 9,
+      "dropHeight": 20,
+      "cycleMs": 2500,
+      "overlayZIndex": 12
+    },
+    "snow": {
+      "skyTop": "#C9D7DC",
+      "skyMid": "#D6E0E1",
+      "skyBottom": "#ECEAE5",
+      "overlayWidthPercent": 46,
+      "flakeCount": 12,
+      "flakeSizeRange": [
+        2,
+        5
+      ],
+      "durationMsRange": [
+        5700,
+        8000
+      ],
+      "overlayZIndex": 12
+    }
+  },
+  "responsive": {
+    "maxWidthMobile": 520,
+    "mobilePhone": {
+      "width": "100vw",
+      "height": "100vh",
+      "radius": 0
+    },
+    "compactHeightThreshold": 760,
+    "compact": {
+      "heroHeight": 252,
+      "landmarkHeight": 224,
+      "titleFontFallbackSize": 31,
+      "referenceHeight": 48,
+      "carouselMinHeight": 132,
+      "carouselMaxHeight": 150
+    }
+  },
+  "invariants": [
+    "Do not change Hero geometry based on landmark or weather.",
+    "Left Hero copy layout is fixed. Only city label and weather label are dynamic.",
+    "Landmark is clipped/contained inside the fixed LandmarkStage.",
+    "Rain and snow dynamic overlays render above the landmark and are clipped to the right visual stage.",
+    "Backend data must never send CSS sizes, positions, colors, radii or animation values."
+  ]
+}

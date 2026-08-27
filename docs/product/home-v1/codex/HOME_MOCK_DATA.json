@@ -1,0 +1,177 @@
+{
+  "schemaVersion": "home-mock.v1",
+  "fallbackLandmarks": [
+    {
+      "id": "fallback_landmark_01",
+      "name": "城市塔楼",
+      "assetUrl": "/mock/fallback/landmark-01.webp",
+      "intrinsicWidth": 620,
+      "intrinsicHeight": 1100,
+      "isFallback": true
+    },
+    {
+      "id": "fallback_landmark_02",
+      "name": "城市钟楼",
+      "assetUrl": "/mock/fallback/landmark-02.webp",
+      "intrinsicWidth": 800,
+      "intrinsicHeight": 920,
+      "isFallback": true
+    },
+    {
+      "id": "fallback_landmark_03",
+      "name": "城市建筑群",
+      "assetUrl": "/mock/fallback/landmark-03.webp",
+      "intrinsicWidth": 1100,
+      "intrinsicHeight": 650,
+      "isFallback": true
+    },
+    {
+      "id": "fallback_landmark_04",
+      "name": "现代地标",
+      "assetUrl": "/mock/fallback/landmark-04.webp",
+      "intrinsicWidth": 760,
+      "intrinsicHeight": 980,
+      "isFallback": true
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "guangzhou-sunny",
+      "location": {
+        "cityCode": "440100",
+        "cityName": "广州",
+        "lat": 23.1291,
+        "lng": 113.2644
+      },
+      "weather": {
+        "type": "sunny",
+        "label": "晴天",
+        "temperatureC": 31,
+        "ttlSeconds": 900
+      },
+      "landmarks": [
+        {
+          "id": "guangzhou_tower",
+          "name": "广州塔",
+          "assetUrl": "../../assets/landmark-guangzhou-tower.png",
+          "intrinsicWidth": 791,
+          "intrinsicHeight": 1506,
+          "isFallback": false
+        }
+      ],
+      "shootMethods": [
+        {
+          "id": "walk_capture",
+          "title": "轻松行走抓拍",
+          "subtitle": "边走边拍，更自然",
+          "tag": "自然 · 全身",
+          "coverUrl": "/mock/methods/walk.webp",
+          "priority": 0.95
+        },
+        {
+          "id": "environment_half",
+          "title": "环境半身",
+          "subtitle": "人物更突出",
+          "tag": "人物突出",
+          "coverUrl": "/mock/methods/half.webp",
+          "priority": 0.9
+        },
+        {
+          "id": "rail_side",
+          "title": "靠栏杆侧身拍",
+          "subtitle": "适合栏杆与步道",
+          "tag": "生活感 · 侧身",
+          "coverUrl": "/mock/methods/rail.webp",
+          "priority": 0.82
+        }
+      ]
+    },
+    {
+      "id": "guangzhou-cloudy",
+      "location": {
+        "cityCode": "440100",
+        "cityName": "广州"
+      },
+      "weather": {
+        "type": "cloudy",
+        "label": "阴天",
+        "temperatureC": 29,
+        "ttlSeconds": 900
+      },
+      "landmarks": [
+        {
+          "id": "guangzhou_tower",
+          "name": "广州塔",
+          "assetUrl": "../../assets/landmark-guangzhou-tower.png",
+          "intrinsicWidth": 791,
+          "intrinsicHeight": 1506,
+          "isFallback": false
+        }
+      ],
+      "shootMethods": []
+    },
+    {
+      "id": "guangzhou-rain",
+      "location": {
+        "cityCode": "440100",
+        "cityName": "广州"
+      },
+      "weather": {
+        "type": "rain",
+        "label": "雨天",
+        "temperatureC": 27,
+        "ttlSeconds": 600
+      },
+      "landmarks": [
+        {
+          "id": "guangzhou_tower",
+          "name": "广州塔",
+          "assetUrl": "../../assets/landmark-guangzhou-tower.png",
+          "intrinsicWidth": 791,
+          "intrinsicHeight": 1506,
+          "isFallback": false
+        }
+      ],
+      "shootMethods": []
+    },
+    {
+      "id": "beijing-snow",
+      "location": {
+        "cityCode": "110100",
+        "cityName": "北京"
+      },
+      "weather": {
+        "type": "snow",
+        "label": "雪天",
+        "temperatureC": -3,
+        "ttlSeconds": 600
+      },
+      "landmarks": [
+        {
+          "id": "beijing_landmark_demo",
+          "name": "北京地标",
+          "assetUrl": "/mock/landmarks/beijing.webp",
+          "intrinsicWidth": 1000,
+          "intrinsicHeight": 760,
+          "isFallback": false
+        }
+      ],
+      "shootMethods": []
+    },
+    {
+      "id": "unknown-city-fallback",
+      "location": {
+        "cityCode": "999999",
+        "cityName": "示例城市"
+      },
+      "weather": {
+        "type": "cloudy",
+        "label": "阴天",
+        "temperatureC": 20,
+        "ttlSeconds": 900
+      },
+      "landmarks": [],
+      "shootMethods": []
+    }
+  ]
+}
