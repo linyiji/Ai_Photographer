@@ -1,6 +1,6 @@
 import {test} from 'node:test'
 import {strict as assert} from 'node:assert'
-import {CameraGeometryTracker,cameraVideoConstraints,captureFrameStyle,captureViewportForVideo,normalizeCameraGeometry} from '../src/platform/captureViewport'
+import {CameraGeometryTracker,cameraConstraintRequest,cameraStreamConstraints,cameraVideoConstraints,captureFrameStyle,captureViewportForVideo,hashCameraIdentity,normalizeCameraGeometry,normalizeCameraSettings} from '../src/platform/captureViewport'
 
 test('9:16 video exposes a centered authoritative 3:4 viewport',()=>{
  const viewport=captureViewportForVideo(1080,1920)
@@ -27,6 +27,20 @@ test('camera acquisition requests rear 3:4 high-resolution video without assumin
  assert.deepEqual(constraints.width,{ideal:1440})
  assert.deepEqual(constraints.height,{ideal:1920})
  assert.deepEqual(constraints.frameRate,{ideal:30})
+})
+
+test('camera stream profiles serialize current, live-like and relaxed requests without conflating final aspect',()=>{
+ assert.deepEqual(cameraConstraintRequest('MAIN_CURRENT','environment',false),{profile:'MAIN_CURRENT',facingMode:'environment',strictFacing:false,pinnedDevice:false,width:1440,height:1920,aspectRatio:.75,frameRate:30})
+ assert.deepEqual(cameraStreamConstraints('LIVE_LIKE','environment',false),{facingMode:{ideal:'environment'},frameRate:{ideal:30},width:{ideal:1280},height:{ideal:720}})
+ assert.deepEqual(cameraStreamConstraints('RELAXED','environment',false),{facingMode:{ideal:'environment'},frameRate:{ideal:30}})
+ assert.deepEqual(cameraStreamConstraints('LIVE_LIKE','environment',true,'private-device'),{facingMode:{exact:'environment'},frameRate:{ideal:30},width:{ideal:1280},height:{ideal:720},deviceId:{exact:'private-device'}})
+})
+
+test('actual settings normalization records unsupported values honestly and hashes camera identity',()=>{
+ const normalized=normalizeCameraSettings({width:1920,height:1440,frameRate:30,facingMode:'environment',deviceId:'rear-camera',groupId:'rear-group',resizeMode:'none'} as MediaTrackSettings)
+ assert.equal(normalized.aspectRatio,4/3);assert.equal(normalized.zoom,null);assert.equal(normalized.resizeMode,'none')
+ assert.equal(normalized.deviceIdHash,hashCameraIdentity('rear-camera'));assert.notEqual(normalized.deviceIdHash,'rear-camera')
+ assert.deepEqual(normalizeCameraSettings({} as MediaTrackSettings),{width:null,height:null,aspectRatio:null,frameRate:null,facingMode:null,resizeMode:null,zoom:null,deviceIdHash:null,groupIdHash:null})
 })
 
 test('A landscape raw intrinsic is logically normalized for portrait presentation',()=>{const g=normalizeCameraGeometry({width:1920,height:1440,deviceOrientation:'PORTRAIT',presentationOrientation:'PORTRAIT'});assert.deepEqual(g.normalized,{width:1440,height:1920,aspectRatio:.75,rotation:'LOGICAL_90'});assert.equal(g.previewViewport.width,1)})

@@ -2,7 +2,7 @@ import Taro from '@tarojs/taro'
 import {API_BASE,UploadedAsset} from '../api/client'
 import {AdapterDescriptor,CapabilityName,CapabilitySelection,PlatformResult,RuntimePlatform,selectionFrom,normalizedFailure} from './model'
 import {centeredAspectCrop,estimateCentralCropByLuma,projectObjectFit,rectToPixels,type NormalizedRect,type TransformEstimate} from '../diagnostics/cameraGeometry'
-import {CameraGeometryTracker,cameraVideoConstraints,captureViewportForVideo,normalizeCameraGeometry,type CaptureViewport,type CameraOrientation,type NormalizedCameraGeometry} from './captureViewport'
+import {CameraGeometryTracker,cameraConstraintRequest,cameraStreamConstraints,cameraVideoConstraints,captureViewportForVideo,hashCameraIdentity,normalizeCameraGeometry,normalizeCameraSettings,type CameraConstraintRequest,type CameraStreamProfile,type CaptureViewport,type CameraOrientation,type NormalizedCameraGeometry,type NormalizedCameraSettings} from './captureViewport'
 import type {UploadAttemptTelemetry,UploadContext} from './captureUpload'
 import {classifyPreviewStillAlignment,fullViewport,type PreviewStillAlignmentResultV01} from './previewStillAlignment'
 
@@ -33,6 +33,7 @@ export type CaptureSource='camera'|'album'
 export type CameraOpenDiagnostics={track:{width:number|null;height:number|null;aspectRatio:number|null;frameRate:number|null;facingMode:string|null;zoom:number|null};video:{width:number;height:number;aspectRatio:number|null};orientation:{device:CameraOrientation;presentation:CameraOrientation};geometry:NormalizedCameraGeometry;geometryGeneration:number;captureViewport:CaptureViewport;previewFps:number|null}
 export type CaptureDiagnostics={width:number;height:number;bytes:number;quality:string;backend:'IMAGE_CAPTURE'|'CANVAS_VIDEO_INTRINSIC';track:CameraOpenDiagnostics['track'];video:CameraOpenDiagnostics['video'];geometry:NormalizedCameraGeometry;captureViewportInVideo:CaptureViewport;nativeStillPreserved:true;userFacingDerivedDimensions:null}
 export type CameraGeometryInventory={
+ profile:CameraStreamProfile;requested:CameraConstraintRequest;actual:NormalizedCameraSettings;startupLatencyMs:number|null
  userAgent:string;screen:{width:number;height:number;devicePixelRatio:number;orientation:string|null}
  track:{label:string;kind:string;readyState:string;settings:Record<string,unknown>;constraints:Record<string,unknown>;capabilities:Record<string,unknown>}
  video:{videoWidth:number;videoHeight:number;clientWidth:number;clientHeight:number;rect:{x:number;y:number;width:number;height:number};objectFit:string;objectPosition:string}
@@ -40,7 +41,7 @@ export type CameraGeometryInventory={
  currentCover:ReturnType<typeof projectObjectFit>
  centeredThreeFour:NormalizedRect
  imageCapture:{available:boolean;photoCapabilities:Record<string,unknown>|null}
- devices:Array<{deviceId:string;label:string;groupId:string}>
+ devices:Array<{deviceIdHash:string|null;label:string;groupIdHash:string|null}>
 }
 export type CameraDiagnosticCapture={inventory:CameraGeometryInventory;intrinsicVideoUrl:string;visibleCoverUrl:string;centerThreeFourUrl:string;nativeStillUrl:string;nativeStill:{width:number;height:number;bytes:number;mimeType:string};estimatedPreviewToStillTransform:TransformEstimate}
 export type PreviewReferenceFrame={id:string;capturedAt:string;width:number;height:number;orientation:CameraOrientation;viewport:CaptureViewport;blobUrl:string;localOnly:true}
@@ -58,6 +59,10 @@ export class H5StillCamera{
  private facingMode:'environment'|'user'='environment'
  private switching=false
  private geometryTracker=new CameraGeometryTracker()
+ private diagnosticPinnedDeviceId:string|null=null
+ private activeProfile:CameraStreamProfile='MAIN_CURRENT'
+ private lastConstraintRequest:CameraConstraintRequest=cameraConstraintRequest('MAIN_CURRENT','environment',false)
+ private startupLatencyMs:number|null=null
  setFacingMode(value:'environment'|'user'){this.facingMode=value}
  private async waitForRelease(delayMs:number){await new Promise(resolve=>setTimeout(resolve,delayMs))}
  private orientation():{device:CameraOrientation;presentation:CameraOrientation}{const type=typeof screen!=='undefined'?screen.orientation?.type||'':'';const fromType:CameraOrientation=type.startsWith('portrait')?'PORTRAIT':type.startsWith('landscape')?'LANDSCAPE':'UNKNOWN';const presentation:CameraOrientation=typeof innerWidth==='number'&&typeof innerHeight==='number'?(innerHeight>=innerWidth?'PORTRAIT':'LANDSCAPE'):fromType;return {device:fromType,presentation}}
@@ -71,14 +76,16 @@ export class H5StillCamera{
  async diagnosticInventory(containerId:string):Promise<CameraGeometryInventory>{
   if(typeof __XFX_DIAGNOSTIC_MODE__==='undefined'||!__XFX_DIAGNOSTIC_MODE__)throw new Error('DIAGNOSTIC_MODE_DISABLED')
   if(!this.video||!this.stream)throw new Error('DIAGNOSTIC_CAMERA_NOT_OPEN')
-  const track=this.stream.getVideoTracks()[0],settings=track.getSettings(),constraints=track.getConstraints(),capabilities=typeof track.getCapabilities==='function'?track.getCapabilities():{}
+  const track=this.stream.getVideoTracks()[0],settings=track.getSettings() as MediaTrackSettings&{zoom?:number},constraints=track.getConstraints(),capabilities=typeof track.getCapabilities==='function'?track.getCapabilities():{}
   const videoRect=this.video.getBoundingClientRect(),host=document.getElementById(containerId),hostRect=host?.getBoundingClientRect();if(!hostRect)throw new Error('DIAGNOSTIC_CONTAINER_MISSING')
   const computed=getComputedStyle(this.video),orientation=screen.orientation?.type||null
   const ImageCaptureConstructor=(globalThis as any).ImageCapture;let photoCapabilities:Record<string,unknown>|null=null
   if(typeof ImageCaptureConstructor==='function'&&track)try{const capture=new ImageCaptureConstructor(track);if(typeof capture.getPhotoCapabilities==='function')photoCapabilities=await capture.getPhotoCapabilities()}catch{}
-  let devices:Array<{deviceId:string;label:string;groupId:string}>=[]
-  try{devices=(await navigator.mediaDevices.enumerateDevices()).filter(item=>item.kind==='videoinput').map(item=>({deviceId:item.deviceId,label:item.label,groupId:item.groupId}))}catch{}
-  return {userAgent:navigator.userAgent,screen:{width:screen.width,height:screen.height,devicePixelRatio:globalThis.devicePixelRatio||1,orientation},track:{label:track.label,kind:track.kind,readyState:track.readyState,settings:{...settings},constraints:{...constraints},capabilities:{...capabilities}},video:{videoWidth:this.video.videoWidth,videoHeight:this.video.videoHeight,clientWidth:this.video.clientWidth,clientHeight:this.video.clientHeight,rect:{x:videoRect.x,y:videoRect.y,width:videoRect.width,height:videoRect.height},objectFit:computed.objectFit,objectPosition:computed.objectPosition},container:{width:hostRect.width,height:hostRect.height,aspectRatio:hostRect.width/hostRect.height},currentCover:projectObjectFit(this.video.videoWidth,this.video.videoHeight,hostRect.width,hostRect.height,'cover'),centeredThreeFour:centeredAspectCrop(this.video.videoWidth,this.video.videoHeight,3/4),imageCapture:{available:typeof ImageCaptureConstructor==='function',photoCapabilities},devices}
+  let devices:Array<{deviceIdHash:string|null;label:string;groupIdHash:string|null}>=[]
+  try{devices=(await navigator.mediaDevices.enumerateDevices()).filter(item=>item.kind==='videoinput').map(item=>({deviceIdHash:hashCameraIdentity(item.deviceId),label:item.label,groupIdHash:hashCameraIdentity(item.groupId)}))}catch{}
+  const safeSettings={...settings,deviceId:undefined,groupId:undefined,deviceIdHash:hashCameraIdentity(settings.deviceId),groupIdHash:hashCameraIdentity(settings.groupId)},safeConstraints={...constraints,deviceId:constraints.deviceId?'PINNED_REDACTED':undefined}
+  const capabilityRecord=capabilities as Record<string,unknown>,safeCapabilities=Object.fromEntries(['width','height','aspectRatio','frameRate','zoom','resizeMode'].filter(key=>key in capabilityRecord).map(key=>[key,capabilityRecord[key]]))
+  return {profile:this.activeProfile,requested:this.lastConstraintRequest,actual:normalizeCameraSettings(settings),startupLatencyMs:this.startupLatencyMs,userAgent:navigator.userAgent,screen:{width:screen.width,height:screen.height,devicePixelRatio:globalThis.devicePixelRatio||1,orientation},track:{label:track.label,kind:track.kind,readyState:track.readyState,settings:safeSettings,constraints:safeConstraints,capabilities:safeCapabilities},video:{videoWidth:this.video.videoWidth,videoHeight:this.video.videoHeight,clientWidth:this.video.clientWidth,clientHeight:this.video.clientHeight,rect:{x:videoRect.x,y:videoRect.y,width:videoRect.width,height:videoRect.height},objectFit:computed.objectFit,objectPosition:computed.objectPosition},container:{width:hostRect.width,height:hostRect.height,aspectRatio:hostRect.width/hostRect.height},currentCover:projectObjectFit(this.video.videoWidth,this.video.videoHeight,hostRect.width,hostRect.height,'cover'),centeredThreeFour:centeredAspectCrop(this.video.videoWidth,this.video.videoHeight,3/4),imageCapture:{available:typeof ImageCaptureConstructor==='function',photoCapabilities},devices}
  }
  async diagnosticCapture(containerId:string):Promise<CameraDiagnosticCapture>{
   if(typeof __XFX_DIAGNOSTIC_MODE__==='undefined'||!__XFX_DIAGNOSTIC_MODE__)throw new Error('DIAGNOSTIC_MODE_DISABLED')
@@ -94,17 +101,24 @@ export class H5StillCamera{
   if(typeof createImageBitmap==='function'){const bitmap=await createImageBitmap(still,{imageOrientation:'from-image'});stillWidth=bitmap.width;stillHeight=bitmap.height;try{const luma=(drawable:CanvasImageSource,sx:number,sy:number,sw:number,sh:number)=>{const canvas=document.createElement('canvas');canvas.width=64;canvas.height=64;const context=canvas.getContext('2d',{willReadFrequently:true})!;context.drawImage(drawable,sx,sy,sw,sh,0,0,64,64);const rgba=context.getImageData(0,0,64,64).data,out=new Uint8Array(64*64);for(let i=0;i<out.length;i++)out[i]=Math.round(rgba[i*4]*.2126+rgba[i*4+1]*.7152+rgba[i*4+2]*.0722);return out},videoCrop=rectToPixels(inventory.centeredThreeFour,width,height);estimatedPreviewToStillTransform=estimateCentralCropByLuma(luma(source,videoCrop.x,videoCrop.y,videoCrop.width,videoCrop.height),64,64,luma(bitmap,0,0,bitmap.width,bitmap.height),64,64)}catch{}finally{bitmap.close()}}
   return {inventory,intrinsicVideoUrl,visibleCoverUrl,centerThreeFourUrl,nativeStillUrl:URL.createObjectURL(still),nativeStill:{width:stillWidth,height:stillHeight,bytes:still.size,mimeType:still.type},estimatedPreviewToStillTransform}
  }
- private async openWithConstraint(containerId:string,strict:boolean):Promise<PlatformResult<{facingMode:string}>>{
+ private async openWithConstraint(containerId:string,strict:boolean,profile:CameraStreamProfile='MAIN_CURRENT',deviceId?:string):Promise<PlatformResult<{facingMode:string}>>{
   if(typeof navigator==='undefined'||!navigator.mediaDevices?.getUserMedia)return normalizedFailure('PLATFORM_UNSUPPORTED','UNSUPPORTED','Camera preview is unavailable in this browser')
   try{
-   this.close();this.stream=await navigator.mediaDevices.getUserMedia({video:cameraVideoConstraints(this.facingMode,strict),audio:false})
+   this.close();this.activeProfile=profile;this.lastConstraintRequest=cameraConstraintRequest(profile,this.facingMode,strict,Boolean(deviceId));const started=performance.now();this.stream=await navigator.mediaDevices.getUserMedia({video:profile==='MAIN_CURRENT'&&!deviceId?cameraVideoConstraints(this.facingMode,strict):cameraStreamConstraints(profile,this.facingMode,strict,deviceId),audio:false})
    const host=document.getElementById(containerId);if(!host)throw new Error('Camera preview host is unavailable')
    const video=document.createElement('video');video.autoplay=true;video.muted=true;video.playsInline=true;video.setAttribute('aria-label','相机实时预览');video.srcObject=this.stream;host.replaceChildren(video);await video.play();this.video=video
-   const actual=this.stream.getVideoTracks()[0]?.getSettings().facingMode,orientation=this.orientation();this.geometryTracker.recalculate({width:video.videoWidth,height:video.videoHeight,deviceOrientation:orientation.device,presentationOrientation:orientation.presentation})
+   this.startupLatencyMs=performance.now()-started;const actual=this.stream.getVideoTracks()[0]?.getSettings().facingMode,orientation=this.orientation();this.geometryTracker.recalculate({width:video.videoWidth,height:video.videoHeight,deviceOrientation:orientation.device,presentationOrientation:orientation.presentation})
    return {ok:true,code:'OK',supportLevel:'UNVERIFIED_REAL_DEVICE',value:{facingMode:actual||this.facingMode}}
   }catch(error){this.close();return cameraFailure(error,'PARTIAL')}
  }
  async open(containerId:string):Promise<PlatformResult<{facingMode:string}>>{return this.openWithConstraint(containerId,false)}
+ async openDiagnosticProfile(containerId:string,profile:CameraStreamProfile):Promise<PlatformResult<{facingMode:string}>>{
+  if(typeof __XFX_DIAGNOSTIC_MODE__==='undefined'||!__XFX_DIAGNOSTIC_MODE__)return normalizedFailure('PLATFORM_UNSUPPORTED','UNSUPPORTED','DIAGNOSTIC_MODE_DISABLED')
+  const result=await this.openWithConstraint(containerId,false,profile,this.diagnosticPinnedDeviceId||undefined)
+  if(result.ok&&!this.diagnosticPinnedDeviceId)this.diagnosticPinnedDeviceId=this.stream?.getVideoTracks()[0]?.getSettings().deviceId||null
+  return result
+ }
+ resetDiagnosticCameraPin(){this.diagnosticPinnedDeviceId=null}
  async switch(containerId:string):Promise<PlatformResult<{facingMode:string}>>{
   if(this.switching)return normalizedFailure('CAMERA_FAILURE','PARTIAL','CAMERA_SWITCH_IN_PROGRESS')
   const previous=this.facingMode;const next=previous==='environment'?'user':'environment';this.switching=true

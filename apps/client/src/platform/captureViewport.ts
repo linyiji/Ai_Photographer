@@ -1,6 +1,9 @@
 export type CaptureViewport={x:number;y:number;width:number;height:number;aspectRatio:number}
 export type CameraOrientation='PORTRAIT'|'LANDSCAPE'|'UNKNOWN'
 export type PreviewStillRelation='VALIDATED_IDENTICAL'|'KNOWN_DIFFERENT'|'UNKNOWN'
+export type CameraStreamProfile='MAIN_CURRENT'|'LIVE_LIKE'|'RELAXED'
+export type CameraConstraintRequest={profile:CameraStreamProfile;facingMode:'environment'|'user';strictFacing:boolean;pinnedDevice:boolean;width:number|null;height:number|null;aspectRatio:number|null;frameRate:number}
+export type NormalizedCameraSettings={width:number|null;height:number|null;aspectRatio:number|null;frameRate:number|null;facingMode:string|null;resizeMode:string|null;zoom:number|null;deviceIdHash:string|null;groupIdHash:string|null}
 export type NormalizedCameraGeometry={
  raw:{width:number;height:number;aspectRatio:number|null};deviceOrientation:CameraOrientation;presentationOrientation:CameraOrientation
  normalized:{width:number;height:number;aspectRatio:number|null;rotation:'NONE'|'LOGICAL_90'};previewViewport:CaptureViewport
@@ -46,6 +49,33 @@ export class CameraGeometryTracker{
  snapshot(){return {generation:this.generation,geometry:this.current}}
 }
 
+export function cameraConstraintRequest(profile:CameraStreamProfile,facingMode:'environment'|'user',strictFacing:boolean,pinnedDevice=false):CameraConstraintRequest{
+ if(profile==='MAIN_CURRENT')return {profile,facingMode,strictFacing,pinnedDevice,width:1440,height:1920,aspectRatio:CAPTURE_FRAME_ASPECT,frameRate:30}
+ if(profile==='LIVE_LIKE')return {profile,facingMode,strictFacing,pinnedDevice,width:1280,height:720,aspectRatio:null,frameRate:30}
+ return {profile,facingMode,strictFacing,pinnedDevice,width:null,height:null,aspectRatio:null,frameRate:30}
+}
+
+export function cameraStreamConstraints(profile:CameraStreamProfile,facingMode:'environment'|'user',strict:boolean,deviceId?:string):MediaTrackConstraints{
+ const request=cameraConstraintRequest(profile,facingMode,strict,Boolean(deviceId)),constraints:MediaTrackConstraints={facingMode:strict?{exact:facingMode}:{ideal:facingMode},frameRate:{ideal:request.frameRate}}
+ if(request.width)constraints.width={ideal:request.width}
+ if(request.height)constraints.height={ideal:request.height}
+ if(request.aspectRatio)constraints.aspectRatio={ideal:request.aspectRatio}
+ if(deviceId)constraints.deviceId={exact:deviceId}
+ return constraints
+}
+
 export function cameraVideoConstraints(facingMode:'environment'|'user',strict:boolean):MediaTrackConstraints{
- return {facingMode:strict?{exact:facingMode}:{ideal:facingMode},width:{ideal:1440},height:{ideal:1920},aspectRatio:{ideal:CAPTURE_FRAME_ASPECT},frameRate:{ideal:30}}
+ return cameraStreamConstraints('MAIN_CURRENT',facingMode,strict)
+}
+
+export function hashCameraIdentity(value:string|undefined|null):string|null{
+ if(!value)return null
+ let hash=2166136261
+ for(let index=0;index<value.length;index++){hash^=value.charCodeAt(index);hash=Math.imul(hash,16777619)}
+ return `fnv1a-${(hash>>>0).toString(16).padStart(8,'0')}`
+}
+
+export function normalizeCameraSettings(settings:MediaTrackSettings&{zoom?:number;resizeMode?:string}):NormalizedCameraSettings{
+ const width=typeof settings.width==='number'?settings.width:null,height=typeof settings.height==='number'?settings.height:null
+ return {width,height,aspectRatio:typeof settings.aspectRatio==='number'?settings.aspectRatio:(width&&height?width/height:null),frameRate:typeof settings.frameRate==='number'?settings.frameRate:null,facingMode:typeof settings.facingMode==='string'?settings.facingMode:null,resizeMode:typeof settings.resizeMode==='string'?settings.resizeMode:null,zoom:typeof settings.zoom==='number'?settings.zoom:null,deviceIdHash:hashCameraIdentity(settings.deviceId),groupIdHash:hashCameraIdentity(settings.groupId)}
 }
