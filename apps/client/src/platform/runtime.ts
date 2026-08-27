@@ -2,7 +2,7 @@ import Taro from '@tarojs/taro'
 import {API_BASE,UploadedAsset} from '../api/client'
 import {AdapterDescriptor,CapabilityName,CapabilitySelection,PlatformResult,RuntimePlatform,selectionFrom,normalizedFailure} from './model'
 import {centeredAspectCrop,estimateCentralCropByLuma,projectObjectFit,rectToPixels,type NormalizedRect,type TransformEstimate} from '../diagnostics/cameraGeometry'
-import {CameraGeometryTracker,cameraConstraintRequest,cameraStreamConstraints,cameraVideoConstraints,captureViewportForVideo,hashCameraIdentity,normalizeCameraGeometry,normalizeCameraSettings,type CameraConstraintRequest,type CameraStreamProfile,type CaptureViewport,type CameraOrientation,type NormalizedCameraGeometry,type NormalizedCameraSettings} from './captureViewport'
+import {CameraGeometryTracker,H5_CAMERA_STREAM_CONSTRAINT_POLICY_V02,cameraConstraintRequest,cameraStreamConstraints,captureViewportForVideo,hashCameraIdentity,normalizeCameraGeometry,normalizeCameraSettings,type CameraConstraintRequest,type CameraStreamProfile,type CaptureViewport,type CameraOrientation,type NormalizedCameraGeometry,type NormalizedCameraSettings} from './captureViewport'
 import type {UploadAttemptTelemetry,UploadContext} from './captureUpload'
 import {classifyPreviewStillAlignment,fullViewport,type PreviewStillAlignmentResultV01} from './previewStillAlignment'
 
@@ -60,8 +60,8 @@ export class H5StillCamera{
  private switching=false
  private geometryTracker=new CameraGeometryTracker()
  private diagnosticPinnedDeviceId:string|null=null
- private activeProfile:CameraStreamProfile='MAIN_CURRENT'
- private lastConstraintRequest:CameraConstraintRequest=cameraConstraintRequest('MAIN_CURRENT','environment',false)
+ private activeProfile:CameraStreamProfile=H5_CAMERA_STREAM_CONSTRAINT_POLICY_V02.previewProfile
+ private lastConstraintRequest:CameraConstraintRequest=cameraConstraintRequest(H5_CAMERA_STREAM_CONSTRAINT_POLICY_V02.previewProfile,'environment',false)
  private startupLatencyMs:number|null=null
  setFacingMode(value:'environment'|'user'){this.facingMode=value}
  private async waitForRelease(delayMs:number){await new Promise(resolve=>setTimeout(resolve,delayMs))}
@@ -101,10 +101,10 @@ export class H5StillCamera{
   if(typeof createImageBitmap==='function'){const bitmap=await createImageBitmap(still,{imageOrientation:'from-image'});stillWidth=bitmap.width;stillHeight=bitmap.height;try{const luma=(drawable:CanvasImageSource,sx:number,sy:number,sw:number,sh:number)=>{const canvas=document.createElement('canvas');canvas.width=64;canvas.height=64;const context=canvas.getContext('2d',{willReadFrequently:true})!;context.drawImage(drawable,sx,sy,sw,sh,0,0,64,64);const rgba=context.getImageData(0,0,64,64).data,out=new Uint8Array(64*64);for(let i=0;i<out.length;i++)out[i]=Math.round(rgba[i*4]*.2126+rgba[i*4+1]*.7152+rgba[i*4+2]*.0722);return out},videoCrop=rectToPixels(inventory.centeredThreeFour,width,height);estimatedPreviewToStillTransform=estimateCentralCropByLuma(luma(source,videoCrop.x,videoCrop.y,videoCrop.width,videoCrop.height),64,64,luma(bitmap,0,0,bitmap.width,bitmap.height),64,64)}catch{}finally{bitmap.close()}}
   return {inventory,intrinsicVideoUrl,visibleCoverUrl,centerThreeFourUrl,nativeStillUrl:URL.createObjectURL(still),nativeStill:{width:stillWidth,height:stillHeight,bytes:still.size,mimeType:still.type},estimatedPreviewToStillTransform}
  }
- private async openWithConstraint(containerId:string,strict:boolean,profile:CameraStreamProfile='MAIN_CURRENT',deviceId?:string):Promise<PlatformResult<{facingMode:string}>>{
+ private async openWithConstraint(containerId:string,strict:boolean,profile:CameraStreamProfile=H5_CAMERA_STREAM_CONSTRAINT_POLICY_V02.previewProfile,deviceId?:string):Promise<PlatformResult<{facingMode:string}>>{
   if(typeof navigator==='undefined'||!navigator.mediaDevices?.getUserMedia)return normalizedFailure('PLATFORM_UNSUPPORTED','UNSUPPORTED','Camera preview is unavailable in this browser')
   try{
-   this.close();this.activeProfile=profile;this.lastConstraintRequest=cameraConstraintRequest(profile,this.facingMode,strict,Boolean(deviceId));const started=performance.now();this.stream=await navigator.mediaDevices.getUserMedia({video:profile==='MAIN_CURRENT'&&!deviceId?cameraVideoConstraints(this.facingMode,strict):cameraStreamConstraints(profile,this.facingMode,strict,deviceId),audio:false})
+   this.close();this.activeProfile=profile;this.lastConstraintRequest=cameraConstraintRequest(profile,this.facingMode,strict,Boolean(deviceId));const started=performance.now();this.stream=await navigator.mediaDevices.getUserMedia({video:cameraStreamConstraints(profile,this.facingMode,strict,deviceId),audio:false})
    const host=document.getElementById(containerId);if(!host)throw new Error('Camera preview host is unavailable')
    const video=document.createElement('video');video.autoplay=true;video.muted=true;video.playsInline=true;video.setAttribute('aria-label','相机实时预览');video.srcObject=this.stream;host.replaceChildren(video);await video.play();this.video=video
    this.startupLatencyMs=performance.now()-started;const actual=this.stream.getVideoTracks()[0]?.getSettings().facingMode,orientation=this.orientation();this.geometryTracker.recalculate({width:video.videoWidth,height:video.videoHeight,deviceOrientation:orientation.device,presentationOrientation:orientation.presentation})

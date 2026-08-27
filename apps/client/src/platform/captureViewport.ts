@@ -12,6 +12,7 @@ export type NormalizedCameraGeometry={
 }
 
 export const CAPTURE_FRAME_ASPECT=3/4
+export const H5_CAMERA_STREAM_CONSTRAINT_POLICY_V02={strategy:'DECOUPLED_PREVIEW_STREAM',previewProfile:'LIVE_LIKE' as CameraStreamProfile,finalCompositionAspect:CAPTURE_FRAME_ASPECT,streamAspectCoupledToComposition:false} as const
 
 export function captureViewportForVideo(width:number,height:number,aspectRatio=CAPTURE_FRAME_ASPECT):CaptureViewport{
  if(width<=0||height<=0||aspectRatio<=0)return {x:0,y:0,width:1,height:1,aspectRatio}
@@ -66,6 +67,10 @@ export function cameraStreamConstraints(profile:CameraStreamProfile,facingMode:'
 
 export function cameraVideoConstraints(facingMode:'environment'|'user',strict:boolean):MediaTrackConstraints{
  return cameraStreamConstraints('MAIN_CURRENT',facingMode,strict)
+}
+
+export function productCameraVideoConstraints(facingMode:'environment'|'user',strict:boolean):MediaTrackConstraints{
+ return cameraStreamConstraints(H5_CAMERA_STREAM_CONSTRAINT_POLICY_V02.previewProfile,facingMode,strict)
 }
 
 export function hashCameraIdentity(value:string|undefined|null):string|null{

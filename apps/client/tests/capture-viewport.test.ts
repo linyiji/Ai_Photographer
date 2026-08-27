@@ -1,6 +1,6 @@
 import {test} from 'node:test'
 import {strict as assert} from 'node:assert'
-import {CameraGeometryTracker,cameraConstraintRequest,cameraStreamConstraints,cameraVideoConstraints,captureFrameStyle,captureViewportForVideo,hashCameraIdentity,normalizeCameraGeometry,normalizeCameraSettings} from '../src/platform/captureViewport'
+import {CameraGeometryTracker,H5_CAMERA_STREAM_CONSTRAINT_POLICY_V02,cameraConstraintRequest,cameraStreamConstraints,cameraVideoConstraints,captureFrameStyle,captureViewportForVideo,hashCameraIdentity,normalizeCameraGeometry,normalizeCameraSettings,productCameraVideoConstraints} from '../src/platform/captureViewport'
 
 test('9:16 video exposes a centered authoritative 3:4 viewport',()=>{
  const viewport=captureViewportForVideo(1080,1920)
@@ -34,6 +34,13 @@ test('camera stream profiles serialize current, live-like and relaxed requests w
  assert.deepEqual(cameraStreamConstraints('LIVE_LIKE','environment',false),{facingMode:{ideal:'environment'},frameRate:{ideal:30},width:{ideal:1280},height:{ideal:720}})
  assert.deepEqual(cameraStreamConstraints('RELAXED','environment',false),{facingMode:{ideal:'environment'},frameRate:{ideal:30}})
  assert.deepEqual(cameraStreamConstraints('LIVE_LIKE','environment',true,'private-device'),{facingMode:{exact:'environment'},frameRate:{ideal:30},width:{ideal:1280},height:{ideal:720},deviceId:{exact:'private-device'}})
+})
+
+test('accepted H5 preview policy decouples stream selection from the 3:4 final composition contract',()=>{
+ assert.deepEqual(H5_CAMERA_STREAM_CONSTRAINT_POLICY_V02,{strategy:'DECOUPLED_PREVIEW_STREAM',previewProfile:'LIVE_LIKE',finalCompositionAspect:.75,streamAspectCoupledToComposition:false})
+ const constraints=productCameraVideoConstraints('environment',false)
+ assert.deepEqual(constraints,{facingMode:{ideal:'environment'},frameRate:{ideal:30},width:{ideal:1280},height:{ideal:720}})
+ assert.equal('aspectRatio' in constraints,false)
 })
 
 test('actual settings normalization records unsupported values honestly and hashes camera identity',()=>{
