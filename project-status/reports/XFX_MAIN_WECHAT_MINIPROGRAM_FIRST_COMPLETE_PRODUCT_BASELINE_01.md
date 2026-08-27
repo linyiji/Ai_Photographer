@@ -102,3 +102,11 @@ AI_DIRECTOR = NOT_STARTED
 DOUYIN = NOT_STARTED
 PUBLIC_PRODUCTION_READY = NO
 ```
+
+## Reacceptance 02 environment disposition — 2026-08-27
+
+`XFX_MAIN_WECHAT_MINIPROGRAM_DEVTOOLS_AND_REAL_DEVICE_REACCEPTANCE_02` completed Git admission and fresh local verification: TypeScript passed, frontend tests passed 87/87, and the WeChat target compiled into `apps/client/dist` with only the retained landmark asset-size warning.
+
+Formal runtime acceptance could not start. Official WeChat Developer Tools was not present after common-path, command, registry, Start Menu, and shortcut discovery; the project still uses `touristappid`; and the default backend remains `http://127.0.0.1:8000` rather than an authorized trusted-HTTPS request/upload domain. Therefore DevTools, AppID, network, Camera, Capture, device Fine Tune, Final/My Works/Save/Share, and full golden-flow gates remain `MANUAL_REVIEW_REQUIRED` or `NOT_EXERCISED`. No product code was changed to compensate for the missing environment.
+
+Evidence: `project-status/evidence/wechat-miniprogram-first-complete/wechat-devtools-and-real-device-reacceptance.md`.
