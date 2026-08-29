@@ -12,7 +12,7 @@
 - P0 replay **11/11**, P1 replay **5/5**.
 - Production H5 build: **PASS**, 52.51kB JS, no OpenCV.js/WASM asset.
 - Local browser: P1 visible about 53ms after scan completion; precheck 17.7ms then 3.7ms; repeat enabled; Fixture upload 0.
-- OPPO V0.2 selected-frame payload/network/end-to-end evidence: **PENDING**.
+- OPPO V0.2 selected-frame runtime: **PASS_WITH_WARNING**; exact closure evidence is recorded below.
 
 Everything below this point is retained as V0.1 historical evidence; its client Spatial Status and Controlled Reference session-authority semantics are superseded by V0.2.
 
@@ -48,4 +48,7 @@ Local browser UI regression ran two consecutive QUICK fixtures after the replace
 - Resize matrix: `1080×1920 → 360×640`, `1920×1080 → 640×360`, `1200×1200 → 640×640`, `300×500 → 300×500`, `500×300 → 500×300`: PASS.
 - Backend resolution validation accepts bounded cases and rejects `640×1138` / 961px long edge: PASS.
 - Current frontend tests: 160/160 PASS; backend tests: 13/13 PASS; production build: PASS (55.93kB JS); controlled semantic matrix deterministic and all prior algorithm gates PASS.
-- Exactly one fresh OPPO QUICK and one fresh OPPO WIDE remain pending; no additional scans are requested before this automated closure.
+- OPPO QUICK `sweep-1787994955242`: HTTP 200; 5/5 `1080×1920 → 360×640`; payload 124,485B; Solver reached; `SpatialEvidenceV02 = INSUFFICIENT / PURE_ROTATION_OR_HOMOGRAPHY_DOMINANT`; Solver compute 29.716ms; end-to-end 4,606.3ms.
+- OPPO WIDE `sweep-1787994900356`: HTTP 200; 7/7 `1080×1920 → 360×640`; payload 220,363B; Solver reached; `SpatialEvidenceV02 = INSUFFICIENT / LOW_PARALLAX`; Solver compute 106.005ms; end-to-end 9,037.8ms.
+- Both exact uploaded-JPEG hashes and canonical ordered frame-set hashes were accepted. The real-device runtime gate is **PASS_WITH_WARNING**. The tested `multipart_parse` timing includes request-body receipt; use `backend_timing_ms.total_compute` for Solver compute. End-to-end latency remains the warning, and these two mode-specific samples do not establish P50/P95.
+- No additional scan is requested. Geometry semantics remain unchanged; P3 and Main Integration remain not started.

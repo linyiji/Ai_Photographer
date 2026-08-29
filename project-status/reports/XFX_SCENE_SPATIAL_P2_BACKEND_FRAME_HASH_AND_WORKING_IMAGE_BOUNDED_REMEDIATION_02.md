@@ -1,6 +1,6 @@
 # XFX Scene Spatial P2 backend frame hash and working-image bounded remediation 02
 
-Status: **AUTOMATED REMEDIATION PASS / REAL-DEVICE REVALIDATION PENDING**
+Status: **PASS_WITH_WARNING — QUICK/WIDE real-device runtime passed; latency warning**
 Track: `PARALLEL_SCENE_SPATIAL`
 Start head: `39f1eaf0b95315308904cd2b43e56fc70b20990c`
 
@@ -33,6 +33,11 @@ HTTP failures now preserve status, content type, JSON error code/body or text fa
 - local browser-compatible multipart request: HTTP 200, Solver reached, `SpatialEvidenceV02` produced;
 - privacy: raw video 0, frame stream 0, selected frames first-party backend only, Provider 0, Luna 0, real user media in Git 0.
 
-## Pending real-device closure
+## OPPO real-device closure
 
-Automated remediation is complete. Exactly one fresh OPPO QUICK and one fresh OPPO WIDE are required. Each must return HTTP success, show bounded working dimensions, reach Solver and produce `SpatialEvidenceV02`; `INSUFFICIENT`, `PARTIAL` or `USABLE` are all acceptable runtime outcomes. Until then `P2_REAL_DEVICE_RUNTIME_GATE = FAIL`. Geometry algorithm semantics are unchanged and were not retuned.
+The requested one fresh QUICK and one fresh WIDE were completed on OPPO Chrome. Both requests returned HTTP 200, passed exact binary and ordered frame-set hash validation, used bounded portrait working images, reached the Solver and produced `SpatialEvidenceV02`. Successful `INSUFFICIENT` results remain geometry observations rather than transport failures.
+
+- QUICK `sweep-1787994955242`: 5/5 source frames `1080×1920` became `360×640`; payload 124,485 bytes; end-to-end 4,606.3ms; backend Solver compute 29.716ms; status `INSUFFICIENT / PURE_ROTATION_OR_HOMOGRAPHY_DOMINANT`.
+- WIDE `sweep-1787994900356`: 7/7 source frames `1080×1920` became `360×640`; payload 220,363 bytes; end-to-end 9,037.8ms; backend Solver compute 106.005ms; status `INSUFFICIENT / LOW_PARALLAX`.
+
+The tested server starts its `multipart_parse` timer before reading the request body, so that field includes body receipt and must not be interpreted as algorithm compute. The authoritative Solver values are `backend_timing_ms.total_compute`. End-to-end latency exceeded the candidate 3-second target in both single mode-specific samples; two samples are insufficient for device P50/P95. This leaves the runtime gate `PASS_WITH_WARNING`. Frame selection remains `PASS_WITH_WARNING`; Client SpatialPrecheck passes as routing-only evidence. Geometry thresholds and semantics were not retuned.

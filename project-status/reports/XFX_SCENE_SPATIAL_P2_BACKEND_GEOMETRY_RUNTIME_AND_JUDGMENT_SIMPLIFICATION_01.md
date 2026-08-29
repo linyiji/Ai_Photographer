@@ -1,6 +1,6 @@
 # XFX Scene Spatial P2 Backend Geometry Runtime and Judgment Simplification 01
 
-Status: **PASS_WITH_WARNING — OPPO V0.2 network/device continuation pending**  
+Status: **PASS_WITH_WARNING — OPPO QUICK/WIDE runtime passed; latency warning**
 Design authority: `SCENE_SPATIAL_DESIGN_AUTHORITY_V0_2`  
 Track: `PARALLEL_SCENE_SPATIAL`
 
@@ -84,8 +84,8 @@ REAL_USER_MEDIA_IN_GIT = 0
 - physical placement: NOT_STARTED;
 - Main Integration: NOT_STARTED.
 
-P2 Backend Geometry is `PASS_WITH_WARNING`: core solver and Authority boundaries pass; H5 Camera Model Evidence is UNKNOWN and OPPO selected-frame upload/end-to-end P50/P95 remain pending.
+P2 Backend Geometry is `PASS_WITH_WARNING`: core solver and Authority boundaries pass; H5 Camera Model Evidence is UNKNOWN. One fresh QUICK and one fresh WIDE now pass the OPPO runtime gate, while their single-run end-to-end latencies remain warnings and do not establish P50/P95.
 
 ## Remediation continuation 02
 
-Fresh OPPO evidence subsequently proved that the selected-frame request path failed before Solver execution with HTTP 400 `FRAME_SET_HASH_MISMATCH`; this is not `SpatialEvidenceV02.status = INSUFFICIENT`. The bounded remediation is tracked in `XFX_SCENE_SPATIAL_P2_BACKEND_FRAME_HASH_AND_WORKING_IMAGE_BOUNDED_REMEDIATION_02.md`. Automated transport, binary multipart, resize and request-to-Solver gates now pass. The historical 400 remains evidence, and the OPPO runtime gate remains failed until exactly one fresh QUICK and one fresh WIDE both reach the Solver and produce `SpatialEvidenceV02`.
+Fresh OPPO evidence initially proved that the selected-frame request path failed before Solver execution with HTTP 400 `FRAME_SET_HASH_MISMATCH`; this is not `SpatialEvidenceV02.status = INSUFFICIENT`. The bounded remediation is tracked in `XFX_SCENE_SPATIAL_P2_BACKEND_FRAME_HASH_AND_WORKING_IMAGE_BOUNDED_REMEDIATION_02.md`. The historical 400 remains negative evidence. After remediation, QUICK `sweep-1787994955242` and WIDE `sweep-1787994900356` both returned HTTP 200, used `360×640` working images, reached the Solver and produced valid `INSUFFICIENT` Spatial Evidence. The OPPO runtime gate is therefore `PASS_WITH_WARNING`; the warning is end-to-end latency, not transport identity or Solver reachability.
