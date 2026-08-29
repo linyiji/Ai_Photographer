@@ -134,12 +134,15 @@ class GeometrySolver:
     def analyze(self, request: dict[str, Any], encoded_frames: list[bytes]) -> dict[str, Any]:
         started = time.perf_counter(); validation_started = time.perf_counter()
         self._validate(request, encoded_frames); validation_ms = _ms(validation_started)
-        key = self.cache_key(request)
+        cache_started = time.perf_counter(); key = self.cache_key(request)
         if key in self._result_cache:
             result = copy.deepcopy(self._result_cache[key])
             result["cache_status"] = "CACHE_HIT"
-            result["timing_ms"]["total_compute"] = 0.0
+            result["geometry_request_id"] = request["geometry_request_id"]
+            result["spatial_evidence"]["diagnostics"]["geometry_request_id"] = request["geometry_request_id"]
+            result["timing_ms"].update({"validation_ms": validation_ms, "cache_ms": _ms(cache_started), "solver_ms": 0.0, "total_compute": 0.0})
             return result
+        cache_ms = _ms(cache_started); solver_started = time.perf_counter()
         decode_started = time.perf_counter()
         images = [cv2.imdecode(np.frombuffer(value, np.uint8), cv2.IMREAD_COLOR) for value in encoded_frames]
         if any(image is None for image in images):
@@ -176,10 +179,11 @@ class GeometrySolver:
         status, reasons, consistency = self._status(primary, verification_results, camera_status)
         evidence = self._evidence(request, primary, status, reasons, consistency)
         result = {
+            "geometry_request_id": request["geometry_request_id"],
             "spatial_evidence": evidence,
             "cache_status": "CACHE_MISS",
             "diagnostics": {"primary_pair": list(primary_pair), "verification_pairs": [list(value) for value in verification_pairs], "primary": primary.diagnostics(), "verification": [value.diagnostics() for value in verification_results], "pair_consistency": consistency, "camera_model_evidence": request["camera_model_evidence"], "frame_cache": {"decode_ms": decode_ms, "feature_ms": feature_ms, "cache_reuse_count": sum(value["reuse"] for value in frame_cache)}, "early_exit": early_exit},
-            "timing_ms": {"request_decode": decode_ms, "feature": feature_ms, "primary_pair": primary_ms, "verification_pairs": verification_ms, "pose": primary.timing_ms.get("pose", 0.0), "triangulation": primary.timing_ms.get("triangulation", 0.0), "validation": validation_ms, "total_compute": _ms(started)},
+            "timing_ms": {"request_decode": decode_ms, "feature": feature_ms, "primary_pair": primary_ms, "verification_pairs": verification_ms, "pose": primary.timing_ms.get("pose", 0.0), "triangulation": primary.timing_ms.get("triangulation", 0.0), "validation": validation_ms, "validation_ms": validation_ms, "cache_ms": cache_ms, "solver_ms": _ms(solver_started), "total_compute": _ms(started)},
             "payload_bytes": sum(len(value) for value in encoded_frames),
         }
         self._result_cache[key] = copy.deepcopy(result)
@@ -187,11 +191,13 @@ class GeometrySolver:
 
     @staticmethod
     def _validate(request: dict[str, Any], frames: list[bytes]) -> None:
-        required = {"scan_id", "frame_set_hash", "geometry_version", "platform", "camera_model_evidence", "client_precheck", "selected_geometry_frames"}
+        required = {"geometry_request_id", "scan_id", "frame_set_hash", "geometry_version", "platform", "camera_model_evidence", "client_precheck", "selected_geometry_frames"}
         if not required.issubset(request):
             raise ValueError("REQUEST_FIELDS_MISSING")
         if request["geometry_version"] != SOLVER_VERSION:
             raise ValueError("GEOMETRY_VERSION_UNSUPPORTED")
+        if not isinstance(request["geometry_request_id"], str) or not 1 <= len(request["geometry_request_id"]) <= 160:
+            raise ValueError("GEOMETRY_REQUEST_ID_INVALID")
         if not isinstance(request["scan_id"], str) or not 1 <= len(request["scan_id"]) <= 160:
             raise ValueError("SCAN_ID_INVALID")
         if not isinstance(request["frame_set_hash"], str) or re.fullmatch(r"[0-9a-fA-F]{64}", request["frame_set_hash"]) is None:
@@ -253,4 +259,4 @@ class GeometrySolver:
     @staticmethod
     def _evidence(request: dict[str, Any], primary: PairResult, status: str, reasons: list[str], consistency: float) -> dict[str, Any]:
         usable = status == "USABLE"
-        return {"schema": "xfx.spatial-evidence", "schema_version": "0.2", "source_scan_id": request["scan_id"], "status": status, "status_authority": "FIRST_PARTY_BACKEND_GEOMETRY_SOLVER", "confidence": round(min(primary.inlier_ratio, primary.pose_stability, primary.positive_depth_ratio, max(0.0, consistency)) if usable else 0.0, 4), "geometry_type": "SPARSE_RELATIVE" if status in {"PARTIAL", "USABLE"} else "UNKNOWN", "metric_scale_available": False, "relative_camera_motion": {"rotation": "ESTIMATED" if status != "INSUFFICIENT" else "UNKNOWN", "translation_direction": primary.translation_direction if usable else "UNKNOWN", "evidence_class": "FACT" if usable else "UNKNOWN", "metric_distance": "UNKNOWN", "coordinate_convention": "CAMERA_X_RIGHT_Y_DOWN_Z_FORWARD"}, "relative_depth_summary": {"source": "SPARSE_MULTI_VIEW_GEOMETRY" if usable else "NONE", "categories": ["NEAR", "MID", "FAR"] if usable else [], "status": "AVAILABLE" if usable else "UNKNOWN"}, "geometry_coverage": round(consistency, 4), "visibility_evidence": {"status": "PARTIAL" if usable else "UNKNOWN", "note": "SPARSE_POINT_VISIBILITY_ONLY" if usable else "NO_VALIDATED_GEOMETRY"}, "occlusion_evidence": {"status": "PARTIAL" if usable else "UNKNOWN", "note": "SPARSE_OBSTRUCTION_PROXY_ONLY" if usable else "NO_VALIDATED_GEOMETRY"}, "limitations": ["NON_METRIC", "SPARSE_GEOMETRY_ONLY", "NO_PHYSICAL_SAFETY_AUTHORITY", "P3_AFFORDANCE_NOT_STARTED"], "evidence_refs": [value["frame_id"] for value in request["selected_geometry_frames"]], "reason_codes": reasons, "diagnostics": {"feature_count": primary.feature_count, "track_count": primary.tracked_count, "inlier_ratio": primary.inlier_ratio, "normalized_parallax": primary.normalized_median_residual, "pose_stability": primary.pose_stability, "positive_depth_ratio": primary.positive_depth_ratio, "triangulated_point_count": primary.triangulated_point_count, "reprojection_error": primary.reprojection_error_px, "pair_consistency": consistency, "camera_model_quality": request["camera_model_evidence"]["status"]}}
+        return {"schema": "xfx.spatial-evidence", "schema_version": "0.2", "source_scan_id": request["scan_id"], "status": status, "status_authority": "FIRST_PARTY_BACKEND_GEOMETRY_SOLVER", "confidence": round(min(primary.inlier_ratio, primary.pose_stability, primary.positive_depth_ratio, max(0.0, consistency)) if usable else 0.0, 4), "geometry_type": "SPARSE_RELATIVE" if status in {"PARTIAL", "USABLE"} else "UNKNOWN", "metric_scale_available": False, "relative_camera_motion": {"rotation": "ESTIMATED" if status != "INSUFFICIENT" else "UNKNOWN", "translation_direction": primary.translation_direction if usable else "UNKNOWN", "evidence_class": "FACT" if usable else "UNKNOWN", "metric_distance": "UNKNOWN", "coordinate_convention": "CAMERA_X_RIGHT_Y_DOWN_Z_FORWARD"}, "relative_depth_summary": {"source": "SPARSE_MULTI_VIEW_GEOMETRY" if usable else "NONE", "categories": ["NEAR", "MID", "FAR"] if usable else [], "status": "AVAILABLE" if usable else "UNKNOWN"}, "geometry_coverage": round(consistency, 4), "visibility_evidence": {"status": "PARTIAL" if usable else "UNKNOWN", "note": "SPARSE_POINT_VISIBILITY_ONLY" if usable else "NO_VALIDATED_GEOMETRY"}, "occlusion_evidence": {"status": "PARTIAL" if usable else "UNKNOWN", "note": "SPARSE_OBSTRUCTION_PROXY_ONLY" if usable else "NO_VALIDATED_GEOMETRY"}, "limitations": ["NON_METRIC", "SPARSE_GEOMETRY_ONLY", "NO_PHYSICAL_SAFETY_AUTHORITY", "P3_AFFORDANCE_NOT_STARTED"], "evidence_refs": [value["frame_id"] for value in request["selected_geometry_frames"]], "reason_codes": reasons, "diagnostics": {"geometry_request_id": request["geometry_request_id"], "feature_count": primary.feature_count, "track_count": primary.tracked_count, "inlier_ratio": primary.inlier_ratio, "normalized_parallax": primary.normalized_median_residual, "pose_stability": primary.pose_stability, "positive_depth_ratio": primary.positive_depth_ratio, "triangulated_point_count": primary.triangulated_point_count, "reprojection_error": primary.reprojection_error_px, "pair_consistency": consistency, "camera_model_quality": request["camera_model_evidence"]["status"]}}

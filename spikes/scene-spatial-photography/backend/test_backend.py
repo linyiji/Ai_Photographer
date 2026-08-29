@@ -19,7 +19,7 @@ def selected_metadata(frames: list[bytes], width: int = 320, height: int = 240) 
 
 def request_for(frames: list[bytes], selected: list[dict] | None = None, scan_id: str = "api-smoke") -> dict:
     metadata = selected or selected_metadata(frames)
-    return {"scan_id": scan_id, "frame_set_hash": frame_set_sha256(metadata), "geometry_version": SOLVER_VERSION, "platform": "fixture", "camera_model_evidence": {"status": "KNOWN", "focal_source": "CONTROLLED", "principal_point_assumption": "IMAGE_CENTER", "distortion_assumption": "NONE", "platform_device_profile": "FIXTURE", "confidence": 1}, "client_precheck": {"status": "POSSIBLE", "authority": "ROUTING_HINT_ONLY"}, "selected_geometry_frames": metadata}
+    return {"geometry_request_id": f"request-{scan_id}", "scan_id": scan_id, "frame_set_hash": frame_set_sha256(metadata), "geometry_version": SOLVER_VERSION, "platform": "fixture", "camera_model_evidence": {"status": "KNOWN", "focal_source": "CONTROLLED", "principal_point_assumption": "IMAGE_CENTER", "distortion_assumption": "NONE", "platform_device_profile": "FIXTURE", "confidence": 1}, "client_precheck": {"status": "POSSIBLE", "authority": "ROUTING_HINT_ONLY"}, "selected_geometry_frames": metadata}
 
 
 def multipart_body(metadata: dict, frames: list[bytes], boundary: str = "xfx-browser-formdata-boundary") -> bytes:
@@ -85,10 +85,15 @@ class BackendGeometryTests(unittest.TestCase):
                 ok, encoded = cv2.imencode(".jpg", np.roll(base, offset, axis=1)); self.assertTrue(ok); frames.append(encoded.tobytes())
             metadata = request_for(frames); boundary = "----WebKitFormBoundaryReachSolver"; body = multipart_body(metadata, frames, boundary)
             connection = http.client.HTTPConnection("127.0.0.1", server.server_port, timeout=10); connection.request("POST", "/scene-spatial/geometry/analyze", body, {"Content-Type": f"multipart/form-data; boundary={boundary}", "Content-Length": str(len(body))}); response = connection.getresponse(); value = json.loads(response.read()); connection.close()
-            self.assertEqual(response.status, 200); self.assertEqual(value["spatial_evidence"]["schema_version"], "0.2"); self.assertEqual(value["spatial_evidence"]["status_authority"], "FIRST_PARTY_BACKEND_GEOMETRY_SOLVER"); self.assertIn(value["spatial_evidence"]["status"], {"INSUFFICIENT", "PARTIAL", "USABLE"}); self.assertIn("multipart_parse", value["timing_ms"])
+            self.assertEqual(response.status, 200); self.assertEqual(value["spatial_evidence"]["schema_version"], "0.2"); self.assertEqual(value["spatial_evidence"]["status_authority"], "FIRST_PARTY_BACKEND_GEOMETRY_SOLVER"); self.assertIn(value["spatial_evidence"]["status"], {"INSUFFICIENT", "PARTIAL", "USABLE"}); self.assertIn("multipart_parse_ms", value["timing_ms"]); self.assertIn("body_receive_ms", value["timing_ms"]); self.assertIn("backend_total_after_body_received_ms", value["timing_ms"]); self.assertEqual(value["geometry_request_id"], metadata["geometry_request_id"]); self.assertEqual(value["spatial_evidence"]["diagnostics"]["geometry_request_id"], metadata["geometry_request_id"])
         finally:
             server.shutdown(); server.server_close(); thread.join(timeout=2)
 
+    def test_cache_key_ignores_photography_intent_but_changes_with_frame_set(self) -> None:
+        frames = [b"a", b"b", b"c"]; first = request_for(frames, scan_id="cache-contract"); second = dict(first); second["photography_intent"] = "PORTRAIT"
+        self.assertEqual(GeometrySolver.cache_key(first), GeometrySolver.cache_key(second))
+        changed = request_for([b"a", b"b", b"d"], scan_id="cache-contract")
+        self.assertNotEqual(GeometrySolver.cache_key(first), GeometrySolver.cache_key(changed))
     def test_wrong_declared_hash_returns_http_400_code(self) -> None:
         server = ThreadingHTTPServer(("127.0.0.1", 0), Handler); thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
         try:

@@ -6,7 +6,7 @@ import { analyzeSceneSweep } from '../p1/analyze-scene-sweep.js';
 import { clonePixelFrame, syntheticVisualFixtures } from '../p1/synthetic-fixtures.js';
 import type { PhotographyViewCandidateV01, PlacementAnchor, SceneSweepAnalysisResult, TransientKeyframePixels } from '../p1/types.js';
 import { GeometryFrameSelector } from '../p2/geometry-frame-selector.js';
-import { analyzeWithFirstPartyBackend, GeometryBackendRequestError, type GeometryBackendRequestEvidenceV01 } from '../p2/geometry-backend-client.js';
+import { analyzeWithFirstPartyBackend, emptyGeometryBackendEvidence, GeometryBackendRequestError, markSpatialEvidenceApplied, type GeometryBackendRequestEvidenceV01, type GeometryClientTraceSeed } from '../p2/geometry-backend-client.js';
 import { boundedLongEdgeSize } from '../p2/geometry-transport.js';
 import { analyzeLightweightCorrespondence } from '../p2/lightweight-correspondence.js';
 import { buildSpatialPrecheck } from '../p2/spatial-precheck.js';
@@ -46,7 +46,7 @@ type P1TrialEvidence = {
   direction_map: { node_count: number; depth: 'UNKNOWN'; metric_geometry: 'NOT_SUPPORTED'; };
   preview_fps_median: number | null; privacy: object; qualitative_pending: true;
 };
-type P2TrialEvidence = { sweep_id: string; geometry_frame_count: number; frame_budget: number; estimated_memory_bytes: number; correspondence: CorrespondenceDiagnostics; client_precheck: SpatialPrecheckV01; backend: GeometryBackendRequestEvidenceV01; preview_fps_median: number | null; };
+type P2TrialEvidence = { sweep_id: string; product_state: 'VIEW_READY_GEOMETRY_PENDING' | 'VIEW_READY_GEOMETRY_APPLIED' | 'VIEW_READY_GEOMETRY_FAILED' | 'VIEW_READY_GEOMETRY_NOT_REQUESTED'; geometry_frame_count: number; frame_budget: number; estimated_memory_bytes: number; correspondence: CorrespondenceDiagnostics; client_precheck: SpatialPrecheckV01; backend: GeometryBackendRequestEvidenceV01; preview_fps_median: number | null; };
 
 let runtime: SceneSweepRuntime | null = null;
 let latestYaw = 0;
@@ -72,6 +72,7 @@ let latestP2Correspondence: CorrespondenceDiagnostics | null = null;
 let p2Busy = false;
 let backendController: AbortController | null = null;
 let retracingCoveredArc = false;
+const scanCompleteAt = new Map<string, number>();
 
 const currentMode = (): SweepMode => $<HTMLSelectElement>('mode').value as SweepMode;
 const modeTarget = (): number => ({ QUICK_SWEEP: 110, WIDE_SWEEP: 180, FULL_SWEEP: 360 })[currentMode()];
@@ -136,16 +137,17 @@ const runP1Analysis = (): void => {
 };
 
 const emptyCorrespondence = (reason: string): CorrespondenceDiagnostics => ({ engine: 'LIGHTWEIGHT_BLOCK_FLOW', detected_feature_count: 0, tracked_feature_count: 0, match_retention: 0, inlier_ratio: 0, median_displacement_px: 0, median_parallax_px: 0, p75_parallax_px: 0, latency_ms: 0, pair_count: 0, failure_reason: reason });
-const emptyBackendEvidence = (): GeometryBackendRequestEvidenceV01 => ({ request_state: 'NOT_REQUESTED', http_status: null, error: null, payload: null, timing: { resize_ms: 0, jpeg_encode_ms: 0, hash_ms: 0, prepare_ms: 0, upload_ms: null, backend_ms: null, total_ms: null }, spatial_evidence: null });
+const emptyBackendEvidence = (): GeometryBackendRequestEvidenceV01 => emptyGeometryBackendEvidence();
 const cameraModelEvidence = (): CameraModelEvidenceV01 => ({ status: 'UNKNOWN', focal_source: 'NOT_AVAILABLE_FROM_H5_CAPTURE', principal_point_assumption: 'IMAGE_CENTER_IF_BACKEND_ATTEMPTS_LIMITED_SOLVE', distortion_assumption: 'UNKNOWN', platform_device_profile: navigator.userAgent, confidence: 0 });
-const runBackendGeometry = async (input: ReturnType<GeometryFrameSelector['input']>, precheck: SpatialPrecheckV01, trial: P2TrialEvidence): Promise<void> => {
-  backendController?.abort(); const controller = new AbortController(); backendController = controller; trial.backend = { ...emptyBackendEvidence(), request_state: 'REQUESTING' }; setText('p2-backend-status', '上传选定帧并异步计算…'); updateP2EvidenceText();
+const runBackendGeometry = async (input: ReturnType<GeometryFrameSelector['input']>, precheck: SpatialPrecheckV01, trial: P2TrialEvidence, traceSeed: GeometryClientTraceSeed): Promise<void> => {
+  backendController?.abort(); const controller = new AbortController(); backendController = controller; trial.backend = { ...emptyBackendEvidence(), request_state: 'REQUESTING' }; trial.product_state = 'VIEW_READY_GEOMETRY_PENDING'; setText('p2-backend-status', 'VIEW_READY_GEOMETRY_PENDING · 后台空间增强中'); updateP2EvidenceText();
   try {
-    const evidence = await analyzeWithFirstPartyBackend(input, precheck, cameraModelEvidence(), controller.signal, prepared => { trial.backend = prepared; updateP2EvidenceText(); }); trial.backend = evidence;
-    if (!controller.signal.aborted && runtime?.session.sweep_id === input.source_sweep_id) setText('p2-backend-status', `${evidence.spatial_evidence?.status ?? 'NOT_PRODUCED'} · ${evidence.cache_status ?? 'NO_CACHE'}`);
+    const evidence = await analyzeWithFirstPartyBackend(input, precheck, cameraModelEvidence(), controller.signal, traceSeed, prepared => { trial.backend = prepared; updateP2EvidenceText(); }); trial.backend = markSpatialEvidenceApplied(evidence); trial.product_state = 'VIEW_READY_GEOMETRY_APPLIED';
+    if (!controller.signal.aborted && runtime?.session.sweep_id === input.source_sweep_id) setText('p2-backend-status', `${evidence.spatial_evidence?.status ?? 'NOT_PRODUCED'} · ${evidence.cache_status ?? 'NO_CACHE'} · P1 保持可用`);
   } catch (error) {
     trial.backend = error instanceof GeometryBackendRequestError ? error.evidence : { ...emptyBackendEvidence(), request_state: controller.signal.aborted ? 'CANCELLED' : 'FAILED', error: controller.signal.aborted ? null : { status: null, code: 'CLIENT_ERROR', message: error instanceof Error ? error.message : String(error), details: null, content_type: null } };
-    if (runtime?.session.sweep_id === input.source_sweep_id) setText('p2-backend-status', trial.backend.request_state === 'CANCELLED' ? '已取消 · 未产生空间结论' : `请求失败 · ${trial.backend.http_status ?? 'NETWORK'} · ${trial.backend.error?.code ?? 'UNKNOWN'}`);
+    trial.product_state = 'VIEW_READY_GEOMETRY_FAILED';
+    if (runtime?.session.sweep_id === input.source_sweep_id) setText('p2-backend-status', trial.backend.request_state === 'CANCELLED' ? '已由新扫描取代 · P1 结果不受影响' : `请求失败 · ${trial.backend.http_status ?? 'NETWORK'} · ${trial.backend.error?.code ?? 'UNKNOWN'}`);
   }
   updateP2EvidenceText();
 };
@@ -153,7 +155,7 @@ const runP2Analysis = async (): Promise<void> => {
   if (!runtime || runtime.session.status !== 'COMPLETE' || analyzedP2SweepIds.has(runtime.session.sweep_id)) return;
   const sweepId = runtime.session.sweep_id; analyzedP2SweepIds.add(sweepId); p2Busy = true; setText('p2-status', '分析中'); $('p2-results').hidden = false; render();
   try {
-    const input = geometrySelector.input(sweepId);
+    const geometrySelectionStart = performance.now(); const input = geometrySelector.input(sweepId); const geometrySelectionEnd = performance.now();
     let correspondence = emptyCorrespondence('INSUFFICIENT_FRAMES');
     if (input.frames.length >= 2) {
       await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
@@ -162,9 +164,9 @@ const runP2Analysis = async (): Promise<void> => {
     if (runtime?.session.sweep_id !== sweepId) return;
     latestP2Correspondence = correspondence; latestSpatialPrecheck = buildSpatialPrecheck(input, correspondence, geometrySelector.selection_latency_ms);
     const trial = completedTrials.find(item => item.sweep_id === sweepId);
-    const p2Trial: P2TrialEvidence = { sweep_id: sweepId, geometry_frame_count: input.frames.length, frame_budget: input.selection_budget, estimated_memory_bytes: input.estimated_memory_bytes, correspondence, client_precheck: latestSpatialPrecheck, backend: emptyBackendEvidence(), preview_fps_median: trial?.preview_fps_median ?? null }; p2Trials.push(p2Trial); updateP2EvidenceText();
+    const p2Trial: P2TrialEvidence = { sweep_id: sweepId, product_state: 'VIEW_READY_GEOMETRY_PENDING', geometry_frame_count: input.frames.length, frame_budget: input.selection_budget, estimated_memory_bytes: input.estimated_memory_bytes, correspondence, client_precheck: latestSpatialPrecheck, backend: emptyBackendEvidence(), preview_fps_median: trial?.preview_fps_median ?? null }; p2Trials.push(p2Trial); updateP2EvidenceText();
     setText('p2-status', latestSpatialPrecheck.status); setText('p2-frames', `${input.frames.length} / ${input.selection_budget}`); setText('p2-classification', latestSpatialPrecheck.reason); setText('p2-tracks', String(correspondence.tracked_feature_count)); setText('p2-inliers', correspondence.inlier_ratio.toFixed(3)); setText('p2-parallax', latestSpatialPrecheck.diagnostics.normalized_median_residual.toFixed(5)); setText('p2-latency', `${latestSpatialPrecheck.diagnostics.total_latency_ms.toFixed(1)} ms`); $<HTMLButtonElement>('download-p2').disabled = false;
-    if (input.frames[0]?.orientation_source === 'DEVICE_ORIENTATION' && input.frames.length >= 3) void runBackendGeometry(input, latestSpatialPrecheck, p2Trial); else setText('p2-backend-status', 'Fixture 不上传 · Backend 单独验证');
+    if (input.frames[0]?.orientation_source === 'DEVICE_ORIENTATION' && input.frames.length >= 3) void runBackendGeometry(input, latestSpatialPrecheck, p2Trial, { scan_complete_at: scanCompleteAt.get(sweepId) ?? geometrySelectionStart, geometry_selection_start: geometrySelectionStart, geometry_selection_end: geometrySelectionEnd }); else { p2Trial.product_state = 'VIEW_READY_GEOMETRY_NOT_REQUESTED'; setText('p2-backend-status', 'Fixture 不上传 · Backend 单独验证'); updateP2EvidenceText(); }
   } finally {
     p2Busy = false;
     if (runtime?.session.sweep_id === sweepId && runtime.session.status === 'COMPLETE') render();
@@ -236,13 +238,14 @@ const render = (): void => {
   $('arc-fill').style.width = `${runtime.session.status === 'COMPLETE' ? 100 : Math.min(99, progressPercent)}%`;
   setText('hero', runtime.session.status === 'COMPLETE' ? '看完了' : retracingCoveredArc ? '正在扫回已覆盖区域' : '慢慢转动手机');
   if (runtime.session.status === 'COMPLETE') {
+    if (!scanCompleteAt.has(runtime.session.sweep_id)) scanCompleteAt.set(runtime.session.sweep_id, performance.now());
     recordTrial(); runP1Analysis(); void runP2Analysis(); stopAcquisition();
-    $<HTMLButtonElement>('start').disabled = p2Busy;
-    $<HTMLButtonElement>('start').textContent = p2Busy ? '空间分析中…' : '再拍一次';
+    $<HTMLButtonElement>('start').disabled = false;
+    $<HTMLButtonElement>('start').textContent = '再拍一次';
     $<HTMLButtonElement>('next-sweep').hidden = false;
-    $<HTMLButtonElement>('next-sweep').disabled = p2Busy;
+    $<HTMLButtonElement>('next-sweep').disabled = false;
     $<HTMLButtonElement>('next-sweep').textContent = runtime.session.mode === 'QUICK_SWEEP' ? '扫更广一点（WIDE）' : '再拍一个 QUICK';
-    $<HTMLSelectElement>('mode').disabled = p2Busy;
+    $<HTMLSelectElement>('mode').disabled = false;
   }
 };
 
@@ -255,14 +258,13 @@ const sampleFrame = (): void => {
   const frameMetrics = metricsFromImageData(imageData, performance.now(), latestYaw);
   candidateBlurScores.push(frameMetrics.blur_score); candidateExposureMeans.push(frameMetrics.exposure_mean);
   runtime.setCameraSourceDimensions(video.videoWidth, video.videoHeight);
-  if (geometrySelector.accepts(frameMetrics)) { const resizeStarted = performance.now(); const working = boundedLongEdgeSize(video.videoWidth, video.videoHeight); geometryCanvas.width = working.width; geometryCanvas.height = working.height; geometryCtx.drawImage(video, 0, 0, working.width, working.height); const geometryImage = geometryCtx.getImageData(0, 0, working.width, working.height); geometrySelector.observe(frameMetrics, { width: geometryImage.width, height: geometryImage.height, data: geometryImage.data }, 'DEVICE_ORIENTATION', { width: video.videoWidth, height: video.videoHeight }, performance.now() - resizeStarted); }
+  if (geometrySelector.accepts(frameMetrics)) { const resizeStarted = performance.now(); const working = boundedLongEdgeSize(video.videoWidth, video.videoHeight); geometryCanvas.width = working.width; geometryCanvas.height = working.height; geometryCtx.drawImage(video, 0, 0, working.width, working.height); const geometryImage = geometryCtx.getImageData(0, 0, working.width, working.height); const resizeEnded = performance.now(); geometrySelector.observe(frameMetrics, { width: geometryImage.width, height: geometryImage.height, data: geometryImage.data }, 'DEVICE_ORIENTATION', { width: video.videoWidth, height: video.videoHeight }, resizeEnded - resizeStarted, { start: resizeStarted, end: resizeEnded }); }
   const selected = runtime.observeFrame(frameMetrics);
   if (selected) { const selectedKeyframe = runtime.sampler.keyframes.at(-1); if (selectedKeyframe) transientKeyframes.set(selectedKeyframe.keyframe_id, imageDataToTransient(imageData, selectedKeyframe.keyframe_id)); }
   telemetry.candidate(performance.now() - started, selected); render();
 };
 
 $('start').addEventListener('click', async () => {
-  if (p2Busy) return;
   $<HTMLButtonElement>('start').disabled = true; $<HTMLButtonElement>('start').textContent = '启动中…';
   $<HTMLButtonElement>('next-sweep').hidden = true; $<HTMLSelectElement>('mode').disabled = true;
   runtime = new SceneSweepRuntime(currentMode(), `sweep-${Date.now()}`, Date.now());
@@ -321,7 +323,6 @@ $('fixture').addEventListener('click', () => {
 });
 
 $('next-sweep').addEventListener('click', () => {
-  if (p2Busy) return;
   $<HTMLSelectElement>('mode').value = runtime?.session.mode === 'QUICK_SWEEP' ? 'WIDE_SWEEP' : 'QUICK_SWEEP';
   $<HTMLButtonElement>('start').click();
 });

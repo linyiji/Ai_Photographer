@@ -6,7 +6,7 @@ export type SpatialPrecheckStatus = 'UNRELIABLE' | 'NO_SIGNAL' | 'POSSIBLE';
 
 export interface GeometryFrameObservation {
   frame_id: string; sequence: number; timestamp_ms: number; relative_yaw_deg: number;
-  width: number; height: number; source_width: number; source_height: number; resize_ms: number; blur_score: number; exposure_mean: number;
+  width: number; height: number; source_width: number; source_height: number; resize_ms: number; resize_started_at: number | null; resize_ended_at: number | null; blur_score: number; exposure_mean: number;
   technical_quality: number; motion_diagnostic: number; parallax_diagnostic: 'PENDING_POST_SCAN';
   orientation_source: 'DEVICE_ORIENTATION' | 'CONTROLLED_FIXTURE';
   pixels: PixelFrame;
@@ -37,7 +37,7 @@ export interface SpatialPrecheckV01 {
 export interface CameraModelEvidenceV01 { status: 'KNOWN' | 'ESTIMATED_VALIDATED' | 'UNKNOWN'; focal_source: string; principal_point_assumption: string; distortion_assumption: string; platform_device_profile: string; confidence: number; }
 export interface SelectedGeometryFrameV01 { frame_id: string; timestamp_ms: number; relative_yaw_deg: number; orientation_source: GeometryFrameObservation['orientation_source']; width: number; height: number; source_width: number; source_height: number; working_width: number; working_height: number; encoded_bytes: number; frame_sha256: string; quality: number; file_field: string; }
 export interface SceneGeometryRequestV01 {
-  schema: 'xfx.scene-geometry-request'; schema_version: '0.1'; scan_id: string; frame_set_hash: string; geometry_version: 'p2-backend-v0.2'; platform: 'h5' | 'wechat' | 'douyin' | 'fixture'; camera_model_evidence: CameraModelEvidenceV01; client_precheck: SpatialPrecheckV01; selected_geometry_frames: SelectedGeometryFrameV01[];
+  schema: 'xfx.scene-geometry-request'; schema_version: '0.1'; geometry_request_id: string; scan_id: string; frame_set_hash: string; geometry_version: 'p2-backend-v0.2'; platform: 'h5' | 'wechat' | 'douyin' | 'fixture'; camera_model_evidence: CameraModelEvidenceV01; client_precheck: SpatialPrecheckV01; selected_geometry_frames: SelectedGeometryFrameV01[];
   privacy: { raw_video_upload: 0; frame_stream_upload: 0; provider_upload: 0; luna_upload: 0; selected_geometry_frame_upload: 'FIRST_PARTY_BACKEND_ONLY'; };
 }
 export interface SpatialEvidenceV02 {

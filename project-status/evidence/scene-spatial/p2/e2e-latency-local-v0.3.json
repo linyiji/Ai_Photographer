@@ -1,0 +1,296 @@
+{
+  "schema": "xfx.p2-e2e-latency-decomposition",
+  "schema_version": "0.3",
+  "source": "GENERATED_MEDIA_ONLY",
+  "path": "LOCALHOST_HTTP_KEEP_ALIVE",
+  "privacy": {
+    "real_user_media": 0,
+    "provider": 0,
+    "luna": 0
+  },
+  "classes": [
+    {
+      "label": "QUICK",
+      "target_payload_bytes": 124485,
+      "rows": [
+        {
+          "request": 1,
+          "connection": "COLD",
+          "http_status": 200,
+          "cache_status": "CACHE_MISS",
+          "frame_count": 5,
+          "working_dimensions": "360x640",
+          "payload_bytes": 128554,
+          "resize_ms": 5.658,
+          "encode_ms": 2.819,
+          "hash_ms": 0.106,
+          "client_preparation_ms": 8.656,
+          "multipart_build_ms": 0.07,
+          "fetch_ms": 81.873,
+          "body_receive_ms": 0.055,
+          "multipart_parse_ms": 0.294,
+          "validation_ms": 0.156,
+          "cache_ms": 0.004,
+          "solver_ms": 79.387,
+          "response_serialize_ms": 0.049,
+          "backend_total_after_body_received_ms": 80.352,
+          "transport_and_queue_remainder_ms": 1.466,
+          "end_to_end_ms": 90.599,
+          "geometry_request_id": "local-quick-request-1",
+          "spatial_status": "INSUFFICIENT"
+        },
+        {
+          "request": 2,
+          "connection": "REUSED",
+          "http_status": 200,
+          "cache_status": "CACHE_HIT",
+          "frame_count": 5,
+          "working_dimensions": "360x640",
+          "payload_bytes": 128554,
+          "resize_ms": 6.84,
+          "encode_ms": 2.516,
+          "hash_ms": 0.083,
+          "client_preparation_ms": 9.498,
+          "multipart_build_ms": 0.113,
+          "fetch_ms": 1.233,
+          "body_receive_ms": 0.071,
+          "multipart_parse_ms": 0.128,
+          "validation_ms": 0.119,
+          "cache_ms": 0.07,
+          "solver_ms": 0.0,
+          "response_serialize_ms": 0.041,
+          "backend_total_after_body_received_ms": 0.378,
+          "transport_and_queue_remainder_ms": 0.784,
+          "end_to_end_ms": 10.844,
+          "geometry_request_id": "local-quick-request-2",
+          "spatial_status": "INSUFFICIENT"
+        },
+        {
+          "request": 3,
+          "connection": "REUSED",
+          "http_status": 200,
+          "cache_status": "CACHE_HIT",
+          "frame_count": 5,
+          "working_dimensions": "360x640",
+          "payload_bytes": 128554,
+          "resize_ms": 5.71,
+          "encode_ms": 2.836,
+          "hash_ms": 0.086,
+          "client_preparation_ms": 8.691,
+          "multipart_build_ms": 0.064,
+          "fetch_ms": 0.989,
+          "body_receive_ms": 0.034,
+          "multipart_parse_ms": 0.112,
+          "validation_ms": 0.15,
+          "cache_ms": 0.065,
+          "solver_ms": 0.0,
+          "response_serialize_ms": 0.036,
+          "backend_total_after_body_received_ms": 0.378,
+          "transport_and_queue_remainder_ms": 0.577,
+          "end_to_end_ms": 9.744,
+          "geometry_request_id": "local-quick-request-3",
+          "spatial_status": "INSUFFICIENT"
+        }
+      ],
+      "summary": {
+        "resize_ms": {
+          "p50": 5.71,
+          "p95": 6.727
+        },
+        "encode_ms": {
+          "p50": 2.819,
+          "p95": 2.834
+        },
+        "hash_ms": {
+          "p50": 0.086,
+          "p95": 0.104
+        },
+        "multipart_build_ms": {
+          "p50": 0.07,
+          "p95": 0.109
+        },
+        "fetch_ms": {
+          "p50": 1.233,
+          "p95": 73.809
+        },
+        "body_receive_ms": {
+          "p50": 0.055,
+          "p95": 0.069
+        },
+        "multipart_parse_ms": {
+          "p50": 0.128,
+          "p95": 0.277
+        },
+        "validation_ms": {
+          "p50": 0.15,
+          "p95": 0.155
+        },
+        "cache_ms": {
+          "p50": 0.065,
+          "p95": 0.07
+        },
+        "solver_ms": {
+          "p50": 0.0,
+          "p95": 71.448
+        },
+        "response_serialize_ms": {
+          "p50": 0.041,
+          "p95": 0.048
+        },
+        "transport_and_queue_remainder_ms": {
+          "p50": 0.784,
+          "p95": 1.398
+        },
+        "end_to_end_ms": {
+          "p50": 10.844,
+          "p95": 82.623
+        }
+      },
+      "cold_warm_difference_ms": 80.305
+    },
+    {
+      "label": "WIDE",
+      "target_payload_bytes": 220363,
+      "rows": [
+        {
+          "request": 1,
+          "connection": "COLD",
+          "http_status": 200,
+          "cache_status": "CACHE_MISS",
+          "frame_count": 7,
+          "working_dimensions": "360x640",
+          "payload_bytes": 224643,
+          "resize_ms": 7.713,
+          "encode_ms": 4.06,
+          "hash_ms": 0.133,
+          "client_preparation_ms": 11.967,
+          "multipart_build_ms": 0.095,
+          "fetch_ms": 84.098,
+          "body_receive_ms": 0.101,
+          "multipart_parse_ms": 0.188,
+          "validation_ms": 0.157,
+          "cache_ms": 0.003,
+          "solver_ms": 81.984,
+          "response_serialize_ms": 0.07,
+          "backend_total_after_body_received_ms": 83.221,
+          "transport_and_queue_remainder_ms": 0.776,
+          "end_to_end_ms": 96.16,
+          "geometry_request_id": "local-wide-request-1",
+          "spatial_status": "INSUFFICIENT"
+        },
+        {
+          "request": 2,
+          "connection": "REUSED",
+          "http_status": 200,
+          "cache_status": "CACHE_HIT",
+          "frame_count": 7,
+          "working_dimensions": "360x640",
+          "payload_bytes": 224643,
+          "resize_ms": 7.783,
+          "encode_ms": 3.848,
+          "hash_ms": 0.135,
+          "client_preparation_ms": 11.828,
+          "multipart_build_ms": 0.096,
+          "fetch_ms": 1.138,
+          "body_receive_ms": 0.117,
+          "multipart_parse_ms": 0.159,
+          "validation_ms": 0.142,
+          "cache_ms": 0.057,
+          "solver_ms": 0.0,
+          "response_serialize_ms": 0.036,
+          "backend_total_after_body_received_ms": 0.41,
+          "transport_and_queue_remainder_ms": 0.611,
+          "end_to_end_ms": 13.062,
+          "geometry_request_id": "local-wide-request-2",
+          "spatial_status": "INSUFFICIENT"
+        },
+        {
+          "request": 3,
+          "connection": "REUSED",
+          "http_status": 200,
+          "cache_status": "CACHE_HIT",
+          "frame_count": 7,
+          "working_dimensions": "360x640",
+          "payload_bytes": 224643,
+          "resize_ms": 7.64,
+          "encode_ms": 3.942,
+          "hash_ms": 0.136,
+          "client_preparation_ms": 11.775,
+          "multipart_build_ms": 0.084,
+          "fetch_ms": 1.224,
+          "body_receive_ms": 0.17,
+          "multipart_parse_ms": 0.143,
+          "validation_ms": 0.142,
+          "cache_ms": 0.06,
+          "solver_ms": 0.0,
+          "response_serialize_ms": 0.035,
+          "backend_total_after_body_received_ms": 0.396,
+          "transport_and_queue_remainder_ms": 0.658,
+          "end_to_end_ms": 13.083,
+          "geometry_request_id": "local-wide-request-3",
+          "spatial_status": "INSUFFICIENT"
+        }
+      ],
+      "summary": {
+        "resize_ms": {
+          "p50": 7.713,
+          "p95": 7.776
+        },
+        "encode_ms": {
+          "p50": 3.942,
+          "p95": 4.048
+        },
+        "hash_ms": {
+          "p50": 0.135,
+          "p95": 0.136
+        },
+        "multipart_build_ms": {
+          "p50": 0.095,
+          "p95": 0.096
+        },
+        "fetch_ms": {
+          "p50": 1.224,
+          "p95": 75.811
+        },
+        "body_receive_ms": {
+          "p50": 0.117,
+          "p95": 0.165
+        },
+        "multipart_parse_ms": {
+          "p50": 0.159,
+          "p95": 0.185
+        },
+        "validation_ms": {
+          "p50": 0.142,
+          "p95": 0.155
+        },
+        "cache_ms": {
+          "p50": 0.057,
+          "p95": 0.06
+        },
+        "solver_ms": {
+          "p50": 0.0,
+          "p95": 73.786
+        },
+        "response_serialize_ms": {
+          "p50": 0.036,
+          "p95": 0.067
+        },
+        "transport_and_queue_remainder_ms": {
+          "p50": 0.658,
+          "p95": 0.764
+        },
+        "end_to_end_ms": {
+          "p50": 13.083,
+          "p95": 87.852
+        }
+      },
+      "cold_warm_difference_ms": 83.088
+    }
+  ],
+  "limitations": [
+    "PYTHON_GENERATED_CLIENT_NOT_BROWSER_MAIN_THREAD",
+    "THREE_REQUEST_BOUNDED_SEQUENCE_PER_CLASS",
+    "LOCALHOST_NOT_OPPO_TUNNEL"
+  ]
+}
