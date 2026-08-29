@@ -2,7 +2,7 @@ import { DEFAULT_TARGET } from '../closed-loop/config.js';
 import { HumanStepServoV3 } from './controller.js';
 import type { LiveMeasurementV3, V3FramingRelation, V3Snapshot, V3XRelation } from './types.js';
 
-export const V3_BROWSER_SCENARIOS=['FRAMING_ONLY_BAD','X_ONLY_BAD','BOTH_BAD','ALREADY_SATISFIED','NO_EFFECT','WRONG_DIRECTION','MEASUREMENT_UNCERTAIN','SUBJECT_LOST','REACQUIRE','POST_READY_MOVEMENT'] as const;
+export const V3_BROWSER_SCENARIOS=['FRAMING_ONLY_BAD','X_ONLY_BAD','BOTH_BAD','ALREADY_SATISFIED','NO_EFFECT','WRONG_DIRECTION','MEASUREMENT_UNCERTAIN','SUBJECT_LOST','REACQUIRE','INVALIDATED_RECOVERY','POST_READY_MOVEMENT'] as const;
 export type V3BrowserScenario=typeof V3_BROWSER_SCENARIOS[number];
 
 const m=(timestamp_ms:number,state_version:number,framing_relation:V3FramingRelation,x_relation:V3XRelation,options:{stable?:boolean;framing_error?:number|null;x_error?:number|null;lost?:boolean;quality?:'GOOD'|'MARGINAL'|'INVALID'}={}):LiveMeasurementV3=>{
@@ -22,6 +22,7 @@ export function v3BrowserMeasurements(name:V3BrowserScenario):ReadonlyArray<Live
   if(name==='WRONG_DIRECTION')return step(0,1,'IN_RANGE','TOO_LEFT','IN_RANGE','TOO_LEFT',0,2.6);
   if(name==='MEASUREMENT_UNCERTAIN')return [m(0,1,'UNKNOWN','UNKNOWN',{quality:'INVALID'}),m(500,2,'UNKNOWN','UNKNOWN',{quality:'INVALID'})];
   if(name==='SUBJECT_LOST')return [m(0,1,'IN_RANGE','TOO_LEFT'),m(300,2,'IN_RANGE','TOO_LEFT'),m(600,3,'UNKNOWN','UNKNOWN',{lost:true})];
+  if(name==='INVALIDATED_RECOVERY')return [m(0,1,'IN_RANGE','TOO_LEFT'),m(300,2,'IN_RANGE','TOO_LEFT'),m(600,3,'UNKNOWN','UNKNOWN',{lost:true}),m(900,4,'TOO_FAR','IN_RANGE'),m(1200,5,'TOO_FAR','IN_RANGE')];
   return [m(0,1,'UNKNOWN','UNKNOWN',{lost:true}),m(500,2,'IN_RANGE','TOO_LEFT'),...step(800,3,'IN_RANGE','TOO_LEFT','IN_RANGE','IN_RANGE')];
 }
 

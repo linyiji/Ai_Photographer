@@ -7,7 +7,7 @@ export const V3_ACTION_COPY:Readonly<Record<V3Action,string>>=Object.freeze({MOV
 const initialMetrics=():V3Metrics=>({ordinary_action_count:0,target_reached_count:0,improved_count:0,no_effect_count:0,wrong_direction_count:0,invalidated_count:0,post_ready_ordinary:0,corrections_to_ready:null,time_to_ready_ms:null,action_effectiveness:null,wrong_direction_rate:null,pause_count:0,duplicate_retry_suppressed_count:0,luna_calls:0,provider_calls:0,backend_per_frame_calls:0,raw_video_upload:0});
 
 export class HumanStepServoV3 {
-  private armed=false;private ready=false;private trialId=0;private episodeId=0;private stage:V3Stage='ACQUIRE';private stageSince=0;private episode:V3Episode|null=null;private lastEpisode:V3Episode|null=null;private settle:HumanSettleDetectorV01|null=null;private consecutiveFailures=0;private pausedStableSince:number|null=null;private readyStableSince:number|null=null;private readyContext:V3ReadyEntryContext=null;private firstActionAt:number|null=null;private metrics=initialMetrics();private lastEvaluatedVersion:number|null=null;private retryBarrier:{stage:'FRAMING'|'ALIGN_X';relation:string;position:number|null}|null=null;
+  private armed=false;private ready=false;private trialId=0;private episodeId=0;private stage:V3Stage='ACQUIRE';private stageSince=0;private episode:V3Episode|null=null;private lastEpisode:V3Episode|null=null;private settle:HumanSettleDetectorV01|null=null;private consecutiveFailures=0;private pausedStableSince:number|null=null;private readyStableSince:number|null=null;private readyContext:V3ReadyEntryContext=null;private firstActionAt:number|null=null;private metrics=initialMetrics();private lastEvaluatedVersion:number|null=null;private retryBarrier:{stage:'FRAMING'|'ALIGN_X';settled_state_version:number}|null=null;
   constructor(private target:TargetState,private readonly config:V3ControllerConfig=V3_CONFIG){}
   setTarget(target:TargetState):void{this.target=target;this.reset();}
   arm(now:number):void{this.armed=true;this.ready=false;this.trialId+=1;this.stage='ACQUIRE';this.stageSince=now;this.episode=this.lastEpisode=this.settle=null;this.consecutiveFailures=0;this.pausedStableSince=this.readyStableSince=null;this.readyContext=null;this.firstActionAt=null;this.lastEvaluatedVersion=null;this.retryBarrier=null;}
@@ -25,12 +25,15 @@ export class HumanStepServoV3 {
     if(next!==this.stage){this.stage=next;this.stageSince=measurement.timestamp_ms;this.readyStableSince=null;}
     if(next==='VERIFY')return this.updateVerify(measurement);
     if(next==='ACQUIRE')return this.snapshot(measurement,null,null);
-    if(this.retryBarrier&&this.retryBarrier.stage===next&&!this.retryBarrierReleased(measurement)){this.metrics.duplicate_retry_suppressed_count+=1;return this.snapshot(measurement,null,null);}
-    if(this.retryBarrier)this.retryBarrier=null;
+    let retryActionCandidate:V3Action|null=null;
+    if(this.retryBarrier&&this.retryBarrier.stage===next){
+      if(!this.retryBarrierReleased(measurement)){this.metrics.duplicate_retry_suppressed_count+=1;return this.snapshot(measurement,null,null);}
+      retryActionCandidate=this.actionFor(next,measurement);this.retryBarrier=null;
+    }else if(this.retryBarrier)this.retryBarrier=null;
     if(!measurement.fresh||!measurement.stable||measurement.measurement_quality==='INVALID'||(this.lastEvaluatedVersion!==null&&measurement.state_version<=this.lastEvaluatedVersion))return this.snapshot(measurement,null,null);
     if(measurement.timestamp_ms-this.stageSince<this.config.stage_persistence_ms)return this.snapshot(measurement,null,null);
     const action=this.actionFor(next,measurement);if(!action)return this.snapshot(measurement,null,null);
-    return this.issue(measurement,next,action);
+    return this.issue(measurement,next,action,retryActionCandidate===action?action:null);
   }
   private selectStage(m:LiveMeasurementV3):Exclude<V3Stage,'PAUSED'|'READY_LATCHED'>{
     if(m.subject_state!=='PRESENT'||m.measurement_quality==='INVALID'||!m.fresh||m.framing_relation==='UNKNOWN')return 'ACQUIRE';
@@ -46,19 +49,19 @@ export class HumanStepServoV3 {
     }
     return this.snapshot(m,null,null);
   }
-  private issue(m:LiveMeasurementV3,stage:Extract<V3Stage,'FRAMING'|'ALIGN_X'>,action:V3Action):V3Snapshot{
+  private issue(m:LiveMeasurementV3,stage:Extract<V3Stage,'FRAMING'|'ALIGN_X'>,action:V3Action,retryActionCandidate:V3Action|null=null):V3Snapshot{
     this.episodeId+=1;this.metrics.ordinary_action_count+=1;this.firstActionAt??=m.timestamp_ms;
     const startError=this.errorFor(stage,m);const epoch:ControlEpochV3=Object.freeze({trial_id:this.trialId,episode_id:this.episodeId,stage,action,target_snapshot:Object.freeze({id:this.target.id,center_x:this.target.center_x,tolerance_x:this.target.tolerance_x,ready_stable_ms:this.target.ready_stable_ms}),measurement_snapshot:m,sensor_action_mapping:'SENSOR_NORMALIZED_NON_MIRRORED',measurement_age_ms:m.measurement_age_ms,state_version:m.state_version,issued_timestamp_ms:m.timestamp_ms,diagnostics_ref:m.diagnostics_ref});
     const startRelation=stage==='FRAMING'?m.framing_relation:m.x_relation;
     const startPosition=stage==='FRAMING'?m.diagnostics_ref.framing_position:m.diagnostics_ref.x_position;
     this.episode={trial_id:this.trialId,episode_id:this.episodeId,state:'ISSUED',stage,action,issued_at:m.timestamp_ms,movement_started_at:null,meaningful_motion_at:null,settle_detected_at:null,settled_measurement_at:null,outcome_at:null,start_state_version:m.state_version,settled_state_version:null,start_relation:startRelation,settled_relation:null,start_error:startError,settled_error:null,start_position:startPosition,settled_position:null,measurement_quality:m.measurement_quality,freshness:m.fresh,settle_duration:null,outcome:null,evaluated_at:null,control_epoch:epoch};this.settle=new HumanSettleDetectorV01(m.timestamp_ms,m.state_version,stage,m,this.config);
-    return this.snapshot(m,action,V3_ACTION_COPY[action]);
+    return this.snapshot(m,action,V3_ACTION_COPY[action],null,retryActionCandidate);
   }
   private updateEpisode(m:LiveMeasurementV3):V3Snapshot{
     const episode=this.episode!;episode.state='WAIT_FOR_SETTLE';const status=this.settle!.observe(m);const telemetry=this.settle!.telemetry();episode.movement_started_at=telemetry.movement_started_at;episode.meaningful_motion_at=telemetry.meaningful_motion_at;
     if(status==='WAITING')return this.snapshot(m,null,null);
     const outcome=status==='INVALIDATED'?'INVALIDATED':this.classify(episode,m);episode.state='EVALUATED';episode.outcome=outcome;episode.evaluated_at=m.timestamp_ms;episode.outcome_at=m.timestamp_ms;episode.settle_detected_at=status==='SETTLED'?m.timestamp_ms:null;episode.settled_measurement_at=m.timestamp_ms;episode.settled_state_version=m.state_version;episode.settled_relation=episode.stage==='FRAMING'?m.framing_relation:m.x_relation;episode.settled_error=this.errorFor(episode.stage,m);episode.settled_position=episode.stage==='FRAMING'?m.diagnostics_ref.framing_position:m.diagnostics_ref.x_position;episode.measurement_quality=m.measurement_quality;episode.freshness=m.fresh;episode.settle_duration=m.timestamp_ms-episode.issued_at;this.recordOutcome(outcome);this.lastEvaluatedVersion=m.state_version;this.lastEpisode={...episode,control_epoch:episode.control_epoch};this.episode=null;this.settle=null;
-    if(outcome==='NO_EFFECT'||outcome==='WRONG_DIRECTION')this.retryBarrier={stage:episode.stage,relation:String(episode.settled_relation),position:episode.settled_position};
+    if(outcome==='NO_EFFECT'||outcome==='WRONG_DIRECTION')this.retryBarrier={stage:episode.stage,settled_state_version:m.state_version};
     if(outcome==='NO_EFFECT'||outcome==='WRONG_DIRECTION')this.consecutiveFailures+=1;else if(outcome!=='INVALIDATED')this.consecutiveFailures=0;
     if(this.consecutiveFailures>=this.config.pause_failure_limit){this.stage='PAUSED';this.stageSince=m.timestamp_ms;this.metrics.pause_count+=1;}
     else {this.stage=this.selectStage(m);this.stageSince=m.timestamp_ms;}
@@ -72,7 +75,7 @@ export class HumanStepServoV3 {
   }
   private actionFor(stage:Extract<V3Stage,'FRAMING'|'ALIGN_X'>,m:LiveMeasurementV3):V3Action|null{return stage==='FRAMING'?(m.framing_relation==='TOO_CLOSE'?'MOVE_FARTHER_SMALL':m.framing_relation==='TOO_FAR'?'MOVE_CLOSER_SMALL':null):(m.x_relation==='TOO_LEFT'?'MOVE_LEFT_SMALL':m.x_relation==='TOO_RIGHT'?'MOVE_RIGHT_SMALL':null);}
   private errorFor(stage:Extract<V3Stage,'FRAMING'|'ALIGN_X'>,m:LiveMeasurementV3):number|null{return stage==='FRAMING'?m.diagnostics_ref.framing_error_normalized:m.diagnostics_ref.x_error_normalized;}
-  private retryBarrierReleased(m:LiveMeasurementV3):boolean{const barrier=this.retryBarrier!;const relation=barrier.stage==='FRAMING'?m.framing_relation:m.x_relation;const motion=barrier.stage==='FRAMING'?m.framing_motion:m.x_motion;const position=barrier.stage==='FRAMING'?m.diagnostics_ref.framing_position:m.diagnostics_ref.x_position;if(relation!==barrier.relation)return true;if(motion!=='STILL'&&motion!=='UNKNOWN')return true;return barrier.position!==null&&position!==null&&Math.abs(position-barrier.position)>=.025;}
+  private retryBarrierReleased(m:LiveMeasurementV3):boolean{const barrier=this.retryBarrier!;return m.state_version>barrier.settled_state_version&&m.fresh&&m.stable&&m.measurement_quality!=='INVALID';}
   private recordOutcome(outcome:V3Outcome):void{if(outcome==='TARGET_REACHED')this.metrics.target_reached_count+=1;else if(outcome==='IMPROVED')this.metrics.improved_count+=1;else if(outcome==='NO_EFFECT')this.metrics.no_effect_count+=1;else if(outcome==='WRONG_DIRECTION')this.metrics.wrong_direction_count+=1;else this.metrics.invalidated_count+=1;const valid=this.metrics.target_reached_count+this.metrics.improved_count+this.metrics.no_effect_count+this.metrics.wrong_direction_count;this.metrics.action_effectiveness=valid?(this.metrics.target_reached_count+this.metrics.improved_count)/valid:null;this.metrics.wrong_direction_rate=valid?this.metrics.wrong_direction_count/valid:null;}
-  private snapshot(m:LiveMeasurementV3,action:V3Action|null,copy:string|null,outcome:V3Outcome|null=null):V3Snapshot{return Object.freeze({timestamp_ms:m.timestamp_ms,armed:this.armed,trial_id:this.armed?this.trialId:null,stage:this.stage,measurement:m,action,instruction_copy_zh:copy,episode:this.episode?Object.freeze({...this.episode}):this.lastEpisode?Object.freeze({...this.lastEpisode}):null,outcome:outcome??this.lastEpisode?.outcome??null,ready:this.ready,ready_entry_context:this.readyContext,metrics:Object.freeze({...this.metrics})});}
+  private snapshot(m:LiveMeasurementV3,action:V3Action|null,copy:string|null,outcome:V3Outcome|null=null,retryActionCandidate:V3Action|null=null):V3Snapshot{const activeEpisode=this.episode?Object.freeze({...this.episode}):null;const historicalEpisode=activeEpisode??(this.lastEpisode?Object.freeze({...this.lastEpisode}):null);const activeAction=activeEpisode&&activeEpisode.movement_started_at===null&&activeEpisode.meaningful_motion_at===null?activeEpisode.action:null;return Object.freeze({timestamp_ms:m.timestamp_ms,armed:this.armed,trial_id:this.armed?this.trialId:null,stage:this.stage,measurement:m,action,instruction_copy_zh:copy,active_episode:activeEpisode,active_action:activeAction,retry_action_candidate:retryActionCandidate,last_episode_action:this.lastEpisode?.action??null,retry_pending:this.retryBarrier!==null,ready_hold_elapsed_ms:this.readyStableSince===null?0:Math.max(0,m.timestamp_ms-this.readyStableSince),ready_hold_required_ms:this.config.ready_stable_ms,episode_evaluated_now:outcome!==null,episode:historicalEpisode,outcome:outcome??this.lastEpisode?.outcome??null,ready:this.ready,ready_entry_context:this.readyContext,metrics:Object.freeze({...this.metrics})});}
 }

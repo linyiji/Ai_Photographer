@@ -13,10 +13,11 @@ import { GUIDANCE_THEMES, renderGuidanceTheme } from '../visual-guidance/themes.
 import { CameraSessionGuard, ownsActiveCameraSession } from '../camera/session-guard.js';
 import { evaluateGate1PreArm, isGate1Scenario, type Gate1PreArmTelemetry } from '../closed-loop/gate1-acceptance.js';
 import { precisionScaleCalibrationFor } from '../semantic-framing/profiles.js';
-import { HumanStepServoV3, V3_ACTION_COPY } from '../control-v3/controller.js';
+import { HumanStepServoV3 } from '../control-v3/controller.js';
 import { LiveMeasurementV3Projector } from '../control-v3/measurement.js';
+import { deriveLivePresentationStateV01 } from '../control-v3/presentation.js';
 import { V3HumanStepTraceRecorder } from '../control-v3/trace.js';
-import type { LiveMeasurementV3, V3Action, V3Snapshot } from '../control-v3/types.js';
+import type { LiveMeasurementV3, V3Snapshot } from '../control-v3/types.js';
 import { runV3BrowserScenario, V3_BROWSER_SCENARIOS, type V3BrowserScenario } from '../control-v3/browser-scenarios.js';
 
 type FacingMode = 'user' | 'environment';
@@ -324,23 +325,20 @@ function renderVisualGuidance(): void {
 }
 
 const percentile=(values:ReadonlyArray<number>,p:number):number=>{if(!values.length)return 0;const sorted=[...values].sort((a,b)=>a-b);return sorted[Math.min(sorted.length-1,Math.floor((sorted.length-1)*p))];};
-const v3CurrentAction=(snapshot:V3Snapshot|null):V3Action|null=>snapshot?.action??(snapshot?.episode&&(snapshot.episode.state!=='EVALUATED'||snapshot.outcome==='NO_EFFECT'||snapshot.outcome==='WRONG_DIRECTION')?snapshot.episode.action:null);
-
 function renderV3Visual():void{
-  const snapshot=latestV3Snapshot;const action=v3CurrentAction(snapshot);const copy=action?V3_ACTION_COPY[action]:null;
-  visualOverlay.dataset.status=snapshot?.ready?'READY':action?'CORRECTING':snapshot?.measurement.subject_state==='PRESENT'?'TRACKING':'LOST';visualGrid.classList.toggle('is-visible',guidanceGrid.checked);
+  const snapshot=latestV3Snapshot;const presentation=deriveLivePresentationStateV01(snapshot);const action=presentation.action;
+  visualOverlay.dataset.status=presentation.state==='READY'?'READY':action?'CORRECTING':presentation.state==='ACQUIRING'?'LOST':'TRACKING';visualGrid.classList.toggle('is-visible',guidanceGrid.checked);
   stopVisual.classList.remove('is-visible');applyProjectedBox(subjectBox,latestVisualGuidance?.tracked_subject_box??null);applyProjectedBox(targetBox,latestVisualGuidance?.target_box??null);const zone=latestVisualGuidance?.acceptable_zone;applyProjectedBox(acceptableZone,zone?{left:zone.left,top:zone.top,width:zone.right-zone.left,height:zone.bottom-zone.top,center_x:(zone.left+zone.right)/2,center_y:(zone.top+zone.bottom)/2}:null);subjectLockLabel.textContent=latestVisualGuidance?.tracking_status==='LOCKED'?'人物已锁定':'人物锁定中';
-  readyVisual.classList.toggle('is-visible',Boolean(snapshot?.ready));directionVisual.classList.toggle('is-visible',Boolean(action));
-  if(action){directionLabel.textContent=copy!;directionIcon.textContent=action==='MOVE_LEFT_SMALL'?'←':action==='MOVE_RIGHT_SMALL'?'→':action==='MOVE_CLOSER_SMALL'?'＋':'−';}
-  trackingVisual.textContent=snapshot?.ready?'READY · 已锁定':action?'只做一次小调整，然后自然停下':snapshot?.stage==='ACQUIRE'?'正在确认人物与测量':'保持不动 · 正在确认结果';
+  readyVisual.classList.toggle('is-visible',presentation.state==='READY');directionVisual.classList.toggle('is-visible',Boolean(action));
+  if(action){directionLabel.textContent=presentation.overlay_copy_zh;directionIcon.textContent=action==='MOVE_LEFT_SMALL'?'←':action==='MOVE_RIGHT_SMALL'?'→':action==='MOVE_CLOSER_SMALL'?'＋':'−';}
+  trackingVisual.textContent=presentation.overlay_copy_zh;
 }
 
 function renderV3Control():void{
-  const snapshot=latestV3Snapshot;const measurement=latestV3Measurement??snapshot?.measurement??null;const action=v3CurrentAction(snapshot);const copy=action?V3_ACTION_COPY[action]:null;
-  v3DebugPanel.hidden=false;v2DebugGrid.hidden=true;v3Fields.policy.textContent='CONTROL POLICY · V3 · EXPERIMENTAL';v3Fields.stage.textContent=snapshot?.stage??'ACQUIRE';v3Fields.framing.textContent=measurement?.framing_relation??'UNKNOWN';v3Fields.x.textContent=measurement?.x_relation??'UNKNOWN';v3Fields.measurement.textContent=measurement?.measurement_quality??'INVALID';v3Fields.stable.textContent=measurement?.stable?'YES':'NO';v3Fields.action.textContent=copy??'—';v3Fields.outcome.textContent=snapshot?.outcome??'—';v3Fields.latency.textContent=`${percentile(v3ControllerLatencies,.5).toFixed(3)} / ${percentile(v3ControllerLatencies,.95).toFixed(3)} ms`;
+  const snapshot=latestV3Snapshot;const measurement=latestV3Measurement??snapshot?.measurement??null;const presentation=deriveLivePresentationStateV01(snapshot);const action=snapshot?.active_action??null;
+  v3DebugPanel.hidden=false;v2DebugGrid.hidden=true;v3Fields.policy.textContent='CONTROL POLICY · V3 · EXPERIMENTAL';v3Fields.stage.textContent=snapshot?.stage??'ACQUIRE';v3Fields.framing.textContent=measurement?.framing_relation??'UNKNOWN';v3Fields.x.textContent=measurement?.x_relation??'UNKNOWN';v3Fields.measurement.textContent=measurement?.measurement_quality??'INVALID';v3Fields.stable.textContent=measurement?.stable?'YES':'NO';v3Fields.action.textContent=action??'—';v3Fields.outcome.textContent=snapshot?.outcome??'—';v3Fields.latency.textContent=`${percentile(v3ControllerLatencies,.5).toFixed(3)} / ${percentile(v3ControllerLatencies,.95).toFixed(3)} ms`;
   closedLoopFields.runtimeState.textContent=`STATE · ${snapshot?.stage??'IDLE'}`;closedLoopFields.ready.textContent=`READY · ${String(snapshot?.ready??false).toUpperCase()}`;
-  let text='模型已就绪 · 点击“ARM 新试验”开始';if(snapshot?.armed){if(snapshot.ready)text='好，就这里';else if(snapshot.outcome==='NO_EFFECT'&&copy)text=`未检测到有效调整 · ${copy}，然后停下`;else if(snapshot.outcome==='WRONG_DIRECTION'&&copy)text=`刚才方向相反 · ${copy}，然后停下`;else if(copy)text=`${copy} · 做一次小调整后自然停下`;else if(snapshot.stage==='ACQUIRE')text=snapshot.outcome==='INVALIDATED'?'测量中断 · 请保持人物可见并站稳':'保持片刻 · 正在确认人物与测量';else if(snapshot.episode?.state==='EVALUATED')text=`${snapshot.outcome??'已评估'} · 保持不动，等待下一步`;else text='保持不动 · 正在确认结果';}
-  closedLoopFields.instruction.textContent=text;guidanceOverlayState.textContent=`V3 EXPERIMENTAL · ${snapshot?.stage??'DISARMED'} · ONE STEP`;guidanceOverlayText.textContent=text;closedLoopReset.textContent='重置 V3 试验';closedLoopArm.textContent='ARM V3 新试验';
+  closedLoopFields.instruction.textContent=presentation.primary_copy_zh;guidanceOverlayState.textContent=`V3 · ${presentation.state}`;guidanceOverlayText.textContent=presentation.primary_copy_zh;closedLoopReset.textContent='重置 V3 试验';closedLoopArm.textContent='ARM V3 新试验';
 }
 
 function renderSemanticDebug():void{

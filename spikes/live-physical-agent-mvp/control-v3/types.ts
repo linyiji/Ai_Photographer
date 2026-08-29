@@ -110,6 +110,14 @@ export interface V3Snapshot {
   measurement: Readonly<LiveMeasurementV3>;
   action: V3Action | null;
   instruction_copy_zh: string | null;
+  active_episode: Readonly<V3Episode> | null;
+  active_action: V3Action | null;
+  retry_action_candidate: V3Action | null;
+  last_episode_action: V3Action | null;
+  retry_pending: boolean;
+  ready_hold_elapsed_ms: number;
+  ready_hold_required_ms: number;
+  episode_evaluated_now: boolean;
   episode: Readonly<V3Episode> | null;
   outcome: V3Outcome | null;
   ready: boolean;
