@@ -2,7 +2,11 @@
 
 Date: 2026-08-27
 
-Status: `READY_FOR_OPPO_EXPLORATORY_GATE / DEVICE_SOURCE_REQUIRED`
+Status: `READY_FOR_OPPO_EXPLORATORY_GATE / PRESENTATION_AND_RETRY_CORRECTION_PASS / DEVICE_SOURCE_REQUIRED`
+
+## Presentation and retry causality correction
+
+The bounded `LivePresentationStateV01` correction removes sticky Outcome/action copy, makes primary and overlay presentation share one current-truth projection, and replaces the motion-dependent retry barrier with a newer-fresh-stable measurement barrier. NO_EFFECT and WRONG_DIRECTION can now produce a new ControlEpoch without requiring uncommanded user movement. Automated suite, TypeScript, production build, V3 browser smoke, and V2 default replay pass; fresh OPPO evidence remains required. See `presentation-state-and-retry-causality.md`.
 
 ## OPPO Attempt A1 — pre-fix diagnostic
 
@@ -32,7 +36,7 @@ Bounded fix: V3 now reuses the existing stabilized visual tracker to render subj
 - TypeScript: PASS
 - Production build: PASS / 35 modules
 - V2 browser replay: PASS / READY / zero console errors
-- V3 deterministic browser scenarios: 10/10 PASS
+- V3 deterministic browser scenarios: 11/11 PASS
 
 | Scenario | Browser result |
 | --- | --- |
