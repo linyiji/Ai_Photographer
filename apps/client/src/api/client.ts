@@ -14,7 +14,7 @@ export type PhotographySessionCreateInputV01={schema_version:'0.1.0';entry_sourc
 // Defaults to the locked local runtime; mobile acceptance injects an ephemeral HTTPS API tunnel at build time.
 export const API_BASE=__XFX_API_BASE__
 async function request<T>(path:string,method:'GET'|'POST'='GET',data?:unknown,headers:Record<string,string>={}):Promise<T>{
- const response=await Taro.request<T>({url:`${API_BASE}${path}`,method,data,header:{'Content-Type':'application/json',...headers}})
+ const response=await Taro.request<T>({url:`${API_BASE}${path}`,method,data,header:{'Content-Type':'application/json',...headers}}).catch(error=>{const candidate=error as {errMsg?:string};const detail=candidate?.errMsg||String(error);throw new Error(`NETWORK_UNAVAILABLE · ${detail}`)})
  if(response.statusCode>=400){const body=response.data as any;throw new Error(`${body?.error?.error_code||body?.error?.code||'API_ERROR'} · ${body?.error?.correlation_id||'no-correlation'}`)}
  return response.data
 }
