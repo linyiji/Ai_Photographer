@@ -1,0 +1,5 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://xfx.local/contracts/v1/SceneDirectionMapV01.schema.json","title":"SceneDirectionMapV01","type":"object","additionalProperties":false,
+  "required":["schema_version","source_scan_id","basis","nodes","depth","metric_geometry"],
+  "properties":{"schema_version":{"const":"0.1.0"},"source_scan_id":{"type":"string"},"basis":{"const":"RELATIVE_YAW"},"nodes":{"type":"array","items":{"type":"object","required":["frame_id","relative_yaw_deg","evidence_class"],"properties":{"frame_id":{"type":"string"},"relative_yaw_deg":{"type":"number"},"evidence_class":{"const":"FACT"}},"additionalProperties":false}},"depth":{"const":"UNKNOWN"},"metric_geometry":{"const":"NOT_SUPPORTED"}}
+}

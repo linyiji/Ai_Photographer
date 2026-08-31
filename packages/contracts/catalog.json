@@ -27,6 +27,14 @@
     {"name":"EvaluationResult","domain":"EVALUATION","version":"1.0.0","schema_id":"https://xfx.local/contracts/v1/EvaluationResult.schema.json","path":"schemas/EvaluationResult.schema.json"},
     {"name":"HomeContextV01","domain":"ENTRY_CONTEXT","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/HomeContextV01.schema.json","path":"schemas/HomeContextV01.schema.json"},
     {"name":"PhotographySessionCreateInputV01","domain":"CONTROL","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/PhotographySessionCreateInputV01.schema.json","path":"schemas/PhotographySessionCreateInputV01.schema.json"},
-    {"name":"ContextReconcileResultV01","domain":"CONTROL","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/ContextReconcileResultV01.schema.json","path":"schemas/ContextReconcileResultV01.schema.json"}
+    {"name":"ContextReconcileResultV01","domain":"CONTROL","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/ContextReconcileResultV01.schema.json","path":"schemas/ContextReconcileResultV01.schema.json"},
+    {"name":"SceneScanEvidenceV01","domain":"SCENE_SPATIAL","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/SceneScanEvidenceV01.schema.json","path":"schemas/SceneScanEvidenceV01.schema.json"},
+    {"name":"SceneFrameSetV01","domain":"SCENE_SPATIAL","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/SceneFrameSetV01.schema.json","path":"schemas/SceneFrameSetV01.schema.json"},
+    {"name":"SceneDirectionMapV01","domain":"SCENE_SPATIAL","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/SceneDirectionMapV01.schema.json","path":"schemas/SceneDirectionMapV01.schema.json"},
+    {"name":"ViewEvidenceV01","domain":"SCENE_SPATIAL","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/ViewEvidenceV01.schema.json","path":"schemas/ViewEvidenceV01.schema.json"},
+    {"name":"SpatialPrecheckV01","domain":"SCENE_SPATIAL","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/SpatialPrecheckV01.schema.json","path":"schemas/SpatialPrecheckV01.schema.json"},
+    {"name":"SceneGeometryRequestV01","domain":"SCENE_SPATIAL","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/SceneGeometryRequestV01.schema.json","path":"schemas/SceneGeometryRequestV01.schema.json"},
+    {"name":"SpatialEvidenceV02","domain":"SCENE_SPATIAL","version":"0.2.0","schema_id":"https://xfx.local/contracts/v1/SpatialEvidenceV02.schema.json","path":"schemas/SpatialEvidenceV02.schema.json"},
+    {"name":"SceneSpatialSessionStateV01","domain":"CONTROL","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/SceneSpatialSessionStateV01.schema.json","path":"schemas/SceneSpatialSessionStateV01.schema.json"}
   ]
 }

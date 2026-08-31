@@ -1,0 +1,5 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://xfx.local/contracts/v1/SpatialEvidenceV02.schema.json","title":"SpatialEvidenceV02","type":"object","additionalProperties":true,
+  "required":["schema_version","source_scan_id","status","status_authority","confidence","geometry_type","metric_scale_available","limitations","evidence_refs","reason_codes"],
+  "properties":{"schema_version":{"const":"0.2.0"},"source_scan_id":{"type":"string"},"status":{"enum":["INSUFFICIENT","PARTIAL","USABLE"]},"status_authority":{"const":"FIRST_PARTY_BACKEND_GEOMETRY_SOLVER"},"confidence":{"type":"number","minimum":0,"maximum":1},"geometry_type":{"enum":["SPARSE_RELATIVE","UNKNOWN"]},"metric_scale_available":{"const":false},"limitations":{"type":"array","items":{"type":"string"}},"evidence_refs":{"type":"array","items":{"type":"string"}},"reason_codes":{"type":"array","items":{"type":"string"}}}
+}

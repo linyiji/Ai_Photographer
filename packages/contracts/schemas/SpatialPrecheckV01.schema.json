@@ -1,0 +1,5 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://xfx.local/contracts/v1/SpatialPrecheckV01.schema.json","title":"SpatialPrecheckV01","type":"object","additionalProperties":false,
+  "required":["schema_version","source_scan_id","status","authority","reason","routing"],
+  "properties":{"schema_version":{"const":"0.1.0"},"source_scan_id":{"type":"string"},"status":{"enum":["UNRELIABLE","NO_SIGNAL","POSSIBLE"]},"authority":{"const":"ROUTING_HINT_ONLY"},"reason":{"type":"string"},"routing":{"type":"object","required":["backend_solve_recommended"],"properties":{"backend_solve_recommended":{"type":"boolean"}},"additionalProperties":false}}
+}

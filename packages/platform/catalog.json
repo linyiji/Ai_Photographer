@@ -5,6 +5,7 @@
   "capabilities":[
     {"name":"CameraAdapter","responsibility":"open and close a camera session and request a capture","inputs":["CameraOpenRequest","CaptureRequest"],"outputs":["CameraSessionRef","AssetRef"]},
     {"name":"FrameAdapter","responsibility":"provide a bounded frame stream to local perception","inputs":["CameraSessionRef","FrameSubscriptionOptions"],"outputs":["FrameEnvelope","UnsubscribeResult"]},
+    {"name":"SceneScanAdapter","responsibility":"produce one portable Scene Scan evidence bundle for independent P1 View and P2 Geometry consumers","inputs":["BoundedFrameObservations","SceneScanOptions"],"outputs":["SceneScanEvidence","ViewEvidence","SpatialPrecheck"]},
     {"name":"AlbumAdapter","responsibility":"save an accepted asset to a user-visible album","inputs":["AssetRef","AlbumSaveOptions"],"outputs":["AlbumSaveResult"]},
     {"name":"ShareAdapter","responsibility":"share an accepted product asset through the current platform","inputs":["AssetRef","ShareMetadata"],"outputs":["ShareResult"]},
     {"name":"HapticAdapter","responsibility":"emit semantic tactile feedback","inputs":["HapticCue"],"outputs":["CapabilityResult"]},

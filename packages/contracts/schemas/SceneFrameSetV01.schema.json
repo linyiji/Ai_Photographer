@@ -1,0 +1,5 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://xfx.local/contracts/v1/SceneFrameSetV01.schema.json","title":"SceneFrameSetV01","type":"object","additionalProperties":false,
+  "required":["schema_version","source_scan_id","frame_refs","raw_media_persisted","raw_media_uploaded"],
+  "properties":{"schema_version":{"const":"0.1.0"},"source_scan_id":{"type":"string"},"frame_refs":{"type":"array","items":{"type":"string"},"uniqueItems":true},"raw_media_persisted":{"const":false},"raw_media_uploaded":{"const":false}}
+}
