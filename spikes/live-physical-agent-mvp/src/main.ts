@@ -42,8 +42,6 @@ const cameraStage = requireElement<HTMLElement>('camera-stage');
 const emptyState = requireElement<HTMLDivElement>('empty-state');
 const emptyTitle = requireElement<HTMLElement>('empty-title');
 const emptyCopy = requireElement<HTMLElement>('empty-copy');
-const hud = requireElement<HTMLDivElement>('hud');
-const coordinateStrip = requireElement<HTMLDivElement>('coordinate-strip');
 const hudToggle = requireElement<HTMLButtonElement>('hud-toggle');
 const startButton = requireElement<HTMLButtonElement>('start-button');
 const stopButton = requireElement<HTMLButtonElement>('stop-button');
@@ -62,7 +60,6 @@ const elapsedValue = requireElement<HTMLElement>('elapsed-value');
 const sessionIndicator = requireElement<HTMLElement>('session-indicator');
 const schedulerBadge = requireElement<HTMLElement>('scheduler-badge');
 const capabilityList = requireElement<HTMLDListElement>('capability-list');
-const perceptionHud = requireElement<HTMLElement>('perception-hud');
 const poseInitButton = requireElement<HTMLButtonElement>('pose-init-button');
 const visionCadence=requireElement<HTMLSelectElement>('vision-cadence');
 const poseMessage = requireElement<HTMLParagraphElement>('pose-message');
@@ -70,7 +67,6 @@ const poseModelStatus = requireElement<HTMLElement>('pose-model-status');
 const executionMode = requireElement<HTMLElement>('execution-mode');
 const guidanceOverlayState = requireElement<HTMLElement>('guidance-overlay-state');
 const guidanceOverlayText = requireElement<HTMLElement>('guidance-overlay-text');
-const closedLoopHud = requireElement<HTMLElement>('closed-loop-hud');
 const targetPreset = requireElement<HTMLSelectElement>('target-preset');
 const controlPolicySelect = requireElement<HTMLSelectElement>('control-policy');
 const closedLoopReset = requireElement<HTMLButtonElement>('closed-loop-reset');
@@ -192,7 +188,13 @@ let activeGate1PreArm: Gate1PreArmTelemetry | null = null;
 let gate1ArmAttempted = false;
 const cameraSessionGuard = new CameraSessionGuard();
 
-const simulatedUnsupported = new URLSearchParams(window.location.search).get('simulateUnsupported') === '1';
+const urlParameters = new URLSearchParams(window.location.search);
+const simulatedUnsupported = urlParameters.get('simulateUnsupported') === '1';
+const fullDebugRequested = urlParameters.get('fullDebug') === '1';
+const requestedScenario = urlParameters.get('scenario');
+document.body.classList.toggle('show-full-debug',fullDebugRequested);
+hudToggle.textContent=fullDebugRequested?'隐藏完整调试':'显示完整调试';
+hudToggle.setAttribute('aria-pressed',String(fullDebugRequested));
 const supportsMediaDevices = !simulatedUnsupported && Boolean(navigator.mediaDevices?.getUserMedia);
 
 const formatMetric = (value: number | null | undefined, digits = 3): string =>
@@ -212,9 +214,12 @@ const v4Trace=new V4ScalarTraceRecorder();
 const v4VisualProjector=new VisualGuidanceProjector();
 const v4XCalibration=new SubjectXCalibrationSessionV01();
 type ControlPolicy='V2'|'V3'|'V4';
-const requestedDebugPolicy=new URLSearchParams(window.location.search).get('controlPolicy');
+const requestedDebugPolicy=urlParameters.get('controlPolicy');
 controlPolicySelect.value=requestedDebugPolicy==='V4'?'V4':requestedDebugPolicy==='V3'?'V3':'V2';
-if(controlPolicySelect.value==='V3')scaleGateScenario.value='V3_FRAMING_ONLY';else if(controlPolicySelect.value==='V4')scaleGateScenario.value='V4_CENTER_UPPER_BODY';
+const requestedScenarioExists=requestedScenario!==null&&Array.from(scaleGateScenario.options).some(option=>option.value===requestedScenario);
+if(requestedScenarioExists)scaleGateScenario.value=requestedScenario!;
+else if(controlPolicySelect.value==='V3')scaleGateScenario.value='V3_FRAMING_ONLY';
+else if(controlPolicySelect.value==='V4')scaleGateScenario.value=fullDebugRequested?'V4_CENTER_UPPER_BODY':'V4_X_CALIBRATE_SUBJECT_RIGHT';
 const activePolicy=():ControlPolicy=>controlPolicySelect.value==='V4'?'V4':controlPolicySelect.value==='V3'?'V3':'V2';
 const v4DirectionContext=():V4DirectionContextV01=>({camera_facing:activeFacingMode==='user'?'FRONT':activeFacingMode==='environment'?'REAR':'UNKNOWN',preview_mirror_state:activeFacingMode==='user'?'MIRRORED':activeFacingMode==='environment'?'NON_MIRRORED':'UNKNOWN',shooting_relation:'SUBJECT_FACING_CAMERA'});
 const v4CalibrationLabel=(): 'LEFT'|'RIGHT'|null=>scaleGateScenario.value==='V4_X_CALIBRATE_SUBJECT_LEFT'?'LEFT':scaleGateScenario.value==='V4_X_CALIBRATE_SUBJECT_RIGHT'?'RIGHT':null;
@@ -810,13 +815,10 @@ switchButton.addEventListener('click', () => {
 });
 
 hudToggle.addEventListener('click', () => {
-  const hidden = !hud.hidden;
-  hud.hidden = hidden;
-  coordinateStrip.hidden = hidden;
-  perceptionHud.hidden = hidden;
-  closedLoopHud.hidden = hidden;
-  hudToggle.textContent = hidden ? '显示 HUD' : '隐藏 HUD';
-  hudToggle.setAttribute('aria-pressed', String(!hidden));
+  const showFullDebug=!document.body.classList.contains('show-full-debug');
+  document.body.classList.toggle('show-full-debug',showFullDebug);
+  hudToggle.textContent=showFullDebug?'隐藏完整调试':'显示完整调试';
+  hudToggle.setAttribute('aria-pressed',String(showFullDebug));
 });
 
 poseInitButton.addEventListener('click', () => {

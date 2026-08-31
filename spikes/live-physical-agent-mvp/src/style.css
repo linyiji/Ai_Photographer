@@ -289,6 +289,40 @@ h2 { margin: 0; font-size: 1rem; letter-spacing: -0.02em; }
 
 footer { padding: 1rem 0 0; color: #687276; font-size: 0.66rem; line-height: 1.5; text-align: center; }
 
+.compact-gate-note { margin: .65rem 0 0; color: #9f927b; font-size: .68rem; line-height: 1.4; text-align: center; }
+
+body:not(.show-full-debug) #hud,
+body:not(.show-full-debug) #coordinate-strip,
+body:not(.show-full-debug) .control-panel .state-grid,
+body:not(.show-full-debug) #perception-hud .perception-grid,
+body:not(.show-full-debug) #perception-hud .eyebrow,
+body:not(.show-full-debug) #perception-hud h2,
+body:not(.show-full-debug) #perception-hud .target-picker,
+body:not(.show-full-debug) #closed-loop-hud .perception-panel__header > div:first-child,
+body:not(.show-full-debug) #closed-loop-hud .legacy-debug-node,
+body:not(.show-full-debug) #v3-debug-panel,
+body:not(.show-full-debug) #gate1-precondition,
+body:not(.show-full-debug) #v2-debug-grid,
+body:not(.show-full-debug) .capability-card,
+body:not(.show-full-debug) footer { display: none !important; }
+
+body:not(.show-full-debug) .legacy-scenario-group { display: none; }
+
+body:not(.show-full-debug) .coordinate-strip + .guidance-overlay,
+body:not(.show-full-debug) .guidance-overlay { bottom: 1rem; }
+body:not(.show-full-debug) .control-panel { padding: .65rem; }
+body:not(.show-full-debug) .control-panel .button-row { margin-top: 0; }
+body:not(.show-full-debug) #perception-hud { padding: .65rem; }
+body:not(.show-full-debug) #perception-hud .perception-panel__header { justify-content: flex-start; }
+body:not(.show-full-debug) #perception-hud .perception-status { margin-top: .5rem; }
+body:not(.show-full-debug) #closed-loop-hud .perception-panel__header { display: block; }
+body:not(.show-full-debug) #closed-loop-hud .target-actions { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); align-items: stretch; }
+body:not(.show-full-debug) #closed-loop-hud .target-picker { grid-column: 1 / -1; }
+body:not(.show-full-debug) #closed-loop-hud .target-picker select { width: 100%; max-width: none; min-height: 2.85rem; }
+body:not(.show-full-debug) #closed-loop-hud .target-actions .button { min-height: 2.85rem; }
+body:not(.show-full-debug) #closed-loop-trace { grid-column: 1 / -1; }
+body.show-full-debug .compact-gate-note { display: none; }
+
 @media (max-width: 560px) {
   .app-shell { padding-inline: 0.7rem; }
   .camera-stage { min-height: 55dvh; border-radius: 1.1rem; }
@@ -301,6 +335,7 @@ footer { padding: 1rem 0 0; color: #687276; font-size: 0.66rem; line-height: 1.5
   .capability-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .perception-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .gate1-precondition dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body:not(.show-full-debug) .camera-stage { min-height: 62dvh; }
 }
 
 @media (prefers-reduced-motion: reduce) {

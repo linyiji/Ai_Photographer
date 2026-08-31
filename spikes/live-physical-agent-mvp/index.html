@@ -14,8 +14,8 @@
           <p class="eyebrow">LIVE-P2 · LOCAL CLOSED LOOP</p>
           <h1>本机实时构图闭环</h1>
         </div>
-        <button id="hud-toggle" class="button button--quiet" type="button" aria-pressed="true">
-          隐藏 HUD
+        <button id="hud-toggle" class="button button--quiet" type="button" aria-pressed="false">
+          显示完整调试
         </button>
       </header>
 
@@ -146,31 +146,31 @@
             <h2>P2 Local Closed Loop</h2>
           </div>
           <div class="target-actions">
-            <label class="target-picker">TARGET
+            <label class="target-picker legacy-debug-node">TARGET
               <select id="target-preset" aria-label="Target preset"></select>
             </label>
-            <label class="target-picker">CONTROL POLICY
+            <label class="target-picker legacy-debug-node">CONTROL POLICY
               <select id="control-policy" aria-label="Debug control policy">
                 <option value="V2" selected>V2 · CURRENT DEFAULT</option>
                 <option value="V3">V3 · EXPERIMENTAL</option>
                 <option value="V4">V4 · TARGET RELATIVE</option>
               </select>
             </label>
-            <label class="target-picker">MODE
+            <label class="target-picker legacy-debug-node">MODE
               <select id="guidance-mode" aria-label="Guidance mode">
                 <option value="TEXT_DOMINANT">文字主导</option>
                 <option value="VISUAL_SERVO">纯视觉</option>
                 <option value="VISUAL_PLUS_TEXT" selected>视觉 + 文字</option>
               </select>
             </label>
-            <label class="target-picker">THEME
+            <label class="target-picker legacy-debug-node">THEME
               <select id="guidance-theme" aria-label="Guidance theme"></select>
             </label>
-            <label class="toggle-setting"><input id="guidance-grid" type="checkbox" /> 九宫格（调试）</label>
-            <label class="toggle-setting"><input id="semantic-debug" type="checkbox" /> Semantic Debug</label>
+            <label class="toggle-setting legacy-debug-node"><input id="guidance-grid" type="checkbox" /> 九宫格（调试）</label>
+            <label class="toggle-setting legacy-debug-node"><input id="semantic-debug" type="checkbox" /> Semantic Debug</label>
             <label class="target-picker">EVIDENCE SCENARIO
               <select id="scale-gate-scenario" aria-label="Scale Gate scenario">
-                <optgroup label="V4 Target-relative Matrix">
+                <optgroup class="legacy-scenario-group" label="V4 Target-relative Matrix">
                   <option value="V4_CENTER_UPPER_BODY">V4 · Center × Upper Body</option>
                   <option value="V4_LEFT_THIRD_UPPER_BODY">V4 · Left Third × Upper Body</option>
                   <option value="V4_RIGHT_THIRD_UPPER_BODY">V4 · Right Third × Upper Body</option>
@@ -183,18 +183,18 @@
                   <option value="V4_X_CALIBRATE_SUBJECT_RIGHT">V4 · 标定人物自己的右侧</option>
                   <option value="V4_X_DEVICE_SINGLE_STEP">V4 · 05F 单次 Center X 复验</option>
                 </optgroup>
-                <optgroup label="V3 Prospective Human Step">
+                <optgroup class="legacy-scenario-group" label="V3 Prospective Human Step">
                   <option value="V3_FRAMING_ONLY">V3 A · Framing Only</option>
                   <option value="V3_X_ONLY">V3 B · X Only</option>
                   <option value="V3_COMBINED">V3 C · Combined</option>
                   <option value="V3_ALREADY_SATISFIED">V3 D · Already Satisfied</option>
                 </optgroup>
-                <optgroup label="Parent OPPO Gate 1">
+                <optgroup class="legacy-scenario-group" label="Parent OPPO Gate 1">
                   <option value="GATE1_X">Gate 1 · X 左右修正</option>
                   <option value="GATE1_SCALE">Gate 1 · Scale 距离修正</option>
                   <option value="GATE1_COMBINED">Gate 1 · Combined 组合修正</option>
                 </optgroup>
-                <optgroup label="Semantic Scale Gate">
+                <optgroup class="legacy-scenario-group" label="Semantic Scale Gate">
                   <option value="S1_HEAD_SHOULDERS_STATIC">S1 · 头肩静止</option>
                   <option value="S2_HEAD_SHOULDERS_MOVE_FARTHER">S2 · 头肩退后</option>
                   <option value="S3_MOVE_CLOSER">S3 · 靠近</option>
@@ -209,6 +209,7 @@
             <button id="closed-loop-trace" class="button button--quiet" type="button">下载标量 Trace</button>
           </div>
         </div>
+        <p class="compact-gate-note">当前仅显示 05F 设备验收节点；完整观测、控制和性能字段仍持续写入标量 Trace。</p>
         <div class="perception-status">
           <span id="cl-runtime-state" class="status-pill">STATE · IDLE</span>
           <span id="cl-ready" class="status-pill status-pill--muted">READY · FALSE</span>
@@ -288,7 +289,7 @@
         </dl>
       </section>
 
-      <details class="capability-card" open>
+      <details class="capability-card">
         <summary>Browser / Device Capability</summary>
         <dl id="capability-list" class="capability-list"></dl>
       </details>
