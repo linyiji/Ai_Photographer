@@ -1,6 +1,8 @@
 # XFX Live Physical Agent — LIVE-P2 Visual Servo Spike
 
-V3 Human Step Servo Phase A now exists as a pure controller/replay candidate under `docs/control-v3/`. Its Counterfactual Promotion Gate is `FAIL / SOURCE_REQUIRED` because no exact record contains comparable V2 and V3 terminal effectiveness. V2 therefore remains the only runtime policy; no V3 selector, OPPO Gate, Luna, or Main integration has started.
+V4 Human Observation + Target-relative Servo is available as an acceptance-only sandbox policy. It separates target-independent `HumanObservationV02` from externally selected `LiveTargetV02`, removes fixed-center and BodyMode distance authority, and requires observed human response before any action result. V2 remains the default; V3 remains historical; V4 has not been integrated into Main.
+
+For V4 manual testing, add `?controlPolicy=V4`, choose one of the six `V4 Target-relative Matrix` fixtures, initialize the local pose model, start the camera, and press `ARM V4 新试验`. Run Center, Left-third, Right-third and one combined required-body + scale + anchor path. `下载标量 Trace` exports only target/current scalar relations and causal timestamps—never camera frames/video or raw landmarks.
 
 This isolated Mobile Web spike preserves accepted LIVE-P0 camera and LIVE-P1 perception, then adds only the deterministic local P2 chain:
 

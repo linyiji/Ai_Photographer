@@ -153,6 +153,7 @@
               <select id="control-policy" aria-label="Debug control policy">
                 <option value="V2" selected>V2 · CURRENT DEFAULT</option>
                 <option value="V3">V3 · EXPERIMENTAL</option>
+                <option value="V4">V4 · TARGET RELATIVE</option>
               </select>
             </label>
             <label class="target-picker">MODE
@@ -169,6 +170,14 @@
             <label class="toggle-setting"><input id="semantic-debug" type="checkbox" /> Semantic Debug</label>
             <label class="target-picker">EVIDENCE SCENARIO
               <select id="scale-gate-scenario" aria-label="Scale Gate scenario">
+                <optgroup label="V4 Target-relative Matrix">
+                  <option value="V4_CENTER_UPPER_BODY">V4 · Center × Upper Body</option>
+                  <option value="V4_LEFT_THIRD_UPPER_BODY">V4 · Left Third × Upper Body</option>
+                  <option value="V4_RIGHT_THIRD_UPPER_BODY">V4 · Right Third × Upper Body</option>
+                  <option value="V4_CENTER_THREE_QUARTER">V4 · Center × Three Quarter</option>
+                  <option value="V4_LEFT_THIRD_FULL_BODY">V4 · Left Third × Full Body</option>
+                  <option value="V4_RIGHT_THIRD_FULL_BODY">V4 · Right Third × Full Body</option>
+                </optgroup>
                 <optgroup label="V3 Prospective Human Step">
                   <option value="V3_FRAMING_ONLY">V3 A · Framing Only</option>
                   <option value="V3_X_ONLY">V3 B · X Only</option>
@@ -201,13 +210,13 @@
           <span class="status-pill status-pill--muted">LUNA · OFF</span>
         </div>
         <p id="cl-instruction" class="instruction-copy" role="status" aria-live="polite">等待本机状态输入</p>
-        <section id="v3-debug-panel" class="gate1-precondition" aria-label="V3 experimental human-step status" hidden>
-          <div class="gate1-precondition__header"><strong>V3 EXPERIMENTAL · ONE SMALL STEP</strong><span id="v3-policy">CONTROL POLICY · V3</span></div>
+        <section id="v3-debug-panel" class="gate1-precondition" aria-label="Experimental control status" hidden>
+          <div class="gate1-precondition__header"><strong>EXPERIMENTAL CONTROL · ONE SMALL STEP</strong><span id="v3-policy">CONTROL POLICY</span></div>
           <dl>
             <div><dt>CURRENT STAGE</dt><dd id="v3-stage">ACQUIRE</dd></div>
-            <div><dt>FRAMING</dt><dd id="v3-framing">UNKNOWN</dd></div>
-            <div><dt>X</dt><dd id="v3-x">UNKNOWN</dd></div>
-            <div><dt>MEASUREMENT</dt><dd id="v3-measurement">INVALID</dd></div>
+            <div><dt>SCALE RELATION</dt><dd id="v3-framing">UNKNOWN</dd></div>
+            <div><dt>TARGET-RELATIVE X</dt><dd id="v3-x">UNKNOWN</dd></div>
+            <div><dt>OBSERVATION</dt><dd id="v3-measurement">INVALID</dd></div>
             <div><dt>STABLE</dt><dd id="v3-stable">NO</dd></div>
             <div><dt>ACTION</dt><dd id="v3-action">—</dd></div>
             <div><dt>OUTCOME</dt><dd id="v3-outcome">—</dd></div>

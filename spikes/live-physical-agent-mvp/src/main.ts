@@ -19,6 +19,13 @@ import { deriveLivePresentationStateV01 } from '../control-v3/presentation.js';
 import { V3HumanStepTraceRecorder } from '../control-v3/trace.js';
 import type { LiveMeasurementV3, V3Snapshot } from '../control-v3/types.js';
 import { runV3BrowserScenario, V3_BROWSER_SCENARIOS, type V3BrowserScenario } from '../control-v3/browser-scenarios.js';
+import { HumanObservationV02Projector } from '../control-v4/observation.js';
+import { HumanTargetRelativeServoV04 } from '../control-v4/controller.js';
+import { deriveV4Presentation } from '../control-v4/presentation.js';
+import { DEFAULT_LIVE_TARGET_V02, LIVE_TARGET_FIXTURES_V02 } from '../control-v4/targets.js';
+import { V4ScalarTraceRecorder } from '../control-v4/trace.js';
+import type { HumanObservationV02, LiveTargetV02, TargetFixtureIdV02, V4Snapshot } from '../control-v4/types.js';
+import { runV4BrowserScenario, V4_BROWSER_MATRIX } from '../control-v4/browser-scenarios.js';
 
 type FacingMode = 'user' | 'environment';
 type PermissionStateLabel = PermissionState | 'not_requested' | 'unsupported' | 'error';
@@ -170,6 +177,9 @@ let latestVisualGuidance: VisualGuidanceState | null = null;
 let latestV3Measurement: LiveMeasurementV3 | null = null;
 let latestV3Snapshot: V3Snapshot | null = null;
 let v3ControllerLatencies:number[]=[];
+let latestV4Observation:HumanObservationV02|null=null;
+let latestV4Snapshot:V4Snapshot|null=null;
+let v4ControllerLatencies:number[]=[];
 let displayedActionCopy: string | null = null;
 let displayedActionUntilMs = 0;
 let activeGate1PreArm: Gate1PreArmTelemetry | null = null;
@@ -189,11 +199,16 @@ const visualProjector = new VisualGuidanceProjector();
 const v3Controller = new HumanStepServoV3(currentTarget);
 const v3Projector = new LiveMeasurementV3Projector();
 const v3Trace = new V3HumanStepTraceRecorder();
-type ControlPolicy='V2'|'V3';
+let currentV4Target:LiveTargetV02=DEFAULT_LIVE_TARGET_V02;
+const v4Controller=new HumanTargetRelativeServoV04(currentV4Target);
+const v4Projector=new HumanObservationV02Projector();
+const v4Trace=new V4ScalarTraceRecorder();
+type ControlPolicy='V2'|'V3'|'V4';
 const requestedDebugPolicy=new URLSearchParams(window.location.search).get('controlPolicy');
-controlPolicySelect.value=requestedDebugPolicy==='V3'?'V3':'V2';
-if(controlPolicySelect.value==='V3')scaleGateScenario.value='V3_FRAMING_ONLY';
-const activePolicy=():ControlPolicy=>controlPolicySelect.value==='V3'?'V3':'V2';
+controlPolicySelect.value=requestedDebugPolicy==='V4'?'V4':requestedDebugPolicy==='V3'?'V3':'V2';
+if(controlPolicySelect.value==='V3')scaleGateScenario.value='V3_FRAMING_ONLY';else if(controlPolicySelect.value==='V4')scaleGateScenario.value='V4_CENTER_UPPER_BODY';
+const activePolicy=():ControlPolicy=>controlPolicySelect.value==='V4'?'V4':controlPolicySelect.value==='V3'?'V3':'V2';
+const v4TargetForScenario=(value:string):LiveTargetV02=>LIVE_TARGET_FIXTURES_V02[value.replace(/^V4_/,'') as TargetFixtureIdV02]??DEFAULT_LIVE_TARGET_V02;
 
 const perceptionRuntime = new PerceptionRuntime({
   onStatus: (status, mode, text) => {
@@ -210,7 +225,9 @@ const perceptionRuntime = new PerceptionRuntime({
   onState: (state, rawMeasurement) => {
     latestPerceptionState = state;
     latestRawMeasurement = rawMeasurement;
-    if(activePolicy()==='V3'){
+    if(activePolicy()==='V4'){
+      const decisionAt=performance.now();latestV4Observation=v4Projector.project(state,Math.max(0,decisionAt-state.timestamp_ms));const started=performance.now();latestV4Snapshot=v4Controller.update(latestV4Observation);v4ControllerLatencies.push(performance.now()-started);if(v4ControllerLatencies.length>240)v4ControllerLatencies.shift();v4Trace.append(latestV4Snapshot);latestClosedLoop=null;latestVisualGuidance=null;
+    }else if(activePolicy()==='V3'){
       const decisionAt=performance.now();latestV3Measurement=v3Projector.project(state,currentTarget,Math.max(0,decisionAt-state.timestamp_ms));const started=performance.now();latestV3Snapshot=v3Controller.update(latestV3Measurement);v3ControllerLatencies.push(performance.now()-started);if(v3ControllerLatencies.length>240)v3ControllerLatencies.shift();v3Trace.append(latestV3Snapshot);latestClosedLoop=null;latestVisualGuidance=visualProjector.updateV3(state,latestV3Snapshot,currentTarget,rawMeasurement,{mode:guidanceMode.value as VisualServoMode,grid:guidanceGrid.checked,now:performance.now()});
     }else{
       latestClosedLoop = closedLoop.update(state, { decision_timestamp_ms: performance.now(), camera_facing: activeFacingMode === 'user' ? 'FRONT' : activeFacingMode === 'environment' ? 'REAR' : 'UNKNOWN', preview_mirror_state: activeFacingMode === 'user' ? 'MIRRORED' : activeFacingMode === 'environment' ? 'NON_MIRRORED' : 'UNKNOWN' });
@@ -256,7 +273,7 @@ const GATE1_REASON_COPY: Readonly<Record<string, string>> = Object.freeze({
 
 function renderGate1Precondition(): void {
   const scenario = scaleGateScenario.value;
-  gate1Precondition.hidden = activePolicy()==='V3'||!isGate1Scenario(scenario);
+  gate1Precondition.hidden = activePolicy()!=='V2'||!isGate1Scenario(scenario);
   if (!isGate1Scenario(scenario)) return;
   const current = activeGate1PreArm ?? evaluateGate1PreArm(scenario, latestPerceptionState, currentTarget);
   const blocked = gate1ArmAttempted && !current.precondition_valid;
@@ -302,6 +319,7 @@ function applyProjectedBox(element: HTMLElement, box: NormalizedBox | null): voi
 }
 
 function renderVisualGuidance(): void {
+  if(activePolicy()==='V4'){renderV4Visual();return;}
   if(activePolicy()==='V3'){renderV3Visual();return;}
   const visual = latestVisualGuidance;
   visualOverlay.dataset.mode = guidanceMode.value; cameraStage.dataset.guidanceMode = guidanceMode.value;
@@ -324,6 +342,8 @@ function renderVisualGuidance(): void {
   closedLoopFields.theme.textContent=`${renderedTheme.theme.theme_id} / ${semanticDiff}`;
 }
 
+function renderV4Visual():void{const snapshot=latestV4Snapshot;const presentation=deriveV4Presentation(snapshot);visualOverlay.dataset.status=presentation.state==='READY'?'READY':presentation.action?'CORRECTING':presentation.state==='ACQUIRING'?'LOST':'TRACKING';visualGrid.classList.toggle('is-visible',guidanceGrid.checked);stopVisual.classList.remove('is-visible');const box=latestPerceptionState?.framing?.display_box;applyProjectedBox(subjectBox,box?{left:box.min_x,top:box.min_y,width:box.width_ratio,height:box.height_ratio,center_x:box.center_x,center_y:box.center_y}:null);const target=snapshot?.target??currentV4Target;applyProjectedBox(targetBox,{left:target.target_anchor_x-.005,top:.08,width:.01,height:.84,center_x:target.target_anchor_x,center_y:.5});applyProjectedBox(acceptableZone,{left:target.target_anchor_x-target.tolerance_x,top:.08,width:target.tolerance_x*2,height:.84,center_x:target.target_anchor_x,center_y:.5});subjectLockLabel.textContent=snapshot?.observation.subject_lock.state==='LOCKED'?'人物已锁定':'人物锁定中';readyVisual.classList.toggle('is-visible',presentation.state==='READY');directionVisual.classList.toggle('is-visible',Boolean(presentation.action));if(presentation.action){directionLabel.textContent=presentation.overlay_copy_zh;directionIcon.textContent=presentation.action==='MOVE_LEFT_SMALL'?'←':presentation.action==='MOVE_RIGHT_SMALL'?'→':presentation.action==='MOVE_CLOSER_SMALL'?'＋':'−';}trackingVisual.textContent=presentation.overlay_copy_zh;renderSemanticDebug();}
+
 const percentile=(values:ReadonlyArray<number>,p:number):number=>{if(!values.length)return 0;const sorted=[...values].sort((a,b)=>a-b);return sorted[Math.min(sorted.length-1,Math.floor((sorted.length-1)*p))];};
 function renderV3Visual():void{
   const snapshot=latestV3Snapshot;const presentation=deriveLivePresentationStateV01(snapshot);const action=presentation.action;
@@ -340,6 +360,8 @@ function renderV3Control():void{
   closedLoopFields.runtimeState.textContent=`STATE · ${snapshot?.stage??'IDLE'}`;closedLoopFields.ready.textContent=`READY · ${String(snapshot?.ready??false).toUpperCase()}`;
   closedLoopFields.instruction.textContent=presentation.primary_copy_zh;guidanceOverlayState.textContent=`V3 · ${presentation.state}`;guidanceOverlayText.textContent=presentation.primary_copy_zh;closedLoopReset.textContent='重置 V3 试验';closedLoopArm.textContent='ARM V3 新试验';
 }
+
+function renderV4Control():void{const snapshot=latestV4Snapshot;const observation=latestV4Observation??snapshot?.observation??null;const presentation=deriveV4Presentation(snapshot);v3DebugPanel.hidden=false;v2DebugGrid.hidden=true;v3Fields.policy.textContent=`CONTROL POLICY · V4 · ${snapshot?.target.id??currentV4Target.id}`;v3Fields.stage.textContent=snapshot?.stage??'ACQUIRE_SUBJECT';v3Fields.framing.textContent=snapshot?.constraints.scale_relation??'UNKNOWN';v3Fields.x.textContent=snapshot?.constraints.x_relation??'UNKNOWN';v3Fields.measurement.textContent=observation?.quality??'INVALID';v3Fields.stable.textContent=observation?.stable?'YES':'NO';v3Fields.action.textContent=snapshot?.active_episode?.action??snapshot?.action??'—';v3Fields.outcome.textContent=snapshot?.last_episode?.outcome??(snapshot?.active_episode?.no_response_recorded?'NO_RESPONSE':'—');v3Fields.latency.textContent=`${percentile(v4ControllerLatencies,.5).toFixed(3)} / ${percentile(v4ControllerLatencies,.95).toFixed(3)} ms`;closedLoopFields.runtimeState.textContent=`STATE · ${snapshot?.stage??'IDLE'}`;closedLoopFields.ready.textContent=`READY · ${String(snapshot?.ready??false).toUpperCase()}`;closedLoopFields.instruction.textContent=presentation.primary_copy_zh;guidanceOverlayState.textContent=`V4 · ${presentation.state}`;guidanceOverlayText.textContent=presentation.primary_copy_zh;closedLoopReset.textContent='重置 V4 试验';closedLoopArm.textContent='ARM V4 新试验';}
 
 function renderSemanticDebug():void{
   const framing=latestPerceptionState?.framing;const enabled=semanticDebug.checked&&Boolean(framing);semanticDebugCard.hidden=!enabled;
@@ -412,7 +434,8 @@ function renderPerceptionTelemetry(): void {
 }
 
 function renderClosedLoop(): void {
-  v3DebugPanel.hidden=activePolicy()!=='V3';v2DebugGrid.hidden=activePolicy()==='V3';
+  v3DebugPanel.hidden=activePolicy()==='V2';v2DebugGrid.hidden=activePolicy()!=='V2';
+  if(activePolicy()==='V4'){renderV4Control();return;}
   if(activePolicy()==='V3'){renderV3Control();return;}
   const snapshot = latestClosedLoop;
   const target = snapshot?.target ?? currentTarget;
@@ -800,10 +823,11 @@ guidanceMode.addEventListener('change',()=>{ if(latestPerceptionState&&latestClo
 guidanceGrid.addEventListener('change',()=>{ if(latestPerceptionState&&latestClosedLoop) latestVisualGuidance=visualProjector.update(latestPerceptionState,latestClosedLoop,latestRawMeasurement,{mode:guidanceMode.value as VisualServoMode,grid:guidanceGrid.checked,now:performance.now()}); renderVisualGuidance(); });
 semanticDebug.addEventListener('change',renderSemanticDebug);
 guidanceTheme.addEventListener('change',()=>renderVisualGuidance());
-scaleGateScenario.addEventListener('change', () => { activeGate1PreArm = null; gate1ArmAttempted = false; renderGate1Precondition(); });
-controlPolicySelect.addEventListener('change',()=>{closedLoop.reset();v3Controller.reset();v3Projector.reset();scalarTrace.clear();v3Trace.clear();latestClosedLoop=null;latestV3Measurement=null;latestV3Snapshot=null;latestVisualGuidance=null;v3ControllerLatencies=[];displayedActionCopy=null;displayedActionUntilMs=0;activeGate1PreArm=null;gate1ArmAttempted=false;if(activePolicy()==='V3'&&!scaleGateScenario.value.startsWith('V3_'))scaleGateScenario.value='V3_FRAMING_ONLY';visualProjector.reset();renderClosedLoop();renderGate1Precondition();renderVisualGuidance();setMessage(activePolicy()==='V3'?'V3 实验控制已选择；仅本测试会话有效，V2 仍是默认。':'已恢复 V2 当前默认控制。');});
+scaleGateScenario.addEventListener('change', () => { activeGate1PreArm = null; gate1ArmAttempted = false;if(activePolicy()==='V4'&&scaleGateScenario.value.startsWith('V4_')){currentV4Target=v4TargetForScenario(scaleGateScenario.value);v4Controller.setTarget(currentV4Target);latestV4Snapshot=null;}renderGate1Precondition();renderClosedLoop();renderVisualGuidance(); });
+controlPolicySelect.addEventListener('change',()=>{closedLoop.reset();v3Controller.reset();v3Projector.reset();v4Controller.reset();v4Projector.reset();scalarTrace.clear();v3Trace.clear();v4Trace.clear();latestClosedLoop=null;latestV3Measurement=null;latestV3Snapshot=null;latestV4Observation=null;latestV4Snapshot=null;latestVisualGuidance=null;v3ControllerLatencies=[];v4ControllerLatencies=[];displayedActionCopy=null;displayedActionUntilMs=0;activeGate1PreArm=null;gate1ArmAttempted=false;if(activePolicy()==='V3'&&!scaleGateScenario.value.startsWith('V3_'))scaleGateScenario.value='V3_FRAMING_ONLY';if(activePolicy()==='V4'){if(!scaleGateScenario.value.startsWith('V4_'))scaleGateScenario.value='V4_CENTER_UPPER_BODY';currentV4Target=v4TargetForScenario(scaleGateScenario.value);v4Controller.setTarget(currentV4Target);}visualProjector.reset();renderClosedLoop();renderGate1Precondition();renderVisualGuidance();setMessage(activePolicy()==='V4'?'V4 Target-relative 控制已选择；Target 与 Current Observation 独立。':activePolicy()==='V3'?'V3 历史实验控制已选择。':'已恢复 V2 当前默认控制。');});
 
 closedLoopReset.addEventListener('click', () => {
+  if(activePolicy()==='V4'){v4Controller.reset();v4Projector.reset();v4Trace.clear();latestV4Observation=null;latestV4Snapshot=null;v4ControllerLatencies=[];renderClosedLoop();renderVisualGuidance();setMessage('V4 试验已重置；请选择 Target 后 ARM。');return;}
   if(activePolicy()==='V3'){v3Controller.reset();v3Projector.reset();v3Trace.clear();latestV3Measurement=null;latestV3Snapshot=null;v3ControllerLatencies=[];renderClosedLoop();renderVisualGuidance();setMessage('V3 实验已重置；请选择 ARM 开始新的单步试验。');return;}
   if (latestClosedLoop?.runtime_state === 'LOCAL_RECOVERY_REQUIRED' && closedLoop.resumeAfterLocalRecovery(performance.now())) {
     displayedActionCopy = null; displayedActionUntilMs = 0;
@@ -814,6 +838,7 @@ closedLoopReset.addEventListener('click', () => {
   visualProjector.reset(); latestVisualGuidance = null; renderClosedLoop(); renderGate1Precondition(); renderVisualGuidance();
 });
 closedLoopArm.addEventListener('click', () => {
+  if(activePolicy()==='V4'){v4Controller.arm(performance.now());v4Trace.clear();latestV4Snapshot=null;renderClosedLoop();renderVisualGuidance();setMessage('V4 试验已 ARM：一次只响应一条小步指令；无响应只提醒，不会被判成结果。');return;}
   if(activePolicy()==='V3'){v3Controller.arm(performance.now());v3Trace.clear();latestV3Snapshot=null;renderClosedLoop();renderVisualGuidance();setMessage('V3 试验已 ARM：每条指令只做一次小调整，然后自然停下。');return;}
   const scenario = scaleGateScenario.value;
   const preArm = isGate1Scenario(scenario) ? evaluateGate1PreArm(scenario, latestPerceptionState, currentTarget) : null;
@@ -836,8 +861,8 @@ closedLoopArm.addEventListener('click', () => {
 closedLoopTrace.addEventListener('click', () => {
   const previewFps=Number.parseFloat(fpsValue.textContent??'0')||0;const runtimeTelemetry=perceptionRuntime.snapshot(previewFps);const scenario=scaleGateScenario.value;
   const context={scenario_label:scenario,generated_at_iso:new Date().toISOString(),runtime_telemetry:runtimeTelemetry,session:{user_agent:navigator.userAgent,viewport_width:window.innerWidth,viewport_height:window.innerHeight,orientation:screen.orientation?.type??(window.innerHeight>=window.innerWidth?'portrait':'landscape'),camera_facing:activeFacingMode==='user'?'FRONT':activeFacingMode==='environment'?'REAR':'UNKNOWN',preview_mirror_state:activeFacingMode==='user'?'MIRRORED':activeFacingMode==='environment'?'NON_MIRRORED':'UNKNOWN',target_id:currentTarget.id,theme_id:guidanceTheme.value,vision_target_hz:runtimeTelemetry.vision_target_hz,scheduler}};
-  const isV3=activePolicy()==='V3';const blob = new Blob([isV3?v3Trace.json(context):scalarTrace.json(context)], { type: 'application/json' }); const url = URL.createObjectURL(blob);
-  const link = document.createElement('a'); link.href = url; link.download = isV3?`live-p2-v3-${scenario.toLowerCase()}-${Date.now()}.json`:`live-p2-scale-${scenario.toLowerCase()}-${Date.now()}.json`; link.click();
+  const policy=activePolicy();const blob = new Blob([policy==='V4'?v4Trace.json(context):policy==='V3'?v3Trace.json(context):scalarTrace.json(context)], { type: 'application/json' }); const url = URL.createObjectURL(blob);
+  const link = document.createElement('a'); link.href = url; link.download = policy==='V4'?`live-p2-v4-${scenario.toLowerCase()}-${Date.now()}.json`:policy==='V3'?`live-p2-v3-${scenario.toLowerCase()}-${Date.now()}.json`:`live-p2-scale-${scenario.toLowerCase()}-${Date.now()}.json`; link.click();
   window.setTimeout(() => URL.revokeObjectURL(url), 0);
 });
 
@@ -904,3 +929,5 @@ if(v3ReplayName&&V3_BROWSER_SCENARIOS.includes(v3ReplayName as V3BrowserScenario
   controlPolicySelect.value='V3';v3Controller.reset();v3Trace.clear();const snapshots=runV3BrowserScenario(v3ReplayName as V3BrowserScenario);poseMessage.textContent=`V3 SYNTHETIC REPLAY · ${v3ReplayName} · NO CAMERA / NO PROVIDER`;
   snapshots.forEach((snapshot,index)=>window.setTimeout(()=>{latestV3Snapshot=snapshot;latestV3Measurement=snapshot.measurement;v3Trace.append(snapshot);renderClosedLoop();renderGate1Precondition();renderVisualGuidance();if(index===snapshots.length-1){document.documentElement.dataset.v3BrowserGate='PASS';document.documentElement.dataset.v3Scenario=v3ReplayName;}},index*120));
 }
+const v4ReplayName=new URLSearchParams(window.location.search).get('v4Replay');
+if(v4ReplayName&&V4_BROWSER_MATRIX.includes(v4ReplayName as TargetFixtureIdV02)){controlPolicySelect.value='V4';scaleGateScenario.value=`V4_${v4ReplayName}`;currentV4Target=LIVE_TARGET_FIXTURES_V02[v4ReplayName as TargetFixtureIdV02];v4Controller.setTarget(currentV4Target);v4Trace.clear();const snapshots=runV4BrowserScenario(v4ReplayName as TargetFixtureIdV02);poseMessage.textContent=`V4 SYNTHETIC REPLAY · ${v4ReplayName} · NO CAMERA / NO PROVIDER`;snapshots.forEach((snapshot,index)=>window.setTimeout(()=>{latestV4Snapshot=snapshot;latestV4Observation=snapshot.observation;v4Trace.append(snapshot);renderClosedLoop();renderGate1Precondition();renderVisualGuidance();if(index===snapshots.length-1){document.documentElement.dataset.v4BrowserGate=snapshot.ready?'PASS':'FAIL';document.documentElement.dataset.v4Scenario=v4ReplayName;}},index*120));}

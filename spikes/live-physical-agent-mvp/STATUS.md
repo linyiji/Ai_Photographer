@@ -1,5 +1,18 @@
 # Live Physical Agent Spike Status
 
+V4 Architecture = IMPLEMENTED / ACCEPTANCE SANDBOX
+V4 Subject Lock / Body Visibility / Semantic Anchors = PASS / PASS_WITH_WARNING / PASS
+V4 HumanObservationV02 / LiveTargetV02 / LiveConstraintStateV01 = PASS / PASS / PASS
+V4 Fixed Center Authority / BodyMode Distance Authority = REMOVED / REMOVED
+V4 Target-relative X / Scale = PASS / PASS
+V4 Response Gate = PASS / NO-RESPONSE OUTCOME 0 / REISSUE 0
+V4 Browser Matrix = PASS / 6 OF 6
+V4 Automated Tests = 250/250 PASS
+V4 TypeScript / Production Build = PASS / PASS (44 MODULES)
+V4 OPPO Device Gate = MANUAL_REVIEW_REQUIRED / FRESH EVIDENCE REQUIRED
+V4 Production Candidate = REQUIRES_REVISION UNTIL DEVICE PASS
+V4 Main Integration = NOT_STARTED
+
 V2 Runtime = CURRENT_ACCEPTED_IMPLEMENTED_BASELINE / DEFAULT
 V3 Design Authority = PASS / EXPERIMENTAL
 V3 Phase A Pure Controller = IMPLEMENTED / 225 OF 225 CHECKPOINT PASS
