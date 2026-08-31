@@ -105,3 +105,17 @@ The authoritative real-device primary latency family is **TRANSPORT**: the two `
 Final disposition: `TASK_RESULT = PASS_WITH_WARNING`; `P2_RUNTIME = ACCEPTED_WITH_LATENCY_WARNING`; `CACHE = PASS`; `P1_NON_BLOCKING = PASS`; `GEOMETRY_ALGORITHM_GATE = UNCHANGED`.
 
 P3 and Main Integration remain `NOT_STARTED`.
+
+## Owner acceptance disposition
+
+Owner accepted the completed source track with these authoritative states:
+
+- `SCENE_SPATIAL_P0 = ACCEPTED`;
+- `SCENE_SPATIAL_P1 = ACCEPTED_WITH_WARNING`;
+- `SCENE_SPATIAL_P2 = ACCEPTED_WITH_LATENCY_WARNING`;
+- `P1_NON_BLOCKING = PASS`;
+- `SPATIAL_EVIDENCE_V02 = PASS`;
+- `GEOMETRY_ALGORITHM_GATE = CLOSED / UNCHANGED`;
+- `P3 = NOT_STARTED`;
+- `SCENE_SPATIAL_SOURCE_TRACK = READ_ONLY_ACCEPTED_SOURCE`;
+- `MAIN_INTEGRATION = READY_TO_START`, while execution remains `NOT_STARTED` until separately authorized.
