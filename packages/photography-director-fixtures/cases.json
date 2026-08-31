@@ -1,0 +1,94 @@
+{
+  "suite_version": "0.1.0",
+  "fixture_authority": "CONTROLLED_SYNTHETIC_ONLY",
+  "cases": [
+    {
+      "case_id": "simple-side-light-level1-no-spatial",
+      "matrix_tags": ["CLOTHING_DARK_RED", "SCENE_SIMPLE", "STRONG_SIDE_LIGHT", "SPATIAL_ABSENT", "INTENT_CINEMATIC"],
+      "input": {
+        "schema_version": "0.1.0", "request_id": "director-case-01",
+        "subject_reference": {"asset_ref": "fixture-subject-01", "evidence_kind": "CONTROLLED_SYNTHETIC"},
+        "subject_profile": {"clothing_type": "long red coat", "dominant_colors": ["deep red"], "secondary_colors": ["black"], "accessories": ["small black bag"], "visible_styling": ["clean silhouette"], "pose_feasibility_considerations": ["avoid wide arm extension"], "evidence_refs": ["subject-profile-01"]},
+        "scene_understanding": {"scene_type": "quiet stone walkway", "usable_visual_elements": ["stone wall", "receding path", "dark doorway"], "background_complexity": "SIMPLE", "evidence_refs": ["scene-01"]},
+        "view_candidates": [
+          {"view_ref": "view-01-a", "description": "path recedes behind subject", "usable_elements": ["receding path", "stone wall"], "background_complexity": "SIMPLE", "lighting_relationship": "side light crosses the path", "evidence_refs": ["view-evidence-01-a"]},
+          {"view_ref": "view-01-b", "description": "doorway creates a dark contextual frame", "usable_elements": ["dark doorway", "stone wall"], "background_complexity": "SIMPLE", "lighting_relationship": "subject edge receives side light", "evidence_refs": ["view-evidence-01-b"]}
+        ],
+        "composition_anchor_candidates": [
+          {"anchor_ref": "anchor-01-a", "view_ref": "view-01-a", "semantic_element": "path opening", "x": 0.42, "y": 0.55, "confidence": 0.9},
+          {"anchor_ref": "anchor-01-b", "view_ref": "view-01-b", "semantic_element": "doorway edge", "x": 0.58, "y": 0.52, "confidence": 0.86}
+        ],
+        "lighting_evidence": {"lighting_type": "SIDE", "direction": "camera left", "intensity": "STRONG", "risks": ["deep facial shadow"], "evidence_refs": ["light-01"]},
+        "spatial_evidence_optional": null,
+        "user_intent": {"mood": "cinematic and calm", "priorities": ["show the location", "retain coat color"], "preferred_framing": "ENVIRONMENTAL_FULL_BODY", "exclusions": ["playful pose"]},
+        "reference_image_optional": null
+      }
+    },
+    {
+      "case_id": "complex-flat-light-partial-spatial",
+      "matrix_tags": ["CLOTHING_BLUE_LAYERED", "SCENE_COMPLEX", "FLAT_LIGHT", "SPATIAL_PARTIAL", "INTENT_LIFESTYLE"],
+      "input": {
+        "schema_version": "0.1.0", "request_id": "director-case-02",
+        "subject_reference": {"asset_ref": "fixture-subject-02", "evidence_kind": "CONTROLLED_SYNTHETIC"},
+        "subject_profile": {"clothing_type": "blue layered streetwear", "dominant_colors": ["navy", "denim blue"], "secondary_colors": ["white"], "accessories": ["canvas tote"], "visible_styling": ["layered jacket"], "pose_feasibility_considerations": ["tote remains on right shoulder"], "evidence_refs": ["subject-profile-02"]},
+        "scene_understanding": {"scene_type": "busy market street", "usable_visual_elements": ["shop awning", "signage rhythm", "side lane"], "background_complexity": "COMPLEX", "evidence_refs": ["scene-02"]},
+        "view_candidates": [
+          {"view_ref": "view-02-a", "description": "awning line creates depth", "usable_elements": ["shop awning", "side lane"], "background_complexity": "COMPLEX", "lighting_relationship": "flat overhead ambient light", "evidence_refs": ["view-evidence-02-a"]},
+          {"view_ref": "view-02-b", "description": "signage repeats across background", "usable_elements": ["signage rhythm", "shop awning"], "background_complexity": "COMPLEX", "lighting_relationship": "even open shade", "evidence_refs": ["view-evidence-02-b"]}
+        ],
+        "composition_anchor_candidates": [
+          {"anchor_ref": "anchor-02-a", "view_ref": "view-02-a", "semantic_element": "awning gap", "x": 0.45, "y": 0.52, "confidence": 0.83},
+          {"anchor_ref": "anchor-02-b", "view_ref": "view-02-b", "semantic_element": "signage break", "x": 0.6, "y": 0.5, "confidence": 0.79}
+        ],
+        "lighting_evidence": {"lighting_type": "FLAT", "direction": "overhead open shade", "intensity": "MODERATE", "risks": [], "evidence_refs": ["light-02"]},
+        "spatial_evidence_optional": {"status": "PARTIAL", "metric_scale_available": false, "relative_geometry": ["side lane recedes relative to view-02-a"], "limitations": ["NON_METRIC", "NO_PHYSICAL_SAFETY_AUTHORITY"], "evidence_refs": ["spatial-02"]},
+        "user_intent": {"mood": "casual urban lifestyle", "priorities": ["natural movement", "show clothing layers"], "preferred_framing": "THREE_QUARTER_LIFESTYLE", "exclusions": ["formal stance"]},
+        "reference_image_optional": null
+      }
+    },
+    {
+      "case_id": "simple-backlight-insufficient-spatial",
+      "matrix_tags": ["CLOTHING_LIGHT_NEUTRAL", "SCENE_SIMPLE", "BACKLIGHT_RISK", "SPATIAL_INSUFFICIENT", "INTENT_EMOTIONAL"],
+      "input": {
+        "schema_version": "0.1.0", "request_id": "director-case-03",
+        "subject_reference": {"asset_ref": "fixture-subject-03", "evidence_kind": "CONTROLLED_SYNTHETIC"},
+        "subject_profile": {"clothing_type": "cream knit top", "dominant_colors": ["cream"], "secondary_colors": ["warm gray"], "accessories": [], "visible_styling": ["soft texture"], "pose_feasibility_considerations": ["keep shoulders relaxed"], "evidence_refs": ["subject-profile-03"]},
+        "scene_understanding": {"scene_type": "lakeside overlook", "usable_visual_elements": ["bright water", "distant ridge", "simple railing"], "background_complexity": "SIMPLE", "evidence_refs": ["scene-03"]},
+        "view_candidates": [
+          {"view_ref": "view-03-a", "description": "water provides luminous background", "usable_elements": ["bright water", "distant ridge"], "background_complexity": "SIMPLE", "lighting_relationship": "sun is behind subject", "evidence_refs": ["view-evidence-03-a"]},
+          {"view_ref": "view-03-b", "description": "railing provides a quiet contextual line", "usable_elements": ["simple railing", "distant ridge"], "background_complexity": "SIMPLE", "lighting_relationship": "backlight creates rim separation", "evidence_refs": ["view-evidence-03-b"]}
+        ],
+        "composition_anchor_candidates": [
+          {"anchor_ref": "anchor-03-a", "view_ref": "view-03-a", "semantic_element": "water highlight gap", "x": 0.5, "y": 0.48, "confidence": 0.82},
+          {"anchor_ref": "anchor-03-b", "view_ref": "view-03-b", "semantic_element": "railing interval", "x": 0.55, "y": 0.5, "confidence": 0.8}
+        ],
+        "lighting_evidence": {"lighting_type": "BACKLIGHT", "direction": "behind subject", "intensity": "STRONG", "risks": ["face underexposure", "flare"], "evidence_refs": ["light-03"]},
+        "spatial_evidence_optional": {"status": "INSUFFICIENT", "metric_scale_available": false, "relative_geometry": [], "limitations": ["INSUFFICIENT_GEOMETRY", "NO_PHYSICAL_SAFETY_AUTHORITY"], "evidence_refs": ["spatial-03"]},
+        "user_intent": {"mood": "quiet and intimate", "priorities": ["facial expression", "soft light feeling"], "preferred_framing": "CLOSE_EMOTIONAL_PORTRAIT", "exclusions": ["large gesture"]},
+        "reference_image_optional": {"asset_ref": "fixture-mood-03", "usage": "MOOD_ONLY"}
+      }
+    },
+    {
+      "case_id": "complex-mixed-light-usable-spatial",
+      "matrix_tags": ["CLOTHING_GREEN_PATTERN", "SCENE_MODERATE", "MIXED_LIGHT", "SPATIAL_USABLE", "INTENT_EDITORIAL"],
+      "input": {
+        "schema_version": "0.1.0", "request_id": "director-case-04",
+        "subject_reference": {"asset_ref": "fixture-subject-04", "evidence_kind": "CONTROLLED_SYNTHETIC"},
+        "subject_profile": {"clothing_type": "green patterned dress", "dominant_colors": ["forest green"], "secondary_colors": ["gold", "black"], "accessories": ["gold earrings"], "visible_styling": ["patterned fabric", "defined waist"], "pose_feasibility_considerations": ["small torso turn is feasible"], "evidence_refs": ["subject-profile-04"]},
+        "scene_understanding": {"scene_type": "modern gallery arcade", "usable_visual_elements": ["column rhythm", "glass reflections", "pale wall"], "background_complexity": "MODERATE", "evidence_refs": ["scene-04"]},
+        "view_candidates": [
+          {"view_ref": "view-04-a", "description": "columns form a strong repeating frame", "usable_elements": ["column rhythm", "pale wall"], "background_complexity": "MODERATE", "lighting_relationship": "window light mixes with warm interior light", "evidence_refs": ["view-evidence-04-a"]},
+          {"view_ref": "view-04-b", "description": "reflections provide editorial layering", "usable_elements": ["glass reflections", "column rhythm"], "background_complexity": "COMPLEX", "lighting_relationship": "mixed reflection and side illumination", "evidence_refs": ["view-evidence-04-b"]}
+        ],
+        "composition_anchor_candidates": [
+          {"anchor_ref": "anchor-04-a", "view_ref": "view-04-a", "semantic_element": "column interval", "x": 0.4, "y": 0.53, "confidence": 0.92},
+          {"anchor_ref": "anchor-04-b", "view_ref": "view-04-b", "semantic_element": "reflection gap", "x": 0.62, "y": 0.5, "confidence": 0.84}
+        ],
+        "lighting_evidence": {"lighting_type": "MIXED", "direction": "window side plus warm interior", "intensity": "MODERATE", "risks": ["mixed color cast"], "evidence_refs": ["light-04"]},
+        "spatial_evidence_optional": {"status": "USABLE", "metric_scale_available": false, "relative_geometry": ["column intervals provide relative depth", "reflection plane lies behind proposed subject image region"], "limitations": ["NON_METRIC", "NO_WALKABILITY_AUTHORITY", "NO_PHYSICAL_SAFETY_AUTHORITY"], "evidence_refs": ["spatial-04"]},
+        "user_intent": {"mood": "graphic editorial", "priorities": ["strong shape relationship", "preserve dress pattern"], "preferred_framing": "ENVIRONMENTAL_FULL_BODY", "exclusions": ["busy overlap on face"]},
+        "reference_image_optional": {"asset_ref": "fixture-composition-04", "usage": "COMPOSITION_REFERENCE"}
+      }
+    }
+  ]
+}

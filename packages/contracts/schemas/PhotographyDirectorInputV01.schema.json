@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xfx.local/contracts/v1/PhotographyDirectorInputV01.schema.json",
+  "title": "PhotographyDirectorInputV01",
+  "description": "Provider-neutral, evidence-bounded request for Level 1 Photography Director candidate generation; SpatialEvidence is optional.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "request_id", "subject_reference", "subject_profile", "scene_understanding", "view_candidates", "composition_anchor_candidates", "lighting_evidence", "user_intent"],
+  "properties": {
+    "schema_version": {"const": "0.1.0"},
+    "request_id": {"type": "string", "minLength": 1, "maxLength": 160},
+    "subject_reference": {
+      "type": "object", "additionalProperties": false, "required": ["asset_ref", "evidence_kind"],
+      "properties": {"asset_ref": {"type": "string", "minLength": 1, "maxLength": 160}, "evidence_kind": {"enum": ["CONTROLLED_SYNTHETIC", "CAPTURED_REFERENCE"]}}
+    },
+    "subject_profile": {
+      "type": "object", "additionalProperties": false,
+      "required": ["clothing_type", "dominant_colors", "secondary_colors", "accessories", "visible_styling", "pose_feasibility_considerations", "evidence_refs"],
+      "properties": {
+        "clothing_type": {"type": "string", "minLength": 1, "maxLength": 120},
+        "dominant_colors": {"type": "array", "minItems": 1, "maxItems": 4, "items": {"type": "string", "minLength": 1}},
+        "secondary_colors": {"type": "array", "maxItems": 4, "items": {"type": "string", "minLength": 1}},
+        "accessories": {"type": "array", "maxItems": 8, "items": {"type": "string", "minLength": 1}},
+        "visible_styling": {"type": "array", "maxItems": 8, "items": {"type": "string", "minLength": 1}},
+        "pose_feasibility_considerations": {"type": "array", "maxItems": 8, "items": {"type": "string", "minLength": 1}},
+        "evidence_refs": {"type": "array", "minItems": 1, "maxItems": 12, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "scene_understanding": {
+      "type": "object", "additionalProperties": false, "required": ["scene_type", "usable_visual_elements", "background_complexity", "evidence_refs"],
+      "properties": {
+        "scene_type": {"type": "string", "minLength": 1, "maxLength": 120},
+        "usable_visual_elements": {"type": "array", "minItems": 1, "maxItems": 12, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "background_complexity": {"enum": ["SIMPLE", "MODERATE", "COMPLEX"]},
+        "evidence_refs": {"type": "array", "minItems": 1, "maxItems": 16, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "view_candidates": {
+      "type": "array", "minItems": 1, "maxItems": 8,
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["view_ref", "description", "usable_elements", "background_complexity", "lighting_relationship", "evidence_refs"],
+        "properties": {
+          "view_ref": {"type": "string", "minLength": 1, "maxLength": 160},
+          "description": {"type": "string", "minLength": 1, "maxLength": 300},
+          "usable_elements": {"type": "array", "minItems": 1, "maxItems": 12, "items": {"type": "string", "minLength": 1}},
+          "background_complexity": {"enum": ["SIMPLE", "MODERATE", "COMPLEX"]},
+          "lighting_relationship": {"type": "string", "minLength": 1, "maxLength": 240},
+          "evidence_refs": {"type": "array", "minItems": 1, "maxItems": 16, "items": {"type": "string", "minLength": 1}}
+        }
+      }
+    },
+    "composition_anchor_candidates": {
+      "type": "array", "minItems": 1, "maxItems": 16,
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["anchor_ref", "view_ref", "semantic_element", "x", "y", "confidence"],
+        "properties": {
+          "anchor_ref": {"type": "string", "minLength": 1, "maxLength": 160}, "view_ref": {"type": "string", "minLength": 1, "maxLength": 160},
+          "semantic_element": {"type": "string", "minLength": 1, "maxLength": 120}, "x": {"type": "number", "minimum": 0, "maximum": 1},
+          "y": {"type": "number", "minimum": 0, "maximum": 1}, "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+        }
+      }
+    },
+    "lighting_evidence": {
+      "type": "object", "additionalProperties": false, "required": ["lighting_type", "direction", "intensity", "risks", "evidence_refs"],
+      "properties": {
+        "lighting_type": {"enum": ["SIDE", "FLAT", "BACKLIGHT", "MIXED"]}, "direction": {"type": "string", "minLength": 1, "maxLength": 120},
+        "intensity": {"enum": ["LOW", "MODERATE", "STRONG"]}, "risks": {"type": "array", "maxItems": 8, "items": {"type": "string", "minLength": 1}},
+        "evidence_refs": {"type": "array", "minItems": 1, "maxItems": 12, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "spatial_evidence_optional": {
+      "type": ["object", "null"], "additionalProperties": false, "required": ["status", "metric_scale_available", "relative_geometry", "limitations", "evidence_refs"],
+      "properties": {
+        "status": {"enum": ["PARTIAL", "INSUFFICIENT", "USABLE"]}, "metric_scale_available": {"type": "boolean"},
+        "relative_geometry": {"type": "array", "maxItems": 12, "items": {"type": "string", "minLength": 1}},
+        "limitations": {"type": "array", "minItems": 1, "maxItems": 12, "items": {"type": "string", "minLength": 1}},
+        "evidence_refs": {"type": "array", "maxItems": 16, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "user_intent": {
+      "type": "object", "additionalProperties": false, "required": ["mood", "priorities", "exclusions"],
+      "properties": {
+        "mood": {"type": "string", "minLength": 1, "maxLength": 120}, "priorities": {"type": "array", "minItems": 1, "maxItems": 8, "items": {"type": "string", "minLength": 1}},
+        "preferred_framing": {"type": ["string", "null"], "enum": ["ENVIRONMENTAL_FULL_BODY", "THREE_QUARTER_LIFESTYLE", "CLOSE_EMOTIONAL_PORTRAIT", null]},
+        "exclusions": {"type": "array", "maxItems": 8, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "reference_image_optional": {
+      "type": ["object", "null"], "additionalProperties": false, "required": ["asset_ref", "usage"],
+      "properties": {"asset_ref": {"type": "string", "minLength": 1, "maxLength": 160}, "usage": {"enum": ["MOOD_ONLY", "COMPOSITION_REFERENCE"]}}
+    }
+  }
+}

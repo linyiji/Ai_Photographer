@@ -35,6 +35,9 @@
     {"name":"SpatialPrecheckV01","domain":"SCENE_SPATIAL","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/SpatialPrecheckV01.schema.json","path":"schemas/SpatialPrecheckV01.schema.json"},
     {"name":"SceneGeometryRequestV01","domain":"SCENE_SPATIAL","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/SceneGeometryRequestV01.schema.json","path":"schemas/SceneGeometryRequestV01.schema.json"},
     {"name":"SpatialEvidenceV02","domain":"SCENE_SPATIAL","version":"0.2.0","schema_id":"https://xfx.local/contracts/v1/SpatialEvidenceV02.schema.json","path":"schemas/SpatialEvidenceV02.schema.json"},
-    {"name":"SceneSpatialSessionStateV01","domain":"CONTROL","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/SceneSpatialSessionStateV01.schema.json","path":"schemas/SceneSpatialSessionStateV01.schema.json"}
+    {"name":"SceneSpatialSessionStateV01","domain":"CONTROL","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/SceneSpatialSessionStateV01.schema.json","path":"schemas/SceneSpatialSessionStateV01.schema.json"},
+    {"name":"PhotographyDirectorInputV01","domain":"DIRECTOR","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/PhotographyDirectorInputV01.schema.json","path":"schemas/PhotographyDirectorInputV01.schema.json"},
+    {"name":"LiveTargetBlueprintV01","domain":"DIRECTOR","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/LiveTargetBlueprintV01.schema.json","path":"schemas/LiveTargetBlueprintV01.schema.json"},
+    {"name":"ShotPlanCandidateV01","domain":"DIRECTOR","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/ShotPlanCandidateV01.schema.json","path":"schemas/ShotPlanCandidateV01.schema.json"}
   ]
 }
