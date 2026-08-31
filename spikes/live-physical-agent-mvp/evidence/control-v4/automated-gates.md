@@ -19,7 +19,6 @@ Date: 2026-08-31 (Asia/Shanghai)
 
 ## Privacy and hot path
 
-Scalar trace contains target/current values, constraints, causal timestamps and counters only. Camera frame storage, landmark export, raw video upload, backend per-frame calls, Provider and Luna are all zero.
+Scalar trace contains one row per fresh perception state with subject-lock state, named visible-body parts, crop warning, semantic current/target scalars, constraints, causal timestamps and counters. Camera frame storage, landmark export, raw video upload, backend per-frame calls, Provider and Luna are all zero.
 
 Runtime note: bundled Node is v24.19.0 while the repository pins v24.18.0; compilation, tests and build pass. This is a tooling-version warning, not a runtime semantic relaxation.
-
