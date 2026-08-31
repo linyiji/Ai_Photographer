@@ -88,6 +88,14 @@ The functional overlay now uses one clear target frame, one stabilized subject c
 
 All parameters are spike-local Candidates, not global Authority.
 
+## V4 X calibration control-task semantics
+
+Subject-local X calibration is a diagnostic control task, not a photography Target evaluation. `XCalibrationRequirementV01` reads target-independent `HumanObservationV02` and requires a locked subject, valid head evidence, bilateral-valid shoulders, a finite/confident `SHOULDER_CENTER`, fresh evidence, and a stable baseline. It does not query `TargetObservationGap.ready` and does not require hips, `TORSO_CENTER`, `HEAD_TO_HIP`, Scale readiness, or full-body coverage.
+
+`HEAD_SHOULDERS` and `UPPER_BODY` remain different extents. `HEAD_SHOULDERS` means head plus bilateral shoulders and does not require hips. The existing `CENTER_UPPER_BODY` photography fixture still means head-to-hip upper-body framing, keeps `HEAD_TO_HIP` plus `TORSO_CENTER`, and therefore still requires hips. No `CENTER_HEAD_SHOULDERS` Scale metric is invented by this bounded calibration correction.
+
+Calibration records `calibration_action_id`, explicit subject-local LEFT/RIGHT label, shoulder-center Sensor X before/after, signed delta, detected response, and settled state. Front-preview mirroring remains display-only and never redefines the subject's own left/right.
+
 ## Privacy and external-call boundary
 
 ```text

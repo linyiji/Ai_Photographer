@@ -120,3 +120,29 @@ The left labeled calibration establishes `SUBJECT_LEFT -> SENSOR_X POSITIVE` on 
 The new single-step file also shows that opening the general diagnostic surface can expose unrelated Scale preconditions before the intended X test. Commit `7dbe187` therefore performs a presentation-only reduction for the active 05F device gate: the default mobile view exposes only left calibration, right calibration and one Center X revalidation; legacy scenarios, full observation fields, controller internals, performance HUD and capability nodes remain in the DOM and reappear through `显示完整调试`. Scalar Trace capture remains complete. No target, scale, five-layer, response, VERIFY or direction semantics changed.
 
 Fresh regression for the compact surface: 284/284 tests PASS; TypeScript PASS; production build PASS / 51 modules; mobile viewport browser Smoke PASS. Default compact selection is the remaining right calibration, all 22 scenario options remain in DOM, four legacy scenario groups are hidden by presentation only, full debug restores them, and browser console warning/error count is 0.
+
+## X calibration readiness remediation
+
+Task `XFX_LIVE_P2_V4_X_CALIBRATION_READINESS_AND_SUBJECT_LOCAL_DIRECTION_REMEDIATION_05F` accepts root cause `X_CALIBRATION_OVERCOUPLED_TO_FULL_PHOTOGRAPHY_TARGET_GATE` and implements the bounded correction in commit `a8fc8ef`.
+
+The calibration Session no longer consumes `V4Snapshot` or reads `target_gap.ready`. It consumes target-independent `HumanObservationV02` through `XCalibrationRequirementV01`:
+
+```text
+Subject LOCKED
++ HEAD VALID
++ SHOULDERS BILATERAL_VALID
++ SHOULDER_CENTER finite/confidence >= 0.6
++ fresh
++ stable baseline
+-> X_CALIBRATION_READY
+```
+
+Explicit non-requirements are serialized as `photography_target_gap_required=false`, `hips_required=false`, and `scale_required=false`. The observation anchor is `SHOULDER_CENTER.x` in normalized non-mirrored Sensor coordinates. Movement may make `stable=false`; after a valid stable baseline the Session still observes fresh structural shoulder motion, then requires a stable `STILL` endpoint before completion.
+
+Trace calibration state records `calibration_action_id`, `subject_local_label`, `sensor_x_before`, `sensor_x_after`, `sensor_delta_x`, `sensor_delta_sign`, `response_observed`, `settled`, the complete readiness object and `calibration_anchor=SHOULDER_CENTER`. No raw media or landmarks are exported.
+
+The normal `CENTER_UPPER_BODY` photography Target is unchanged: `HEAD_TO_HIP`, `TORSO_CENTER`, hips, target Scale, TargetObservationGap, response gate and VERIFY remain authoritative for the later product X correction. `HEAD_SHOULDERS` is documented separately as head plus bilateral shoulders with hips not required; no final head-and-shoulders Scale metric or new production Target is introduced.
+
+Automated regression after remediation: 287/287 PASS. Required cases pass: head + bilateral shoulders with hips missing and `HEAD_TO_HIP=INVALID` is calibration-ready; an invalid shoulder center is not ready; normal `CENTER_UPPER_BODY` with hips missing remains `ACQUIRE_REQUIRED_BODY`; calibration Trace proves target-gap false while X-calibration-ready is true. TypeScript PASS; production build PASS / 52 modules. Mobile browser Smoke confirms explicit “向你自己的左边/右边” calibration wording, no calibration dependency copy mentioning hips, `TORSO_CENTER`, `HEAD_TO_HIP` or Scale, and zero console warning/error.
+
+Device result remains `MANUAL_REVIEW_REQUIRED`. The historical labeled left trace remains evidence of a positive Sensor-X sign, and the earlier Center X correction remains error-reducing with wrong direction 0. The new shoulder-center runtime still requires a fresh LEFT trace and a fresh RIGHT trace that both detect response, settle and produce opposite signs, followed by one Center X product correction. No physical mapper inversion is made before that fresh opposite-sign gate.
