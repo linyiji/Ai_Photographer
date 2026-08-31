@@ -3,9 +3,9 @@
 **Project Baseline:** V0.6 Complete  
 **Current Product Prototype:** S01 V1.6.1  
 **Current Milestone:** WeChat First Complete Product Baseline
-**Current Task:** XFX_MAIN_WECHAT_MINIPROGRAM_FIRST_COMPLETE_PRODUCT_BASELINE_01
+**Current Task:** XFX_MAIN_SCENE_SPATIAL_V02_SELECTIVE_INTEGRATION_05
 
-**Current Task Status:** MANUAL_REVIEW_REQUIRED
+**Current Task Status:** PASS_WITH_WARNING
 
 **Overall Project Status:** IN_PROGRESS
 **Primary Environment:** Windows First
@@ -36,13 +36,34 @@ OLD_FIRST_COMPLETE_NON_AI_PRODUCT_BASELINE = NOT_YET_PASS
 WECHAT_MINIPROGRAM = PRIMARY_PRODUCT_PLATFORM_CANDIDATE / UNVERIFIED
 DOUYIN_MINIPROGRAM = SECONDARY_PRODUCT_PLATFORM_CANDIDATE / UNVERIFIED
 HOME_V1 = STAGED_FOR_SUCCESSOR_MAIN
-SCENE_SPATIAL_INTEGRATION = NOT_STARTED
+SCENE_SPATIAL_INTEGRATION = PASS_WITH_WARNING
 LIVE_INTEGRATION = NOT_STARTED
 FINE_TUNE = PRESERVED_FOR_PORTABILITY_REVIEW
 PROVIDER = 0
 LUNA = 0
 PUBLIC_PRODUCTION_READY = NO
 ```
+
+## Scene Spatial V0.2 Main Integration
+
+```text
+Source Head: 68999dbc8c8332d789f7f74a094b2b02cd9cbae0
+Integration: SELECTIVE_MIGRATION / PASS_WITH_WARNING
+Module Decoupling: PASS
+REAL / FAKE / REPLAY: PASS_WITH_WARNING / PASS / PASS
+P1 View: PASS_WITH_WARNING / NON_BLOCKING PASS
+P2 Geometry: PASS_WITH_WARNING / LATENCY_WARNING PRESERVED
+Spatial Status Authority: BACKEND_ONLY
+Request Failure != INSUFFICIENT: PASS
+Backend / Frontend Tests: 121 / 121 PASS; 97 / 97 PASS
+WeChat / H5 Build: PASS / PASS_WITH_WARNING
+H5 Runtime Regression: PASS
+Integrated WeChat Device Gate: MANUAL_REVIEW_REQUIRED
+Raw Video / Frame Stream / Provider / Luna: 0 / 0 / 0 / 0
+P3 / Live Integration / AI Director: NOT_STARTED / NOT_STARTED / NOT_STARTED
+```
+
+Scene Spatial is connected through `SceneSpatialPort` and replaceable adapters while solver/OpenCV/cache internals remain module-private. One Scene Scan produces immediately usable ViewEvidence and asynchronously requests optional SpatialEvidenceV02. PARTIAL, INSUFFICIENT, NOT_PRODUCED, and SUPERSEDED all preserve the view-only product path. The current WeChat build contains the composition/upload path and passes the bounded AppService compatibility scan, but no fresh phone-to-backend Scene Scan is claimed because the official Developer Tools CLI service port remains disabled. See `project-status/reports/XFX_MAIN_SCENE_SPATIAL_V02_SELECTIVE_INTEGRATION_05.md`.
 
 H5 remains supported for UI, Workflow, backend, Replay, diagnostics, Scene/Live harnesses, Fine Tune and desktop QA. It is no longer product authority for OPPO Chrome Preview-to-Capture fidelity. Successor planning authority: `docs/platform/MINIPROGRAM_PRODUCT_PLATFORM_BASELINE_V01.md`.
 

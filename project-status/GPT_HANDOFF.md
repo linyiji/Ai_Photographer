@@ -3,7 +3,7 @@
 **Baseline:** V0.6 Complete  
 **Current Milestone:** WECHAT FIRST COMPLETE PRODUCT BASELINE
 
-**Current Task:** XFX_MAIN_WECHAT_MINIPROGRAM_FIRST_COMPLETE_PRODUCT_BASELINE_01 — MANUAL_REVIEW_REQUIRED
+**Current Task:** XFX_MAIN_SCENE_SPATIAL_V02_SELECTIVE_INTEGRATION_05 — PASS_WITH_WARNING
 
 ## Project Context
 
@@ -23,11 +23,13 @@ Provider = 0
 Luna = 0
 ```
 
-Reuse M01 contracts, PhotographySession/Workflow, backend/persistence, asset lineage, deterministic QA/Reality+, Replay, Fine Tune semantics, Final/My Works and shared product logic. Home V1 was imported from `D:\Projects\_bootstrap\main-next\home-v1\source\` with provenance. Mini Program Camera, permission/lifecycle, Preview-to-Capture fidelity, native/high-quality Capture, Album/Save, Share, and Fine Tune platform behavior require independent device acceptance. Scene Spatial and Live Main integration remain `NOT_STARTED`.
+Reuse M01 contracts, PhotographySession/Workflow, backend/persistence, asset lineage, deterministic QA/Reality+, Replay, Fine Tune semantics, Final/My Works and shared product logic. Home V1 was imported from `D:\Projects\_bootstrap\main-next\home-v1\source\` with provenance. Mini Program Camera, permission/lifecycle, Preview-to-Capture fidelity, native/high-quality Capture, Album/Save, Share, and Fine Tune platform behavior require independent device acceptance. Scene Spatial V0.2 Main integration is `PASS_WITH_WARNING`; Live Main integration remains `NOT_STARTED`.
 
 The WeChat candidate implementation is now complete on `feature/wechat-miniprogram-first-complete-product-baseline`: Home V1 is imported, Home/Works/Mine and all three session entry modes are wired, Context Reliability/Reconcile is contract-backed, WeChat Camera/upload/save/share adapters exist, and Fine Tune has a WeChat Canvas/OffscreenCanvas runtime. TypeScript, 87 frontend tests, 110 backend tests, WeChat build, and H5 regression passed. The project still uses `touristappid`, WeChat Developer Tools was unavailable, and no authorized device/network environment was available; G2-G9 and baseline promotion therefore remain pending.
 
 Read first: `project-status/reports/XFX_MAIN_WECHAT_MINIPROGRAM_FIRST_COMPLETE_PRODUCT_BASELINE_01.md`, `project-status/evidence/wechat-miniprogram-first-complete/manual-gates.md`, and `docs/architecture/81-wechat-first-complete-product-baseline-v1.0.md`.
+
+Scene Spatial handoff: read `project-status/reports/XFX_MAIN_SCENE_SPATIAL_V02_SELECTIVE_INTEGRATION_05.md` and `project-status/evidence/scene-spatial-main-integration/`. Formal source head is `68999dbc8c8332d789f7f74a094b2b02cd9cbae0`; accepted algorithm provenance is `ed0449efaefdcb30e1f20859656757ce77c43b14`. Main now composes REAL/FAKE/REPLAY providers through `SceneSpatialPort`; P1 is immediate/non-blocking, P2 is async, status authority is backend-only, request failure remains NOT_PRODUCED, and failure/supersession preserve View-only flow. Backend 121/121 and frontend 97/97 pass; WeChat/H5 builds and H5 runtime pass. Integrated WeChat phone-to-backend Geometry remains `MANUAL_REVIEW_REQUIRED` and `NOT_EXERCISED`; do not infer device evidence. P3, Live integration, and AI Director were not started.
 
 Platform rebaseline history: `docs/platform/MINIPROGRAM_PRODUCT_PLATFORM_BASELINE_V01.md` and `project-status/reports/XFX_MAIN_TARGET_PLATFORM_REBASELINE_AFTER_H5_CAMERA_LIMITATION_01.md`.
 
@@ -269,4 +271,4 @@ Next Recommended Task / resume target:
 XFX_MAIN_WECHAT_MINIPROGRAM_FIRST_COMPLETE_PRODUCT_BASELINE_01
 ```
 
-不要开始新的正式任务。由 Owner 提供授权 AppID/domain、WeChat Developer Tools 和 OPPO K11 WeChat 环境后，恢复同一任务完成 G0-G9。Real Provider 继续延期；M01 Contract Authority、Workflow V1、Platform Catalog 与 Backend Session Authority 保持不变；Scene Spatial、Live、AI Director 与 Douyin 保持 `NOT_STARTED`，CH-003 保持 `IDENTIFIED / UNCHANGED`。
+Scene Spatial 集成完成后先由 Owner review。下一程序节点仅建议为 `LIVE_V3_DEVICE_AND_WECHAT_PORTABILITY`，不要自动开始。集成式 WeChat Scene Scan 真机门仍需 Owner 环境复验；M01 Contract Authority、Workflow V1、Platform Catalog 与 Backend Session Authority 保持不变；P3、Live integration、AI Director 与 Douyin 保持 `NOT_STARTED`，CH-003 保持 `IDENTIFIED / UNCHANGED`。

@@ -1,0 +1,23 @@
+{
+  "task_id": "XFX_MAIN_SCENE_SPATIAL_V02_SELECTIVE_INTEGRATION_05",
+  "result": "PASS_WITH_WARNING",
+  "source_scene_spatial_head": "68999dbc8c8332d789f7f74a094b2b02cd9cbae0",
+  "accepted_algorithm_commit": "ed0449efaefdcb30e1f20859656757ce77c43b14",
+  "module_decoupling": "PASS",
+  "provider_switch": "PASS",
+  "real_provider": "PASS_WITH_WARNING",
+  "fake_provider": "PASS",
+  "replay_provider": "PASS",
+  "cross_module_private_imports": 0,
+  "direct_workflow_mutations": 0,
+  "backend_tests": "121 PASS",
+  "frontend_tests": "97 PASS",
+  "wechat_build": "PASS",
+  "h5_build": "PASS_WITH_WARNING",
+  "integrated_device_gate": "MANUAL_REVIEW_REQUIRED",
+  "integrated_spatial_status": "NOT_EXERCISED",
+  "raw_video_upload": 0,
+  "frame_stream_upload": 0,
+  "provider_calls": 0,
+  "luna_calls": 0
+}
