@@ -1,0 +1,16 @@
+{
+  "evidence_class": "HUMAN_REVIEW_TEMPLATE",
+  "human_review": "PENDING",
+  "reviewed_candidate_sets": 0,
+  "rubric": [
+    "Would a photographer plausibly recommend this?",
+    "Does it actually use the specific subject?",
+    "Does it actually use the specific scene?",
+    "Does the lighting advice make sense?",
+    "Are the three options meaningfully different?",
+    "Can Live reasonably execute the target?",
+    "Are any instructions vague or contradictory?",
+    "Are there unsupported physical assumptions?"
+  ],
+  "reason_pending": "NO_REAL_PROVIDER_CANDIDATE_SETS_AVAILABLE_FOR_REVIEW"
+}

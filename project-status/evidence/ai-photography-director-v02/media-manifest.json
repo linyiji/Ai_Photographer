@@ -1,0 +1,16 @@
+{
+  "evidence_class": "REPOSITORY_MEDIA_INVENTORY_NOT_PROVIDER_INPUT",
+  "provider_send_authorized": false,
+  "provider_images_sent": 0,
+  "privacy": {"raw_video": 0, "frame_stream": 0, "geometry_frame_sequences": 0, "scene_spatial_solver_internals": 0},
+  "assets": [
+    {"asset_ref":"assets/story-library/subject-anchor.png","sha256":"e5e0a1c220dddd1357b41ddb29f1645e018597b00a6b5368809403502ae7a912","bytes":467243,"width":480,"height":942,"role":"SUBJECT_REFERENCE","suitability":"NOT_FULL_BODY"},
+    {"asset_ref":"assets/story-s01/generated/S01-A03-target-preview.png","sha256":"d9d7fcc71b5147d8489da5e3d3d80d5ae87bfdb52cc6e64b8ff807e1b6c1f30d","bytes":1857298,"width":941,"height":1672,"role":"GENERATED_COMPOSITE_REFERENCE","suitability":"FULL_BODY_BUT_NOT_CLEAN_SUBJECT_INPUT"},
+    {"asset_ref":"assets/story-library/source-scenes/scene-01-road.png","sha256":"1994a43894666a6f0e7f76b612c41c80399e43ccb6a10b5467ed6a839d374cf0","bytes":205022,"width":462,"height":490,"role":"SCENE_REFERENCE","suitability":"PLANNED_ONLY"},
+    {"asset_ref":"assets/story-library/source-scenes/scene-02-fog-lake.png","sha256":"0a89bc720ea40e4d1ceece6e1694f96125c76f7aa020930aeab039474edb991e","bytes":381162,"width":478,"height":678,"role":"SCENE_REFERENCE","suitability":"PLANNED_ONLY"},
+    {"asset_ref":"assets/story-library/source-scenes/scene-03-beach.png","sha256":"afff54aafa08efa9bf854cbcf169cf9d9e0e16cbc5cae6f92da6bb45286a8f89","bytes":460626,"width":468,"height":586,"role":"SCENE_REFERENCE","suitability":"PLANNED_ONLY"},
+    {"asset_ref":"assets/story-library/source-scenes/scene-04-european-street.png","sha256":"4129315e0af41d320d9f9fc2cdc5a508f4ccd26c7012fc78e8c120ecee509211","bytes":216320,"width":476,"height":380,"role":"SCENE_REFERENCE","suitability":"PLANNED_ONLY"},
+    {"asset_ref":"assets/story-library/source-scenes/scene-05-city-street.png","sha256":"18229aebd96e0b808e9a4a3d37e770778f06bca15bf640e807b4fbee392870be","bytes":489107,"width":466,"height":636,"role":"SCENE_REFERENCE","suitability":"PLANNED_ONLY"}
+  ],
+  "coverage_warning": "AVAILABLE_SUBJECT_MEDIA_SHOWS_ONE BLACK OUTFIT FAMILY AND DOES NOT COVER REQUIRED CLOTHING COLOR_OR_STYLE VARIATION"
+}

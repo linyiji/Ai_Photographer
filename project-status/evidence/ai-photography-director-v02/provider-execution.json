@@ -1,0 +1,14 @@
+{
+  "evidence_class": "NO_EXECUTION_RECORD",
+  "provider_model": "NOT_CONFIGURED",
+  "provider_image_input": "NO",
+  "provider_image_input_count": 0,
+  "provider_raw_video": 0,
+  "provider_frame_stream": 0,
+  "provider_latency": "SOURCE_REQUIRED",
+  "provider_usage": "SOURCE_REQUIRED",
+  "provider_cost": "SOURCE_REQUIRED",
+  "provider_request_ids": [],
+  "sanitized_provider_outputs_available": false,
+  "reason": "NO_AUTHORIZED_CREDENTIAL_OR_PROVIDER_MODEL_CONFIGURATION"
+}

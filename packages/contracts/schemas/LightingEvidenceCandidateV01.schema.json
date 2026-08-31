@@ -1,0 +1,12 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://xfx.local/contracts/v1/LightingEvidenceCandidateV01.schema.json","title":"LightingEvidenceCandidateV01","description":"Non-authoritative observed lighting evidence and separately lineaged photography inferences.","type":"object","additionalProperties":false,
+  "required":["schema_version","candidate_id","disposition","observed","photography_inferences","confidence"],
+  "properties":{
+    "schema_version":{"const":"0.1.0"},"candidate_id":{"type":"string","minLength":1,"maxLength":160},"disposition":{"const":"CANDIDATE"},"confidence":{"type":"number","minimum":0,"maximum":1},
+    "observed":{"type":"object","additionalProperties":false,"required":["observation_ids","light_direction_candidate","softness","light_pattern","face_shadow_risk","highlight_clipping_risk","background_subject_brightness_relation","ambient_appearance","evidence_refs"],"properties":{
+      "observation_ids":{"$ref":"#/$defs/nonEmptyStrings"},"light_direction_candidate":{"type":"string","minLength":1,"maxLength":120},"softness":{"enum":["SOFT","MODERATE","HARD","UNKNOWN"]},"light_pattern":{"enum":["FLAT","SIDE","BACKLIGHT","MIXED","UNKNOWN"]},"face_shadow_risk":{"enum":["LOW","MODERATE","HIGH","UNKNOWN"]},"highlight_clipping_risk":{"enum":["LOW","MODERATE","HIGH","UNKNOWN"]},"background_subject_brightness_relation":{"type":"string","minLength":1,"maxLength":200},"ambient_appearance":{"type":["string","null"],"maxLength":200},"evidence_refs":{"$ref":"#/$defs/nonEmptyStrings"}
+    }},
+    "photography_inferences":{"type":"array","maxItems":8,"items":{"$ref":"#/$defs/inference"}}
+  },
+  "$defs":{"nonEmptyStrings":{"type":"array","minItems":1,"items":{"type":"string","minLength":1}},"inference":{"type":"object","additionalProperties":false,"required":["inference_id","claim","based_on_observation_ids","confidence"],"properties":{"inference_id":{"type":"string","minLength":1},"claim":{"type":"string","minLength":1,"maxLength":320},"based_on_observation_ids":{"$ref":"#/$defs/nonEmptyStrings"},"confidence":{"type":"number","minimum":0,"maximum":1}}}}
+}

@@ -1,0 +1,16 @@
+{
+  "evidence_class": "PLANNED_EVALUATION_MATRIX_NOT_EXECUTED",
+  "case_count": 6,
+  "provider_execution_count": 0,
+  "candidate_set_count": 0,
+  "admission_status": "BLOCKED_PROVIDER_AND_MEDIA_COVERAGE",
+  "cases": [
+    {"case_id":"v02-plan-01","subject_asset":"assets/story-library/subject-anchor.png","scene_asset":"assets/story-library/source-scenes/scene-01-road.png","intent":"environmental portrait","spatial":"ABSENT","status":"NOT_RUN"},
+    {"case_id":"v02-plan-02","subject_asset":"assets/story-library/subject-anchor.png","scene_asset":"assets/story-library/source-scenes/scene-02-fog-lake.png","intent":"closer quiet portrait","spatial":"ABSENT","status":"NOT_RUN"},
+    {"case_id":"v02-plan-03","subject_asset":"assets/story-library/subject-anchor.png","scene_asset":"assets/story-library/source-scenes/scene-03-beach.png","intent":"backlight-aware lifestyle","spatial":"ABSENT","status":"NOT_RUN"},
+    {"case_id":"v02-plan-04","subject_asset":"assets/story-library/subject-anchor.png","scene_asset":"assets/story-library/source-scenes/scene-04-european-street.png","intent":"graphic environmental portrait","spatial":"ABSENT","status":"NOT_RUN"},
+    {"case_id":"v02-plan-05","subject_asset":"assets/story-library/subject-anchor.png","scene_asset":"assets/story-library/source-scenes/scene-05-city-street.png","intent":"street lifestyle","spatial":"ABSENT","status":"NOT_RUN"},
+    {"case_id":"v02-plan-06","subject_asset":"assets/story-s01/generated/S01-A03-target-preview.png","scene_asset":"assets/story-library/source-scenes/scene-01-road.png","intent":"full-body composition stress case","spatial":"ABSENT","status":"NOT_RUN"}
+  ],
+  "missing_coverage": ["MULTIPLE_SUBJECTS", "CLOTHING_COLOR_VARIATION", "CLOTHING_STYLE_VARIATION", "AUTHORIZED_PARTIAL_SPATIAL_EVIDENCE", "AUTHORIZED_INSUFFICIENT_SPATIAL_EVIDENCE", "AUTHORIZED_USABLE_SPATIAL_EVIDENCE", "REAL_PROVIDER_LIGHTING_OUTPUTS"]
+}

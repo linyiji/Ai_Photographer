@@ -1,0 +1,18 @@
+{
+  "task_id": "XFX_AI_PHOTOGRAPHY_DIRECTOR_V02_REAL_MULTIMODAL_PRECAPTURE_INTELLIGENCE_AND_PROVIDER_GATE_02",
+  "evidence_class": "LOCAL_CONFIGURATION_PREFLIGHT",
+  "provider_configured": false,
+  "model_configured": false,
+  "authorized_credential_available": false,
+  "credential_environment_names_detected": [],
+  "credential_values_inspected_or_recorded": false,
+  "provider_execution": "NOT_EXERCISED",
+  "ai_provider_gate": "MANUAL_REVIEW_REQUIRED",
+  "required_inputs": [
+    "AUTHORIZED_PROVIDER_AND_MODEL_CONFIGURATION",
+    "ENVIRONMENT_OR_APPROVED_SECRET_STORE_CREDENTIAL",
+    "EXPLICIT_PROVIDER_SEND_AUTHORIZATION_FOR_EVALUATION_MEDIA",
+    "ADDITIONAL_OWNER_APPROVED_FULL_BODY_SUBJECT_IMAGES_WITH_CLOTHING_VARIATION",
+    "HUMAN_PHOTOGRAPHY_REVIEWER"
+  ]
+}

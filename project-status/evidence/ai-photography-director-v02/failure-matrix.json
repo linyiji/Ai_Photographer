@@ -1,0 +1,20 @@
+{
+  "evidence_class": "DETERMINISTIC_NORMALIZATION_AND_BUSINESS_VALIDATION",
+  "real_provider_calls": 0,
+  "result": "PASS",
+  "cases": [
+    {"failure":"timeout","expected_error":"DIRECTOR_PROVIDER_TIMEOUT","result":"PASS"},
+    {"failure":"malformed JSON","expected_error":"DIRECTOR_PROVIDER_MALFORMED_JSON","result":"PASS"},
+    {"failure":"schema-invalid response","expected_error":"DIRECTOR_PROVIDER_SCHEMA_INVALID","result":"PASS"},
+    {"failure":"one candidate only","expected_error":"DIRECTOR_CANDIDATE_VALIDATION_FAILED","result":"PASS"},
+    {"failure":"duplicate candidates","expected_error":"DIRECTOR_CANDIDATE_VALIDATION_FAILED","result":"PASS"},
+    {"failure":"hallucinated View ref","expected_error":"DIRECTOR_CANDIDATE_VALIDATION_FAILED","result":"PASS"},
+    {"failure":"unknown anchor ref","expected_error":"DIRECTOR_CANDIDATE_VALIDATION_FAILED","result":"PASS"},
+    {"failure":"unsupported P3 claim","expected_error":"DIRECTOR_CANDIDATE_VALIDATION_FAILED","result":"PASS"},
+    {"failure":"missing LiveTarget","expected_error":"DIRECTOR_CANDIDATE_VALIDATION_FAILED","result":"PASS"},
+    {"failure":"provider unavailable","expected_error":"DIRECTOR_PROVIDER_UNAVAILABLE","result":"PASS"},
+    {"failure":"media not explicitly authorized","expected_error":"DIRECTOR_MEDIA_NOT_AUTHORIZED","result":"PASS"},
+    {"failure":"unknown understanding evidence ref","expected_error":"UNDERSTANDING_EVIDENCE_REF_UNKNOWN","result":"PASS"},
+    {"failure":"missing subject-scene cross reasoning","expected_error":"DIRECTOR_CROSS_REASONING_INVALID","result":"PASS"}
+  ]
+}

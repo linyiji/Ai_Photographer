@@ -38,6 +38,9 @@
     {"name":"SceneSpatialSessionStateV01","domain":"CONTROL","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/SceneSpatialSessionStateV01.schema.json","path":"schemas/SceneSpatialSessionStateV01.schema.json"},
     {"name":"PhotographyDirectorInputV01","domain":"DIRECTOR","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/PhotographyDirectorInputV01.schema.json","path":"schemas/PhotographyDirectorInputV01.schema.json"},
     {"name":"LiveTargetBlueprintV01","domain":"DIRECTOR","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/LiveTargetBlueprintV01.schema.json","path":"schemas/LiveTargetBlueprintV01.schema.json"},
-    {"name":"ShotPlanCandidateV01","domain":"DIRECTOR","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/ShotPlanCandidateV01.schema.json","path":"schemas/ShotPlanCandidateV01.schema.json"}
+    {"name":"ShotPlanCandidateV01","domain":"DIRECTOR","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/ShotPlanCandidateV01.schema.json","path":"schemas/ShotPlanCandidateV01.schema.json"},
+    {"name":"SubjectProfileCandidateV01","domain":"DIRECTOR_UNDERSTANDING","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/SubjectProfileCandidateV01.schema.json","path":"schemas/SubjectProfileCandidateV01.schema.json"},
+    {"name":"SceneUnderstandingCandidateV01","domain":"DIRECTOR_UNDERSTANDING","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/SceneUnderstandingCandidateV01.schema.json","path":"schemas/SceneUnderstandingCandidateV01.schema.json"},
+    {"name":"LightingEvidenceCandidateV01","domain":"DIRECTOR_UNDERSTANDING","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/LightingEvidenceCandidateV01.schema.json","path":"schemas/LightingEvidenceCandidateV01.schema.json"}
   ]
 }
