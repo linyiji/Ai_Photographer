@@ -7,7 +7,7 @@ import type {UploadAttemptTelemetry,UploadContext} from './captureUpload'
 import {classifyPreviewStillAlignment,fullViewport,type PreviewStillAlignmentResultV01} from './previewStillAlignment'
 import {classifyRegistrationStability,registerPreviewStillBlobs,type PreviewStillRegistrationV01,type RegistrationStabilitySummary} from './previewStillRegistration'
 
-const ALL:CapabilityName[]=['CameraAdapter','FrameAdapter','AlbumAdapter','ShareAdapter','HapticAdapter','VoiceOutputAdapter','AuthAdapter','PaymentAdapter','DeviceMotionAdapter','StorageAdapter','NetworkAdapter']
+const ALL:CapabilityName[]=['CameraAdapter','FrameAdapter','SceneScanAdapter','AlbumAdapter','ShareAdapter','HapticAdapter','VoiceOutputAdapter','AuthAdapter','PaymentAdapter','DeviceMotionAdapter','StorageAdapter','NetworkAdapter']
 
 function descriptor(capabilityName:CapabilityName,platform:RuntimePlatform):AdapterDescriptor{
  const h5:Partial<Record<CapabilityName,[string,AdapterDescriptor['supportLevel'],string]>>={
@@ -16,16 +16,18 @@ function descriptor(capabilityName:CapabilityName,platform:RuntimePlatform):Adap
   ShareAdapter:['h5-share-v1','PARTIAL','Web Share API when available'],
   AlbumAdapter:['h5-download-v1','PARTIAL','Download only; not a system album save'],
   CameraAdapter:['h5-still-camera-v1','UNVERIFIED_REAL_DEVICE','Single-shot chooser/camera implementation'],
+  SceneScanAdapter:['h5-scene-scan-v0.2','SUPPORTED','Development harness for portable Scene Scan evidence'],
   StorageAdapter:['development-local-storage-v1','SUPPORTED','Authorized multipart API'],
   VoiceOutputAdapter:['h5-voice-output-v1','PARTIAL','Optional speech synthesis only'],
   DeviceMotionAdapter:['h5-device-motion-shell-v1','PARTIAL','Permission and support vary']
  }
- const wechatNames=new Set<CapabilityName>(['NetworkAdapter','HapticAdapter','ShareAdapter','AlbumAdapter','CameraAdapter','StorageAdapter'])
+ const wechatNames=new Set<CapabilityName>(['NetworkAdapter','HapticAdapter','ShareAdapter','AlbumAdapter','CameraAdapter','SceneScanAdapter','StorageAdapter'])
  const spec=platform==='WECHAT'&&wechatNames.has(capabilityName)
   ? [`wechat-${capabilityName.replace('Adapter','').toLowerCase()}-v1`,'UNVERIFIED_REAL_DEVICE' as const,'Compile-safe Taro facade; real-device acceptance required'] as [string,AdapterDescriptor['supportLevel'],string]
   : h5[capabilityName]
  const [adapterId,supportLevel,reason]=spec||[`unavailable-${capabilityName.replace('Adapter','').toLowerCase()}`,'UNSUPPORTED' as const,'Not configured in M04']
- return {capabilityName,adapterId,adapterVersion:'1.0.0',platform,available:supportLevel!=='UNSUPPORTED',supportLevel,reason,provenance:{implementationSource:'MAIN_M04',runtimeSupport:supportLevel}}
+ const sceneScan=capabilityName==='SceneScanAdapter'
+ return {capabilityName,adapterId,adapterVersion:sceneScan?'0.2.0':'1.0.0',platform,available:supportLevel!=='UNSUPPORTED',supportLevel,reason,provenance:{implementationSource:sceneScan?'MAIN_SCENE_SPATIAL_V02':'MAIN_M04',runtimeSupport:supportLevel}}
 }
 
 export function detectPlatform():RuntimePlatform{return Taro.getEnv()===Taro.ENV_TYPE.WEAPP?'WECHAT':'H5'}

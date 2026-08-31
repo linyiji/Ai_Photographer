@@ -50,7 +50,7 @@ class PlatformAdapterRegistry:
         selected = []
         for descriptor in descriptors:
             implementation_type = "REAL" if descriptor["support_level"] == "SUPPORTED" else "EXPERIMENTAL" if descriptor["support_level"] in {"PARTIAL", "UNVERIFIED_REAL_DEVICE"} else "UNAVAILABLE"
-            selected.append({**descriptor, "selected_adapter": descriptor["adapter_id"], "implementation_type": implementation_type, "source_track": "MAIN_M04", "acceptance_level": descriptor["support_level"]})
+            selected.append({**descriptor, "selected_adapter": descriptor["adapter_id"], "implementation_type": implementation_type, "source_track": descriptor["provenance"]["implementation_source"], "acceptance_level": descriptor["support_level"]})
         selected.append({"capability_name": "LiveGuidanceCapability", "selected_adapter": "fake-live-guidance-m02", "implementation_type": "FAKE", "support_level": "SUPPORTED", "source_track": "MAIN_M02", "acceptance_level": "DETERMINISTIC_REGRESSION", "platform": platform.upper(), "version": "1.0.0"})
         return selected
 
@@ -77,16 +77,18 @@ class PlatformAdapterRegistry:
             "ShareAdapter": ("PARTIAL", "Web Share API when available", "h5-share-v1"),
             "AlbumAdapter": ("PARTIAL", "Browser download only; not system album save", "h5-download-v1"),
             "CameraAdapter": ("UNVERIFIED_REAL_DEVICE", "Single-shot chooser/camera implementation", "h5-still-camera-v1"),
+            "SceneScanAdapter": ("SUPPORTED", "Development harness for portable Scene Scan evidence", "h5-scene-scan-v0.2"),
             "StorageAdapter": ("SUPPORTED", "Development local storage through authorized API", "development-local-storage-v1"),
             "VoiceOutputAdapter": ("PARTIAL", "Optional browser speech synthesis; not Voice Track", "h5-voice-output-v1"),
             "DeviceMotionAdapter": ("PARTIAL", "Browser support and permission vary", "h5-device-motion-shell-v1"),
         }
         wechat = {
             name: ("UNVERIFIED_REAL_DEVICE", "Compile-safe Taro facade; device acceptance required", f"wechat-{name.removesuffix('Adapter').lower()}-v1")
-            for name in {"NetworkAdapter", "HapticAdapter", "ShareAdapter", "AlbumAdapter", "CameraAdapter", "StorageAdapter"}
+            for name in {"NetworkAdapter", "HapticAdapter", "ShareAdapter", "AlbumAdapter", "CameraAdapter", "SceneScanAdapter", "StorageAdapter"}
         }
         support = wechat if platform == "WECHAT" else h5
         level, reason, adapter_id = support.get(name, ("UNSUPPORTED", "Not configured in M04", f"unavailable-{name.removesuffix('Adapter').lower()}"))
-        descriptor = {"capability_name": name, "adapter_id": adapter_id, "adapter_version": "1.0.0", "platform": platform, "availability": level != "UNSUPPORTED", "support_level": level, "reason": reason, "provenance": {"implementation_source": "MAIN_M04", "catalog_version": self.catalog_version, "runtime_support": level}}
+        scene_scan = name == "SceneScanAdapter"
+        descriptor = {"capability_name": name, "adapter_id": adapter_id, "adapter_version": "0.2.0" if scene_scan else "1.0.0", "platform": platform, "availability": level != "UNSUPPORTED", "support_level": level, "reason": reason, "provenance": {"implementation_source": "MAIN_SCENE_SPATIAL_V02" if scene_scan else "MAIN_M04", "catalog_version": self.catalog_version, "runtime_support": level}}
         assert descriptor["support_level"] in SUPPORT_LEVELS
         return deepcopy(descriptor)

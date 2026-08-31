@@ -101,6 +101,59 @@ class SessionService:
             version=existing["version"] if existing and existing["recipe_hash"]==digest else (existing["version"]+1 if existing else 1);created=existing["created_at"] if existing else recipe["created_at"]
             c.execute("INSERT INTO adjustment_recipes VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(session_id,recipe_id) DO UPDATE SET source_asset_id=excluded.source_asset_id,version=excluded.version,recipe_hash=excluded.recipe_hash,recipe_json=excluded.recipe_json,updated_at=excluded.updated_at",(recipe["recipe_id"],sid,source["asset_id"],version,digest,canonical,created,now))
             result={"recipe":recipe,"version":version,"recipe_hash":digest,"persistence":"MAIN_SQLITE_BUSINESS_OBJECT"};c.execute("INSERT INTO idempotency(session_id,key,request_hash,response_json) VALUES(?,?,?,?)",(sid,cache_key,request_hash,json.dumps(result)));return result
+    def commit_scene_scan(self,sid,scan,frame_set,direction_map,view_evidence,precheck):
+        scan_id=scan.get("scan_id")
+        if not scan_id or any(value.get("source_scan_id")!=scan_id for value in (frame_set,direction_map,view_evidence,precheck)):
+            raise DomainError("SCENE_SPATIAL_LINEAGE_INVALID","Scene Spatial evidence must share one Scan identity.",422)
+        if scan.get("privacy",{}).get("raw_video_uploaded")!=0 or scan.get("privacy",{}).get("frame_stream_uploaded")!=0:
+            raise DomainError("SCENE_SPATIAL_PRIVACY_INVALID","Raw video and frame stream upload are forbidden.",422)
+        with self.repository.connect() as c:
+            row=c.execute("SELECT * FROM sessions WHERE session_id=?",(sid,)).fetchone()
+            if not row:raise DomainError("SESSION_NOT_FOUND","Session does not exist.",404)
+            session=self.repository.decode(row);state=session["state"];prior=state.get("scene_spatial")
+            history=list(prior.get("history",[])) if prior else []
+            if prior and prior.get("active_scan_id")!=scan_id:
+                history.append({"scan_id":prior.get("active_scan_id"),"geometry_job":prior.get("geometry_job"),"spatial_evidence_ref":prior.get("spatial_evidence_ref")})
+                self._event(c,sid,"GEOMETRY_SUPERSEDED",{"scan_id":prior.get("active_scan_id"),"superseded_by_scan_id":scan_id})
+            scene_spatial={"schema_version":"0.1.0","active_scan_id":scan_id,"scene_scan_ref":{"scan_id":scan_id,"schema_version":scan.get("schema_version")},"scene_scan":scan,"scene_frame_set":frame_set,"scene_direction_map":direction_map,"view_evidence_ref":{"source_scan_id":scan_id,"schema_version":view_evidence.get("schema_version")},"view_evidence":view_evidence,"spatial_precheck":precheck,"geometry_job":{"request_id":None,"status":"PENDING","geometry_version":"p2-backend-v0.2","outcome":None},"spatial_evidence_ref":None,"spatial_evidence":None,"evidence_lineage":[scan_id,*frame_set.get("frame_refs",[])],"history":history,"view_path_usable":True}
+            state["scene_spatial"]=scene_spatial
+            revision,now=int(session["revision"])+1,self.now();c.execute("UPDATE sessions SET revision=?,state_json=?,updated_at=? WHERE session_id=?",(revision,json.dumps(state),now,sid))
+            self._event(c,sid,"SCENE_SCAN_COMPLETED",{"scan_id":scan_id,"revision":revision})
+            self._event(c,sid,"VIEW_EVIDENCE_READY",{"scan_id":scan_id,"view_candidate_count":len(view_evidence.get("view_candidates",[])),"geometry_status":"PENDING"})
+        return self.get(sid)
+    def request_geometry(self,sid,scan_id,request_id):
+        with self.repository.connect() as c:
+            row=c.execute("SELECT * FROM sessions WHERE session_id=?",(sid,)).fetchone()
+            if not row:raise DomainError("SESSION_NOT_FOUND","Session does not exist.",404)
+            session=self.repository.decode(row);state=session["state"];spatial=state.get("scene_spatial")
+            if not spatial:raise DomainError("SCENE_SCAN_NOT_FOUND","Commit P0/P1 evidence before Geometry.",409)
+            if spatial.get("active_scan_id")!=scan_id:
+                self._event(c,sid,"GEOMETRY_SUPERSEDED",{"scan_id":scan_id,"active_scan_id":spatial.get("active_scan_id"),"geometry_request_id":request_id});return False
+            prior_request=spatial.get("geometry_job",{}).get("request_id")
+            if prior_request and prior_request!=request_id:self._event(c,sid,"GEOMETRY_SUPERSEDED",{"scan_id":scan_id,"geometry_request_id":prior_request,"superseded_by_request_id":request_id})
+            spatial["geometry_job"]={"request_id":request_id,"status":"RUNNING","geometry_version":"p2-backend-v0.2","outcome":None}
+            revision,now=int(session["revision"])+1,self.now();c.execute("UPDATE sessions SET revision=?,state_json=?,updated_at=? WHERE session_id=?",(revision,json.dumps(state),now,sid));self._event(c,sid,"GEOMETRY_REQUESTED",{"scan_id":scan_id,"geometry_request_id":request_id,"geometry_version":"p2-backend-v0.2","revision":revision});return True
+    def apply_spatial_evidence(self,sid,scan_id,request_id,evidence):
+        if evidence.get("source_scan_id")!=scan_id or evidence.get("status_authority")!="FIRST_PARTY_BACKEND_GEOMETRY_SOLVER":raise DomainError("SPATIAL_EVIDENCE_AUTHORITY_INVALID","Only first-party backend Geometry evidence may update Session.",422)
+        with self.repository.connect() as c:
+            row=c.execute("SELECT * FROM sessions WHERE session_id=?",(sid,)).fetchone()
+            if not row:raise DomainError("SESSION_NOT_FOUND","Session does not exist.",404)
+            session=self.repository.decode(row);state=session["state"];spatial=state.get("scene_spatial")
+            if not spatial or spatial.get("active_scan_id")!=scan_id:
+                self._event(c,sid,"GEOMETRY_SUPERSEDED",{"scan_id":scan_id,"active_scan_id":spatial.get("active_scan_id") if spatial else None,"geometry_request_id":request_id});return False
+            if spatial.get("geometry_job",{}).get("request_id")!=request_id:
+                self._event(c,sid,"GEOMETRY_SUPERSEDED",{"scan_id":scan_id,"geometry_request_id":request_id,"active_geometry_request_id":spatial.get("geometry_job",{}).get("request_id")});return False
+            status=evidence.get("status");spatial["geometry_job"]={"request_id":request_id,"status":"INSUFFICIENT" if status=="INSUFFICIENT" else "AVAILABLE","geometry_version":"p2-backend-v0.2","outcome":"SPATIAL_EVIDENCE"};spatial["spatial_evidence_ref"]={"source_scan_id":scan_id,"schema_version":evidence.get("schema_version"),"status":status};spatial["spatial_evidence"]=evidence;spatial["evidence_lineage"]=[*spatial.get("evidence_lineage",[]),*evidence.get("evidence_refs",[])]
+            revision,now=int(session["revision"])+1,self.now();c.execute("UPDATE sessions SET revision=?,state_json=?,updated_at=? WHERE session_id=?",(revision,json.dumps(state),now,sid));event="SPATIAL_EVIDENCE_INSUFFICIENT" if status=="INSUFFICIENT" else "SPATIAL_EVIDENCE_AVAILABLE";self._event(c,sid,event,{"scan_id":scan_id,"geometry_request_id":request_id,"status":status,"revision":revision});return True
+    def fail_geometry(self,sid,scan_id,request_id,error_code):
+        with self.repository.connect() as c:
+            row=c.execute("SELECT * FROM sessions WHERE session_id=?",(sid,)).fetchone()
+            if not row:return False
+            session=self.repository.decode(row);state=session["state"];spatial=state.get("scene_spatial")
+            if not spatial or spatial.get("active_scan_id")!=scan_id:return False
+            if spatial.get("geometry_job",{}).get("request_id")!=request_id:return False
+            spatial["geometry_job"]={"request_id":request_id,"status":"FAILED","geometry_version":"p2-backend-v0.2","outcome":"NOT_PRODUCED"};spatial["spatial_evidence_ref"]=None;spatial["spatial_evidence"]=None
+            revision,now=int(session["revision"])+1,self.now();c.execute("UPDATE sessions SET revision=?,state_json=?,updated_at=? WHERE session_id=?",(revision,json.dumps(state),now,sid));self._event(c,sid,"GEOMETRY_FAILED",{"scan_id":scan_id,"geometry_request_id":request_id,"error_code":error_code,"spatial_evidence":"NOT_PRODUCED","view_path_usable":True,"revision":revision});return True
     @classmethod
     def _validate_recipe(cls,recipe,sid,source_asset_id):
         required={"schema_version","recipe_id","session_id","source_asset_id","created_at","semantic_edit_allowed","adjustments"}

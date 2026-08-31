@@ -10,12 +10,15 @@ from .ai import AICapabilityLab,ModelRegistry,PromptRegistry,ProviderConfig
 from .platform import DevelopmentLocalStorageAdapter,PlatformAdapterRegistry
 from .product import ProductRuntimeReadiness
 from .repository import Repository
+from .scene_spatial import SceneSpatialService,build_scene_spatial_adapter
 from .service import DomainError,SessionService
 
 ROOT=Path(__file__).resolve().parents[3]
 DB_PATH=Path(os.environ.get("XFX_DATABASE_PATH",ROOT/"apps"/"api"/".data"/"xfx-m02.sqlite3"))
 repository=Repository(DB_PATH)
 service=SessionService(repository,ROOT/"packages"/"scenario-fixtures"/"s01-storm-before-arrival.json")
+scene_spatial_mode=os.environ.get("SCENE_SPATIAL_MODE","REAL").upper()
+scene_spatial=SceneSpatialService(build_scene_spatial_adapter(scene_spatial_mode))
 asset_storage=DevelopmentLocalStorageAdapter(Path(os.environ.get("XFX_ASSET_ROOT",ROOT/"apps"/"api"/".local"/"assets")),repository)
 platform_registry=PlatformAdapterRegistry(ROOT/"packages"/"platform"/"catalog.json")
 product_readiness=ProductRuntimeReadiness(os.environ.get("XFX_PRODUCT_MODE","INTERNAL_DEMO"))
@@ -63,20 +66,27 @@ class SessionCreateBody(BaseModel):
     reference_asset_id:str|None=None
     intent_seed:IntentSeedBody|None=None
 
+class SceneScanCommitBody(BaseModel):
+    scene_scan:dict
+    frame_set:dict
+    direction_map:dict
+    view_evidence:dict
+    spatial_precheck:dict
+
 @app.middleware("http")
 async def correlation(request:Request,call_next):
     cid=request.headers.get("X-Correlation-ID",str(uuid4()));request.state.correlation_id=cid;response=await call_next(request);response.headers["X-Correlation-ID"]=cid;return response
 
 @app.exception_handler(DomainError)
 async def domain_error(request:Request,exc:DomainError):
-    category="STORAGE" if "PERSISTENCE" in exc.code or "STORAGE" in exc.code else "NETWORK" if "NETWORK" in exc.code else "PLATFORM" if exc.code in {"PLATFORM_UNSUPPORTED","SHARE_FAILURE","USER_CANCELLED"} else "WORKFLOW" if "TRANSITION" in exc.code else "VALIDATION" if "CANDIDATE" in exc.code or "IDEMPOTENCY" in exc.code or "ASSET" in exc.code else "INTERNAL"
+    category="STORAGE" if "PERSISTENCE" in exc.code or "STORAGE" in exc.code else "NETWORK" if "NETWORK" in exc.code else "PLATFORM" if exc.code in {"PLATFORM_UNSUPPORTED","SHARE_FAILURE","USER_CANCELLED"} else "WORKFLOW" if "TRANSITION" in exc.code else "VALIDATION" if any(token in exc.code for token in ("CANDIDATE","IDEMPOTENCY","ASSET","GEOMETRY","SPATIAL","SCENE_SCAN")) else "INTERNAL"
     return JSONResponse(status_code=exc.status,content={"error":{"schema_version":"1.0.0","error_code":exc.code,"category":category,"severity":"ERROR","retryable":exc.status>=500,"user_message_key":exc.code.lower(),"developer_context":{},"session_id":request.path_params.get("session_id"),"correlation_id":request.state.correlation_id,"cause":None}})
 
 @app.get("/health")
 def health():return {"status":"ok","runtime":"LOCKED_L1","database":"sqlite"}
 
 @app.get("/capabilities")
-def capabilities():return {"scenario":"S01_STORM_BEFORE_ARRIVAL","mode":"GOVERNED_REPLACEMENT","capabilities":["reality","target","shot","live","capture","qa","reality_plus","voice","agent"],"fake_live_selected":True,"qa_selected_adapter":"FAKE_INTERNAL_ONLY","qa_shadow_available":True,"real_provider_configured":provider_config.configured}
+def capabilities():return {"scenario":"S01_STORM_BEFORE_ARRIVAL","mode":"GOVERNED_REPLACEMENT","capabilities":["reality","target","shot","live","capture","qa","reality_plus","voice","agent","scene_spatial"],"fake_live_selected":True,"qa_selected_adapter":"FAKE_INTERNAL_ONLY","qa_shadow_available":True,"real_provider_configured":provider_config.configured,"scene_spatial_provider":scene_spatial_mode}
 
 @app.get("/runtime/readiness")
 def runtime_readiness(mode:str|None=None):
@@ -169,3 +179,48 @@ def events(session_id:str):return service.get(session_id)["events"]
 
 @app.get("/sessions/{session_id}/assets")
 def assets(session_id:str):return service.get(session_id)["assets"]
+
+async def _read_geometry_form(request:Request):
+    form=await request.form();raw=form.get("metadata")
+    if not isinstance(raw,str):raise DomainError("GEOMETRY_METADATA_REQUIRED","Geometry multipart metadata is required.",422)
+    try:metadata=json.loads(raw)
+    except json.JSONDecodeError as exc:raise DomainError("GEOMETRY_METADATA_INVALID","Geometry metadata is not valid JSON.",422) from exc
+    if not isinstance(metadata,dict):raise DomainError("GEOMETRY_METADATA_INVALID","Geometry metadata must be a JSON object.",422)
+    frames=[];opened=[]
+    try:
+        for frame in metadata.get("selected_geometry_frames",[]):
+            part=form.get(frame.get("file_field",""))
+            if part is None or not hasattr(part,"read"):raise DomainError("GEOMETRY_FRAME_REQUIRED","Every selected frame must be present as binary multipart data.",422)
+            opened.append(part);frames.append(await part.read())
+    finally:
+        for part in opened:await part.close()
+    return metadata,frames
+
+@app.get("/scene-spatial/geometry/health")
+def scene_spatial_health():return {"status":"ok","geometry_version":"p2-backend-v0.2","provider_mode":scene_spatial_mode,"authority":"FIRST_PARTY_BACKEND_GEOMETRY_SOLVER"}
+
+@app.post("/scene-spatial/geometry/analyze")
+async def standalone_scene_geometry(request:Request):
+    try:
+        metadata,frames=await _read_geometry_form(request);result,cache=scene_spatial.analyze(metadata,frames)
+        return {"geometry_request_id":result.geometry_request_id,"spatial_evidence":result.spatial_evidence,"provider_mode":result.provider_mode,"cache_status":cache,"timing_ms":result.timing_ms}
+    except DomainError:raise
+    except ValueError as exc:raise DomainError(str(exc),"Scene Geometry request validation failed.",422) from exc
+    except Exception as exc:raise DomainError("GEOMETRY_FAILED","Scene Geometry failed without producing SpatialEvidence.",503) from exc
+
+@app.post("/sessions/{session_id}/scene-spatial/scans")
+def commit_scene_scan(session_id:str,body:SceneScanCommitBody):
+    return service.commit_scene_scan(session_id,body.scene_scan,body.frame_set,body.direction_map,body.view_evidence,body.spatial_precheck)
+
+@app.post("/sessions/{session_id}/scene-spatial/geometry")
+async def analyze_session_geometry(session_id:str,request:Request):
+    metadata,frames=await _read_geometry_form(request);scan_id=str(metadata.get("scan_id",""));request_id=str(metadata.get("geometry_request_id",""))
+    if not service.request_geometry(session_id,scan_id,request_id):raise DomainError("GEOMETRY_SUPERSEDED","Geometry request belongs to a superseded Scan.",409)
+    try:
+        result,cache=scene_spatial.analyze(metadata,frames);applied=service.apply_spatial_evidence(session_id,scan_id,request_id,result.spatial_evidence)
+        return {"geometry_request_id":request_id,"spatial_evidence":result.spatial_evidence,"provider_mode":result.provider_mode,"cache_status":cache,"applied_to_active_session":applied,"session":service.get(session_id)}
+    except DomainError:raise
+    except ValueError as exc:
+        service.fail_geometry(session_id,scan_id,request_id,str(exc));raise DomainError(str(exc),"Scene Geometry request validation failed.",422) from exc
+    except Exception as exc:
+        service.fail_geometry(session_id,scan_id,request_id,"GEOMETRY_FAILED");raise DomainError("GEOMETRY_FAILED","Scene Geometry failed; View evidence remains usable.",503) from exc
