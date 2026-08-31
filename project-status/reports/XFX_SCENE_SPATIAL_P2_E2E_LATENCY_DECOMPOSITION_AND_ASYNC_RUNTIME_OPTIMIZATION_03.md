@@ -1,6 +1,6 @@
 # XFX Scene Spatial P2 E2E latency decomposition and async runtime optimization 03
 
-Status: **AUTOMATED PASS / ONE QUICK + ONE WIDE REAL-DEVICE WATERFALL PENDING**
+Status: **PASS_WITH_WARNING — P2 runtime accepted; external transport latency remains**
 Track: `PARALLEL_SCENE_SPATIAL`
 Start head: `968dcb71c3d23c157e325796c7987c38a91d74c1`
 Geometry algorithm gate: **UNCHANGED**
@@ -52,7 +52,7 @@ The generated workload was repeated through `HTTPS Quick Tunnel → Vite same-or
 
 Tunnel cold-miss Solver was 81.719–81.902ms; response serialization was at most 0.106ms. Cold-to-warm differences were 1,359.596ms QUICK and 1,884.788ms WIDE, so tunnel variability dominates and the difference must not be attributed solely to TLS, cache or backend cold start.
 
-Primary latency family: **SERVER_BODY_RECEIVE**. Secondary family: **TRANSPORT** (`TRANSPORT_AND_QUEUE_REMAINDER`). Multipart parse, validation, cache, Solver and response are not the multi-second source.
+This synthetic tunnel sequence classified `SERVER_BODY_RECEIVE` as its primary family and `TRANSPORT_AND_QUEUE_REMAINDER` as secondary. The later OPPO results below are the higher-authority product-path evidence and classify `TRANSPORT` as primary. Multipart parse, validation, cache, Solver and response are not the multi-second source.
 
 ## Bounded optimization and audits
 
@@ -75,8 +75,33 @@ Primary latency family: **SERVER_BODY_RECEIVE**. Secondary family: **TRANSPORT**
 - Local browser Fixture: P1 visible with 3 candidates; start, next-sweep and mode controls enabled; no backend upload.
 - Privacy: raw video 0, frame stream 0, selected Geometry frames first-party backend only, Provider 0, Luna 0, real user media in Git 0.
 
-## Real-device closure gate
+## OPPO real-device closure
 
-Runtime code and evidence format changed materially, so exactly one fresh OPPO QUICK and one fresh OPPO WIDE are requested. Each downloaded P2 JSON must contain `geometry_request_id`, complete client/backend waterfalls, HTTP result and `SpatialEvidenceV02`. No additional scan is requested. Until those two files are reviewed, `P2_RUNTIME` remains `ACCEPTED_WITH_LATENCY_WARNING` and this task remains real-device pending.
+Exactly one QUICK and one WIDE were completed through OPPO K11 Chrome 138 over the trusted HTTPS Quick Tunnel. Both ended in `VIEW_READY_GEOMETRY_APPLIED`, returned HTTP 200, reached the Solver and produced valid `SpatialEvidenceV02` without resetting P1.
+
+| Real-device stage | QUICK `1788139706806` | WIDE `1788139727740` |
+|---|---:|---:|
+| frames / payload | 8 / 223,887B | 3 / 94,007B |
+| dimensions | 8/8 `1080×1920 → 360×640` | 3/3 `1080×1920 → 360×640` |
+| frame selection | 0.200ms | 0.100ms |
+| resize | 175.300ms | 70.300ms |
+| encode | 179.800ms | 80.400ms |
+| hash | 18.400ms | 11.700ms |
+| multipart build | 0.300ms | 0.000ms |
+| fetch | 1,781.300ms | 1,034.700ms |
+| body receive | 397.376ms | 61.995ms |
+| multipart parse | 0.866ms | 0.167ms |
+| Solver | 273.140ms | 17.343ms |
+| transport + queue remainder | 1,108.040ms | 954.416ms |
+| E2E | 2,129.900ms | 1,201.400ms |
+| Spatial Evidence | `PARTIAL` | `INSUFFICIENT / PURE_ROTATION_OR_HOMOGRAPHY_DOMINANT` |
+
+QUICK request `5849f60c-8801-4301-b5c6-e244720d950d` was correlated between the client trace and backend log. Its pasted JSON ended mid-object, but all client stages plus backend body/parse/Solver scalars were preserved. WIDE request `9e85df4c-ff32-4568-954c-670f56b41954` was received as a complete P2 JSON. No rescan is required.
+
+Across these two mode-specific observations, the observed median E2E is 1,665.650ms and interpolated P95 is 2,083.475ms. The observed median Solver time is 145.242ms and interpolated P95 is 260.350ms. This is not enough evidence for a release-grade population percentile, but both observations are below the 3-second candidate P95 boundary. Compared with the accepted old baselines, QUICK improved from 4,606.3ms to 2,129.9ms (53.8%) and WIDE from 9,037.8ms to 1,201.4ms (86.7%).
+
+The authoritative real-device primary latency family is **TRANSPORT**: the two `TRANSPORT_AND_QUEUE_REMAINDER` observations were 1,108.040ms and 954.416ms, larger than Solver and client preparation. `SERVER_BODY_RECEIVE` remains a variable secondary contributor. Because P1 is non-blocking and Geometry results apply asynchronously, the remaining external-path variability is a warning rather than a product-flow or Geometry failure.
+
+Final disposition: `TASK_RESULT = PASS_WITH_WARNING`; `P2_RUNTIME = ACCEPTED_WITH_LATENCY_WARNING`; `CACHE = PASS`; `P1_NON_BLOCKING = PASS`; `GEOMETRY_ALGORITHM_GATE = UNCHANGED`.
 
 P3 and Main Integration remain `NOT_STARTED`.

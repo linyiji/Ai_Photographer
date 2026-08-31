@@ -14,7 +14,7 @@
 - Design Authority: `SCENE_SPATIAL_DESIGN_AUTHORITY_V0_2`
 - P2 Client SpatialPrecheck: `PASS / ROUTING_HINT_ONLY`
 - P2 spike-local Backend Geometry: `PASS_WITH_WARNING`; prior OPPO HTTP 400 / `FRAME_SET_HASH_MISMATCH` retained as negative evidence; fresh QUICK `sweep-1787994955242` and WIDE `sweep-1787994900356` both returned HTTP 200, used bounded `360×640` working frames, reached Solver and produced `SpatialEvidenceV02`; warning is 4.606s / 9.038s end-to-end latency and non-P50/P95 sample size
-- P2 runtime optimization 03: authoritative client/backend waterfall and `geometry_request_id` implemented; same-class localhost and Quick Tunnel cold/warm diagnostics classify primary latency as `SERVER_BODY_RECEIVE`, secondary as `TRANSPORT`; P1 is non-blocking under `VIEW_READY_GEOMETRY_PENDING`; automated gates PASS, exactly one fresh OPPO QUICK + WIDE waterfall pending
+- P2 runtime optimization 03: `PASS_WITH_WARNING / ACCEPTED_WITH_LATENCY_WARNING`; OPPO QUICK `sweep-1788139706806` E2E 2.130s and WIDE `sweep-1788139727740` E2E 1.201s both returned HTTP 200 and applied `SpatialEvidenceV02` without blocking/resetting P1; real-device primary latency is `TRANSPORT`, Geometry gate unchanged
 - P3 Photography Affordance / physical placement: `NOT_STARTED`
 - P2 current-session Spatial Status Authority: `FIRST_PARTY_BACKEND_ONLY`
 - Main Integration: `NOT_STARTED`; selective migration only

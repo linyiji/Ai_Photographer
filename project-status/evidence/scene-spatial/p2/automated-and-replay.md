@@ -52,3 +52,12 @@ Local browser UI regression ran two consecutive QUICK fixtures after the replace
 - OPPO WIDE `sweep-1787994900356`: HTTP 200; 7/7 `1080×1920 → 360×640`; payload 220,363B; Solver reached; `SpatialEvidenceV02 = INSUFFICIENT / LOW_PARALLAX`; Solver compute 106.005ms; end-to-end 9,037.8ms.
 - Both exact uploaded-JPEG hashes and canonical ordered frame-set hashes were accepted. The real-device runtime gate is **PASS_WITH_WARNING**. The tested `multipart_parse` timing includes request-body receipt; use `backend_timing_ms.total_compute` for Solver compute. End-to-end latency remains the warning, and these two mode-specific samples do not establish P50/P95.
 - No additional scan is requested. Geometry semantics remain unchanged; P3 and Main Integration remain not started.
+
+## E2E latency decomposition and async runtime optimization 03
+
+- Client/backend monotonic waterfall, `geometry_request_id`, corrected post-body multipart timing and `TRANSPORT_AND_QUEUE_REMAINDER`: PASS.
+- Same-class localhost cold/warm and HTTPS Quick Tunnel three-request sequences: PASS; binary multipart, cache identity and privacy preserved.
+- P1 non-blocking browser gate: PASS; P1 remains visible and repeat/WIDE/mode controls remain enabled during Geometry enhancement.
+- OPPO QUICK `sweep-1788139706806`: 8 frames / 223,887B / HTTP 200 / `SpatialEvidenceV02 = PARTIAL`; E2E 2,129.900ms; transport remainder 1,108.040ms; Solver 273.140ms.
+- OPPO WIDE `sweep-1788139727740`: 3 frames / 94,007B / HTTP 200 / `SpatialEvidenceV02 = INSUFFICIENT`; E2E 1,201.400ms; transport remainder 954.416ms; Solver 17.343ms.
+- Final runtime disposition: `PASS_WITH_WARNING / ACCEPTED_WITH_LATENCY_WARNING`; real-device primary latency `TRANSPORT`; Geometry algorithm unchanged; no additional scan requested.
