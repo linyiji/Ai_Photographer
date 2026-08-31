@@ -554,3 +554,36 @@ VERIFY_LOGIC = PRESERVED
 ```
 
 Fresh OPPO revalidation remains pending.
+
+---
+
+# 22. 05D measurement-scoped crop applicability
+
+Global crop and active-measurement validity are separate decisions:
+
+```text
+GLOBAL_BOTTOM_CROP = observation evidence that the body continues below frame
+REGION_CROP = evidence that a required semantic region itself touches/is lost at the frame edge
+MEASUREMENT_INVALID = one of that measurement's required endpoints/regions is invalid
+```
+
+Therefore:
+
+```text
+GLOBAL_BOTTOM_CROP
+!= HIPS_EDGE_CROPPED
+!= HEAD_TO_HIP_INVALID
+!= TORSO_CENTER_INVALID
+```
+
+The resolver consumes the selected target's measurement capabilities only. It no longer adds a generic `REAL_BOTTOM_CROP` blocker. A Center Upper Body observation with valid head, shoulders and bilateral hips may proceed to `ADJUST_SCALE`, `ALIGN_PRIMARY_ANCHOR` or `VERIFY` even when knees, ankles or feet continue outside the frame.
+
+True endpoint crop remains blocking:
+
+```text
+hip region at bottom edge   -> HEAD_TO_HIP / TORSO_CENTER INVALID
+knee region at bottom edge  -> HEAD_TO_KNEE INVALID
+ankle region at bottom edge -> HEAD_TO_ANKLE INVALID
+```
+
+Target values, constraint order, response gate, settle logic, 600 ms VERIFY and 1000 ms unstable reset are unchanged.

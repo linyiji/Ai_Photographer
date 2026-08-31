@@ -4,13 +4,15 @@ export type SemanticAnchorNameV01='HEAD_CENTER'|'SHOULDER_CENTER'|'TORSO_CENTER'
 export type ObservationQualityV02='GOOD'|'MARGINAL'|'INVALID';
 export type AxisMotionV01='NEGATIVE'|'POSITIVE'|'STILL'|'UNKNOWN';
 export type MeasurementReadinessV01='GOOD'|'MARGINAL'|'INVALID';
+export type MeasurementTypeV01='HEAD_TO_HIP'|'TORSO_CENTER'|'HEAD_TO_KNEE'|'HEAD_TO_ANKLE';
 export type LandmarkEvidenceStatusV01='BILATERAL_VALID'|'UNILATERAL_PARTIAL'|'LOW_CONFIDENCE'|'VALID'|'EDGE_CROPPED'|'UNKNOWN';
 
 export interface SubjectLockObservationV01 {state:SubjectLockStateV01;confidence:number;tracked_subject_count:0|1;lock_age_ms:number;identity_claim:false;multi_person_supported:false}
 export interface BodyRegionEvidenceV01 {visible:boolean;bilateral:boolean;confidence:number;crop_risk:'NONE'|'TOP'|'BOTTOM'|'SIDE'|'UNKNOWN'}
-export interface BodyVisibilityGraphV01 {regions:Readonly<Record<BodyRegionV01,Readonly<BodyRegionEvidenceV01>>>;summary_mode:string;summary_only:true;upper_torso_basis:'DERIVED'|'INVALID';hips_evidence_status:LandmarkEvidenceStatusV01;feet_visible:boolean;feet_bottom_cropped:boolean;partial_landmarks:boolean}
+export interface BodyVisibilityGraphV01 {regions:Readonly<Record<BodyRegionV01,Readonly<BodyRegionEvidenceV01>>>;summary_mode:string;summary_only:true;global_bottom_cropped:boolean;upper_torso_basis:'DERIVED'|'INVALID';hips_evidence_status:LandmarkEvidenceStatusV01;feet_visible:boolean;feet_bottom_cropped:boolean;partial_landmarks:boolean}
 export interface LandmarkBasisScalarV01 {status:LandmarkEvidenceStatusV01;confidence:number;visible_count:number;center_x:number|null;center_y:number|null;left:Readonly<{visible:boolean;confidence:number;x:number|null;y:number|null}>|null;right:Readonly<{visible:boolean;confidence:number;x:number|null;y:number|null}>|null;edge_proximity:'NONE'|'TOP'|'BOTTOM'|'SIDE'|'UNKNOWN';fresh:boolean;stable:boolean}
 export interface MeasurementCapabilityV01 {capability_version:'MeasurementCapabilityV01';HEAD_TO_HIP:MeasurementReadinessV01;TORSO_CENTER:MeasurementReadinessV01;HEAD_TO_KNEE:MeasurementReadinessV01;HEAD_TO_ANKLE:MeasurementReadinessV01}
+export interface MeasurementDefinitionV01 {measurement_type:MeasurementTypeV01;required_anchors:readonly SemanticAnchorNameV01[];required_regions:readonly BodyRegionV01[];crop_dependencies:readonly ('HEAD'|'SHOULDERS'|'HIPS'|'KNEES'|'ANKLES')[]}
 export interface SemanticAnchorV01 {name:SemanticAnchorNameV01;x:number;y:number;confidence:number;source:string}
 export interface SemanticAnchorSetV01 {anchors:Readonly<Partial<Record<SemanticAnchorNameV01,Readonly<SemanticAnchorV01>>>>;coordinate_basis:'SENSOR_NORMALIZED_NON_MIRRORED';mirror_applied_to_control:false}
 export type ScaleMetricV02='HEAD_TO_HIP'|'HEAD_TO_KNEE'|'HEAD_TO_ANKLE';

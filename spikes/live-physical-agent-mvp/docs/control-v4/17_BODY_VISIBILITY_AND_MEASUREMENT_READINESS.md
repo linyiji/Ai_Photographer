@@ -490,3 +490,34 @@ CENTER_UPPER_BODY_DEVICE_REVALIDATION = MANUAL_REVIEW_REQUIRED
 ```
 
 No device PASS may be claimed from automated evidence alone.
+
+---
+
+# 23. Measurement-scoped crop model (05D)
+
+`ObservedBodyCoverage` and global crop remain truthful observation facts. They are not universal measurement blockers.
+
+| Measurement | Required anchors | Required regions | Crop dependencies |
+|---|---|---|---|
+| `HEAD_TO_HIP` | `HEAD_CENTER`, `HIP_CENTER` | HEAD, HIPS | HEAD, HIPS |
+| `TORSO_CENTER` | `SHOULDER_CENTER`, `HIP_CENTER`, `TORSO_CENTER` | SHOULDERS, HIPS, UPPER_TORSO | SHOULDERS, HIPS |
+| `HEAD_TO_KNEE` | `HEAD_CENTER`, `KNEE_CENTER` | HEAD, KNEES | HEAD, KNEES |
+| `HEAD_TO_ANKLE` | `HEAD_CENTER`, `ANKLE_CENTER` | HEAD, ANKLES | HEAD, ANKLES |
+
+`EDGE_CROPPED` is assigned from the region's own landmark evidence near the corresponding sensor edge (or the required region being absent at that asserted edge). It is not inherited merely because `GLOBAL_BOTTOM_CROP = true`.
+
+The same observation can therefore resolve differently by target:
+
+```text
+head/shoulders/hips/knees = valid
+ankles = missing
+GLOBAL_BOTTOM_CROP = true
+
+Upper Body:     HEAD_TO_HIP + TORSO_CENTER = GOOD -> READY FOR CONTROL
+Three Quarter:  HEAD_TO_KNEE = GOOD              -> READY FOR CONTROL
+Full Body:      HEAD_TO_ANKLE = INVALID           -> ACQUIRE_REQUIRED_BODY
+```
+
+Body coverage guidance must release as soon as the active target measurements are `GOOD`. It must not keep asking an Upper Body subject to show ankles or feet. Conversely, crop of the actual hip, knee or ankle endpoint remains invalid for the measurement that depends on that endpoint.
+
+The sanitized 05C regression fixture preserves only scalar facts (`raw_media = false`): global bottom crop, bilateral hips at approximately `y = 0.846`, valid head/shoulder/hip geometry, knees present and ankles absent. For `CENTER_UPPER_BODY`, it must produce `HEAD_TO_HIP = GOOD`, `TORSO_CENTER = GOOD`, `measurement_ready = true`, and leave `ACQUIRE_REQUIRED_BODY`.

@@ -25,7 +25,7 @@ import { deriveV4Presentation } from '../control-v4/presentation.js';
 import { DEFAULT_LIVE_TARGET_V02, LIVE_TARGET_FIXTURES_V02 } from '../control-v4/targets.js';
 import { V4ScalarTraceRecorder } from '../control-v4/trace.js';
 import type { HumanObservationV02, LiveTargetV02, TargetFixtureIdV02, V4Snapshot } from '../control-v4/types.js';
-import { runV4BrowserScenario, V4_BROWSER_MATRIX } from '../control-v4/browser-scenarios.js';
+import { runV4BrowserScenario, runV4TargetScopedCropBrowserGate, V4_BROWSER_MATRIX } from '../control-v4/browser-scenarios.js';
 
 type FacingMode = 'user' | 'environment';
 type PermissionStateLabel = PermissionState | 'not_requested' | 'unsupported' | 'error';
@@ -936,3 +936,5 @@ if(v3ReplayName&&V3_BROWSER_SCENARIOS.includes(v3ReplayName as V3BrowserScenario
 }
 const v4ReplayName=new URLSearchParams(window.location.search).get('v4Replay');
 if(v4ReplayName&&V4_BROWSER_MATRIX.includes(v4ReplayName as TargetFixtureIdV02)){controlPolicySelect.value='V4';scaleGateScenario.value=`V4_${v4ReplayName}`;currentV4Target=LIVE_TARGET_FIXTURES_V02[v4ReplayName as TargetFixtureIdV02];v4Controller.setTarget(currentV4Target);v4Trace.clear();const snapshots=runV4BrowserScenario(v4ReplayName as TargetFixtureIdV02);poseMessage.textContent=`V4 SYNTHETIC REPLAY · ${v4ReplayName} · NO CAMERA / NO PROVIDER`;snapshots.forEach((snapshot,index)=>window.setTimeout(()=>{latestV4Snapshot=snapshot;latestV4Observation=snapshot.observation;v4Trace.append(snapshot);renderClosedLoop();renderGate1Precondition();renderVisualGuidance();if(index===snapshots.length-1){document.documentElement.dataset.v4BrowserGate=snapshot.ready?'PASS':'FAIL';document.documentElement.dataset.v4Scenario=v4ReplayName;}},index*120));}
+const v4CropGate=new URLSearchParams(window.location.search).get('v4CropGate');
+if(v4CropGate==='05C'){controlPolicySelect.value='V4';scaleGateScenario.value='V4_CENTER_UPPER_BODY';currentV4Target=LIVE_TARGET_FIXTURES_V02.CENTER_UPPER_BODY;v4Controller.setTarget(currentV4Target);v4Trace.clear();const snapshots=runV4TargetScopedCropBrowserGate();poseMessage.textContent='V4 TARGET-SCOPED CROP REPLAY · OPPO 05C SANITIZED SCALARS · NO CAMERA / NO PROVIDER';snapshots.forEach((snapshot,index)=>window.setTimeout(()=>{latestV4Snapshot=snapshot;latestV4Observation=snapshot.observation;v4Trace.append(snapshot);renderClosedLoop();renderGate1Precondition();renderVisualGuidance();if(index===snapshots.length-1){const pass=snapshot.constraints.measurement_ready&&snapshot.stage!=='ACQUIRE_REQUIRED_BODY';document.documentElement.dataset.v4CropGate=pass?'PASS':'FAIL';document.documentElement.dataset.v4CropStage=snapshot.stage;document.documentElement.dataset.v4CropGlobalBottom=String(snapshot.observation.body_visibility.global_bottom_cropped);}},index*120));}

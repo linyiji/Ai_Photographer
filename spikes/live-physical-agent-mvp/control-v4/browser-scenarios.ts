@@ -1,5 +1,7 @@
 import { v4ObservationFixture } from '../fixtures/control-v4/human-observations.js';
+import { targetScopedCropState } from '../fixtures/control-v4/target-scoped-crop.js';
 import { HumanTargetRelativeServoV04 } from './controller.js';
+import { HumanObservationV02Projector } from './observation.js';
 import { LIVE_TARGET_FIXTURES_V02 } from './targets.js';
 import type { HumanObservationV02, TargetFixtureIdV02, V4Snapshot } from './types.js';
 
@@ -12,3 +14,4 @@ export function v4BrowserObservations(id:TargetFixtureIdV02):ReadonlyArray<Reado
   o(2100,{scale:target.target_scale,x:offX(target.target_anchor_x)}),o(2400,{scale:target.target_scale,x:target.target_anchor_x,x_motion:target.target_anchor_x<.5?'NEGATIVE':'POSITIVE',stable:false}),o(2700,{scale:target.target_scale,x:target.target_anchor_x}),o(3100,{scale:target.target_scale,x:target.target_anchor_x}),o(3500,{scale:target.target_scale,x:target.target_anchor_x}),o(3650,{scale:target.target_scale,x:target.target_anchor_x}),o(3800,{scale:target.target_scale,x:target.target_anchor_x}),o(3950,{scale:target.target_scale,x:target.target_anchor_x}),o(4100,{scale:target.target_scale,x:target.target_anchor_x}),
 ];}
 export function runV4BrowserScenario(id:TargetFixtureIdV02):ReadonlyArray<Readonly<V4Snapshot>>{const c=new HumanTargetRelativeServoV04(LIVE_TARGET_FIXTURES_V02[id]);c.arm(0);return v4BrowserObservations(id).map(o=>c.update(o));}
+export function runV4TargetScopedCropBrowserGate():ReadonlyArray<Readonly<V4Snapshot>>{const projector=new HumanObservationV02Projector(),controller=new HumanTargetRelativeServoV04(LIVE_TARGET_FIXTURES_V02.CENTER_UPPER_BODY);controller.arm(0);return [targetScopedCropState({timestamp_ms:0,sequence:1}),targetScopedCropState({timestamp_ms:400,sequence:2})].map(state=>controller.update(projector.project(state)));}
