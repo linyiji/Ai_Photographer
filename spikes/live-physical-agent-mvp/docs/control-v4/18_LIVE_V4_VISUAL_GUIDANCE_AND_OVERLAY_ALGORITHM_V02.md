@@ -1191,6 +1191,31 @@ Hard prohibition:
 
 ```text
 HEAD_CORE.pair_center
+
+---
+
+## 33. 05E recognition-first presentation contract
+
+`LivePresentationModelV02` consumes the canonical recognition, observed-body, target-gap, action and verification states. The renderer does not recompute readiness, crop, direction or actionability.
+
+Normal acquisition guidance follows this order:
+
+1. Say whether the person is recognized.
+2. Summarize valid visible human regions in ordinary language.
+3. Explain only the evidence still required by the active target.
+4. Add movement copy only when the gap is `USER_FIXABLE` and the direction is justified.
+
+Examples:
+
+```text
+已识别到人物。当前看到头部和双肩，双髋还没有形成有效测量。请稍微退后。
+
+已识别到人物。头部、双肩和双髋测量有效，正在判断人物大小和位置。
+```
+
+Normal UI must not expose `HEAD_TO_HIP`, `TORSO_CENTER`, `MeasurementCapability`, `BILATERAL_VALID` or `CENTROID`. Debug/evidence may retain them. A `SYSTEM_MEASUREMENT_DEFECT` presents a paused measurement state and must not instruct the user to move.
+
+Primary text, overlay state and action arrow each have one source: `LivePresentationModelV02`. The 05E browser regression verifies that the Center Upper Body fixture with truthful global lower crop and valid head/shoulder/hip evidence releases acquisition and advances to scale/alignment control.
 ```
 
 The Renderer must not compensate for a missing/invalid upstream anchor by inventing a screen-space center.

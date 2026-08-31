@@ -814,3 +814,42 @@ VERIFY_LOGIC = PRESERVED
 ```
 
 Fresh OPPO `CENTER_UPPER_BODY` revalidation remains manual/pending.
+
+---
+
+# 26. 05E five-layer observation authority
+
+The canonical V4 data flow is:
+
+```text
+Camera / Pose
+  -> SubjectRecognitionStateV01
+  -> ObservedBodyStateV01
+       + TargetMeasurementRequirementV01
+  -> TargetObservationGapV01
+  -> Constraint Resolver / LivePresentationModelV02
+```
+
+Each layer owns one kind of truth and later layers must not rewrite earlier facts:
+
+- `SubjectRecognitionStateV01` owns detection, lock, confidence, subject region and freshness only.
+- `ObservedBodyStateV01` owns target-independent semantic regions, anchors, coverage, measurement capabilities and crop evidence.
+- `TargetMeasurementRequirementV01` is projected from `LiveTargetV02` only and contains no current observation.
+- `TargetObservationGapV01` is the sole `required - observed` computation and records bounded blocker reasons and actionability.
+- Control consumes the gap plus target-relative constraints. Presentation consumes the same authoritative states and remains decision-free at render time.
+
+Compatibility scalar aliases on `HumanObservationV02` are transitional trace/runtime accessors. They do not replace the nested canonical owners above.
+
+Group reduction is explicit:
+
+| Group | Type | Reduction |
+|---|---|---|
+| HEAD_CORE | MULTI_POINT | centroid of valid bounded points |
+| SHOULDERS | BILATERAL_PAIR | pair center with valid bilateral evidence |
+| HIPS | BILATERAL_PAIR | pair center with valid bilateral evidence |
+| KNEES | BILATERAL_PAIR | pair center with valid bilateral evidence |
+| ANKLES | BILATERAL_PAIR | pair center with valid bilateral evidence |
+
+`bilateral_valid=false` is never crop evidence for a multi-point or single-point group. Global crop remains observation evidence; region crop requires region-local points at the asserted edge. For `CENTER_UPPER_BODY`, valid `HEAD_TO_HIP` and `TORSO_CENTER` capabilities make the target gap ready without knees, ankles or feet.
+
+Only `USER_FIXABLE` gaps with a justified direction may produce movement guidance. `SYSTEM_MEASUREMENT_DEFECT` produces no user movement instruction. Normal copy recognizes the person and visible body evidence first and does not expose internal measurement or reduction identifiers.

@@ -473,6 +473,27 @@ HEAD_CORE is a multi-landmark group
 FIX:
 centroid(valid HEAD_CORE landmarks)
 
+---
+
+## 19. 05E observation, requirement and gap separation
+
+Body visibility answers only what is observed. It never defaults to a full-body requirement and never changes when the selected target changes.
+
+Each semantic region records one bounded state: `VALID`, `PARTIAL`, `LOW_CONFIDENCE`, `EDGE_CROPPED`, `NOT_OBSERVED` or `UNKNOWN`. Global edge evidence does not automatically assign any region `EDGE_CROPPED`; region-local evidence is required.
+
+Measurement capability remains target-independent and is evaluated from a `MeasurementDefinitionV01` plus observed evidence:
+
+| Measurement | Required basis |
+|---|---|
+| HEAD_TO_HIP | valid HEAD_CENTER + HIP_CENTER |
+| TORSO_CENTER | accepted shoulder + hip basis |
+| HEAD_TO_KNEE | valid HEAD_CENTER + KNEE_CENTER |
+| HEAD_TO_ANKLE | valid HEAD_CENTER + ANKLE_CENTER |
+
+Targets select from these capabilities through `TargetMeasurementRequirementV01`. The gap then compares only the selected requirements with the observed capabilities. Thus a Center Upper Body observation with good head, shoulders and hips is ready even if knees, ankles and feet are not observed; a Full Body target with missing ankles is not ready.
+
+`HEAD_CORE` is explicitly `MULTI_POINT` and reduces by centroid. Its intentionally false `bilateral_valid` value is neither invalidity nor crop evidence. This closes the 05D device defect where a global bottom flag falsely marked the head as bottom-cropped.
+
 RESULT:
 HEAD_TO_HIP can now establish valid head basis
 ```

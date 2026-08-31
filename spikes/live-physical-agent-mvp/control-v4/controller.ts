@@ -1,4 +1,6 @@
-import { resolveLiveConstraintsV01 } from './constraints.js';
+import { resolveLiveConstraintsFromGapV01 } from './constraints.js';
+import { evaluateTargetObservationGapV01 } from './gap.js';
+import { projectTargetMeasurementRequirementV01 } from './requirement.js';
 import type { ControlEpochV04, HumanObservationV02, LiveConstraintStateV01, LiveTargetV02, V4Action, V4Episode, V4Metrics, V4Outcome, V4Snapshot, V4Stage } from './types.js';
 
 export const V4_ACTION_COPY:Readonly<Record<V4Action,string>>=Object.freeze({MOVE_LEFT_SMALL:'向你自己的左侧移动一小步，然后自然停下',MOVE_RIGHT_SMALL:'向你自己的右侧移动一小步，然后自然停下',MOVE_CLOSER_SMALL:'靠近一小步，然后自然停下',MOVE_FARTHER_SMALL:'退后一小步，然后自然停下'});
@@ -13,7 +15,7 @@ export class HumanTargetRelativeServoV04 {
   arm(now:number):void{this.armed=true;this.ready=false;this.trialId+=1;this.stageSince=now;this.resolvedStage='ACQUIRE_SUBJECT';this.resetVerifyEvidence();this.episode=this.lastEpisode=null;this.state=metrics();}
   reset():void{this.armed=false;this.ready=false;this.trialId=this.episodeId=0;this.stageSince=0;this.resolvedStage='ACQUIRE_SUBJECT';this.resetVerifyEvidence();this.episode=this.lastEpisode=null;this.state=metrics();}
   update(observation:HumanObservationV02):Readonly<V4Snapshot>{
-    let constraints=resolveLiveConstraintsV01(observation,this.target);
+    const requirement=projectTargetMeasurementRequirementV01(this.target),gap=evaluateTargetObservationGapV01(observation.subject_recognition,observation.observed_body,requirement);let constraints=resolveLiveConstraintsFromGapV01(observation,this.target,gap);
     if(!this.armed)return this.snapshot(observation,constraints,null,null);
     if(this.ready){constraints=Object.freeze({...constraints,stage:'READY_LATCHED',all_satisfied:true});return this.snapshot(observation,constraints,null,null);}
     if(this.episode)return this.updateEpisode(observation,constraints);
@@ -28,7 +30,7 @@ export class HumanTargetRelativeServoV04 {
     this.resetVerifyEvidence();
     if(this.resolvedStage!==constraints.stage){this.resolvedStage=constraints.stage;this.stageSince=observation.timestamp_ms;}
     if((constraints.stage==='ADJUST_SCALE'||constraints.stage==='ALIGN_PRIMARY_ANCHOR')&&observation.fresh&&observation.stable&&observation.quality==='GOOD'&&observation.timestamp_ms-this.stageSince>=this.config.stage_persistence_ms){const action=this.actionFor(constraints);if(action)return this.issue(observation,constraints,action);}
-    const acquisition=constraints.stage==='ACQUIRE_SUBJECT'?'请让人物进入画面并保持片刻':constraints.stage==='ACQUIRE_REQUIRED_BODY'?(constraints.blocking_measurements.includes('REAL_BOTTOM_CROP')?'请稍微退后，让髋部和目标身体范围完整进入画面':`正在建立${constraints.blocking_measurements.map(item=>item.split('_').slice(0,-1).join('_')).join('、')}测量，请让头、双肩和双髋清晰可见`):constraints.stage==='ALIGN_SECONDARY_CONSTRAINT'?'当前纵向约束需要相机操作者调整，本机不伪造人物移动指令':null;
+    const acquisition=constraints.stage==='ALIGN_SECONDARY_CONSTRAINT'?'当前纵向约束需要相机操作者调整，本机不伪造人物移动指令':null;
     return this.snapshot(observation,constraints,null,acquisition);
   }
   private actionFor(c:LiveConstraintStateV01):V4Action|null{return c.stage==='ADJUST_SCALE'?(c.scale_relation==='TOO_LOW'?'MOVE_CLOSER_SMALL':c.scale_relation==='TOO_HIGH'?'MOVE_FARTHER_SMALL':null):c.stage==='ALIGN_PRIMARY_ANCHOR'?(c.x_relation==='TOO_LOW'?'MOVE_RIGHT_SMALL':c.x_relation==='TOO_HIGH'?'MOVE_LEFT_SMALL':null):null;}
@@ -47,5 +49,5 @@ export class HumanTargetRelativeServoV04 {
   private classify(e:V4Episode,c:LiveConstraintStateV01):V4Outcome{const relation=e.stage==='ADJUST_SCALE'?c.scale_relation:c.x_relation;if(relation==='IN_RANGE')return 'TARGET_REACHED';const end=e.settled_error;if(end===null)return 'NO_EFFECT';const material=Math.max(this.config.material_improvement_normalized,e.start_error*this.config.material_improvement_ratio);if(e.start_error-end>=material)return 'IMPROVED';if(end-e.start_error>=material)return 'WRONG_DIRECTION';return 'NO_EFFECT';}
   private recordOutcome(outcome:V4Outcome):void{if(outcome==='TARGET_REACHED')this.state.target_reached_count+=1;else if(outcome==='IMPROVED')this.state.improved_count+=1;else if(outcome==='NO_EFFECT')this.state.no_effect_count+=1;else this.state.wrong_direction_count+=1;const good=this.state.target_reached_count+this.state.improved_count;this.state.action_effectiveness=this.state.causally_evaluable_actions?good/this.state.causally_evaluable_actions:null;}
   private resetVerifyEvidence():void{this.readyEvidenceMs=0;this.lastVerifyAt=null;this.verifyUnstableSince=null;}
-  private snapshot(o:HumanObservationV02,c:LiveConstraintStateV01,action:V4Action|null,acquisition:string|null,reminder=false):Readonly<V4Snapshot>{return Object.freeze({timestamp_ms:o.timestamp_ms,armed:this.armed,trial_id:this.armed?this.trialId:null,stage:this.ready?'READY_LATCHED':c.stage,observation:o,target:this.target,constraints:c,action,instruction_copy_zh:action?V4_ACTION_COPY[action]:null,acquisition_copy_zh:acquisition,active_episode:this.episode?Object.freeze({...this.episode}):null,last_episode:this.lastEpisode?Object.freeze({...this.lastEpisode}):null,ready:this.ready,ready_hold_elapsed_ms:this.readyEvidenceMs,reminder_due:reminder,metrics:Object.freeze({...this.state})});}
+  private snapshot(o:HumanObservationV02,c:LiveConstraintStateV01,action:V4Action|null,acquisition:string|null,reminder=false):Readonly<V4Snapshot>{const targetRequirement=projectTargetMeasurementRequirementV01(this.target),targetGap=evaluateTargetObservationGapV01(o.subject_recognition,o.observed_body,targetRequirement);return Object.freeze({timestamp_ms:o.timestamp_ms,armed:this.armed,trial_id:this.armed?this.trialId:null,stage:this.ready?'READY_LATCHED':c.stage,observation:o,target:this.target,target_requirement:targetRequirement,target_gap:targetGap,constraints:c,action,instruction_copy_zh:action?V4_ACTION_COPY[action]:null,acquisition_copy_zh:acquisition,active_episode:this.episode?Object.freeze({...this.episode}):null,last_episode:this.lastEpisode?Object.freeze({...this.lastEpisode}):null,ready:this.ready,ready_hold_elapsed_ms:this.readyEvidenceMs,reminder_due:reminder,metrics:Object.freeze({...this.state})});}
 }

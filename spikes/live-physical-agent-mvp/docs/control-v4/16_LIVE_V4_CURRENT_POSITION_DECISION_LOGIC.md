@@ -543,6 +543,23 @@ These become the only inputs for `LivePresentationModelV02`.
 ```text
 HEAD_CORE.pair_center defect = FIXED
 HEAD_CORE reduction = CENTROID
+
+---
+
+## 28. 05E decision order and ownership
+
+V4 decision order is fixed as follows:
+
+```text
+recognition -> target-independent observation -> target-only requirement
+            -> required-minus-observed gap -> control/presentation
+```
+
+The resolver no longer derives measurement readiness by inspecting raw Pose groups. It consumes `TargetObservationGapV01`; `ACQUIRE_REQUIRED_BODY` therefore means only `ENSURE_TARGET_MEASURABILITY`.
+
+`TargetObservationGapV01` uses bounded reasons (`REGION_NOT_OBSERVED`, `REGION_EDGE_CROPPED`, `LOW_CONFIDENCE`, `INSUFFICIENT_BILATERAL_EVIDENCE`, `LANDMARK_REDUCTION_INVALID`, `STALE_EVIDENCE`, `NON_FINITE_GEOMETRY`, `UNKNOWN`) and classifies each blocker as `USER_FIXABLE`, `WAIT_FOR_STABLE_EVIDENCE`, `SYSTEM_MEASUREMENT_DEFECT` or `UNKNOWN`. A system measurement defect suppresses movement instructions.
+
+The same `ObservedBodyStateV01` must be byte-for-byte semantically identical for different targets given the same Pose observation. Only the target requirement and resulting gap may differ. Current V4 automated matrices enforce target influence on observed state = 0.
 UPPER_TORSO = DERIVED
 HEAD_TO_HIP readiness = PASS
 TORSO_CENTER readiness = PASS
