@@ -81,6 +81,6 @@ Before device PASS, capture two non-control scalar traces with the front camera 
 
 Required: stable opposite sensor-X signs. Expected geometry is left = positive and right = negative, but device evidence remains `SOURCE_REQUIRED` until recorded.
 
-Then run exactly one Center Upper Body X correction with Scale already in range. The issued physical direction must produce a detected response and reduce absolute sensor target error. Full READY is not required. Multi-target testing remains stopped.
+Then select `V4 · 05F 单次 Center X 复验` and run exactly one Center Upper Body X correction with Scale already in range. The dedicated mode automatically disarms after the first evaluated X Episode while retaining the scalar trace. The issued physical direction must produce a detected response and reduce absolute sensor target error. Full READY is not required. Multi-target testing remains stopped.
 
 Privacy: provider 0, backend per-frame 0, Luna 0, raw upload 0.
