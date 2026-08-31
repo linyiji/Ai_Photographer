@@ -56,7 +56,7 @@ async def progress_to_capture(client):
 
 def test_registry_consumes_all_locked_catalog_capabilities():
     registry = PlatformAdapterRegistry(CATALOG)
-    assert len(registry.capability_names) == 11
+    assert len(registry.capability_names) == 12
     assert {item["capability_name"] for item in registry.descriptors("H5")} == set(registry.capability_names)
 
 
@@ -70,7 +70,7 @@ def test_h5_support_is_honest_and_fake_live_remains_selected():
     assert live["implementation_type"] == "FAKE"
 
 
-@pytest.mark.parametrize("capability", ["NetworkAdapter", "HapticAdapter", "ShareAdapter", "AlbumAdapter", "CameraAdapter", "StorageAdapter"])
+@pytest.mark.parametrize("capability", ["NetworkAdapter", "HapticAdapter", "ShareAdapter", "AlbumAdapter", "CameraAdapter", "SceneScanAdapter", "StorageAdapter"])
 def test_wechat_facades_are_not_claimed_as_device_proven(capability):
     descriptor = next(item for item in PlatformAdapterRegistry(CATALOG).descriptors("WECHAT") if item["capability_name"] == capability)
     assert descriptor["support_level"] == "UNVERIFIED_REAL_DEVICE"
