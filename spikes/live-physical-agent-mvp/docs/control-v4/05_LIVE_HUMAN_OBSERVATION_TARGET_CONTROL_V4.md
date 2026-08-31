@@ -813,7 +813,7 @@ RESPONSE_GATE = PRESERVED
 VERIFY_LOGIC = PRESERVED
 ```
 
-Fresh OPPO `CENTER_UPPER_BODY` revalidation remains manual/pending.
+Fresh OPPO `CENTER_UPPER_BODY` revalidation is accepted as `PASS_WITH_WARNING`: the five-layer measurement gate released correctly, while horizontal subject-local direction opened bounded remediation 05F.
 
 ---
 
@@ -853,3 +853,11 @@ Group reduction is explicit:
 `bilateral_valid=false` is never crop evidence for a multi-point or single-point group. Global crop remains observation evidence; region crop requires region-local points at the asserted edge. For `CENTER_UPPER_BODY`, valid `HEAD_TO_HIP` and `TORSO_CENTER` capabilities make the target gap ready without knees, ankles or feet.
 
 Only `USER_FIXABLE` gaps with a justified direction may produce movement guidance. `SYSTEM_MEASUREMENT_DEFECT` produces no user movement instruction. Normal copy recognizes the person and visible body evidence first and does not expose internal measurement or reduction identifiers.
+
+---
+
+# 27. 05F subject-local horizontal control
+
+05F preserves all five measurement layers and inserts a single mapper between target-relative sensor error and physical action. Sensor X, display X and subject-local physical X are separate authorities. `SubjectPhysicalDirectionMapperV01` consumes desired sensor delta sign, control actor, shooting relation and camera facing. Preview mirroring affects only the display-axis projection.
+
+For a photographed subject facing the camera, subject-left produces positive sensor X and subject-right produces negative sensor X. A missing/ambiguous relation returns `UNSUPPORTED` and cannot emit a horizontal instruction. Scale actions, target values, response causality and VERIFY remain unchanged.

@@ -473,27 +473,6 @@ HEAD_CORE is a multi-landmark group
 FIX:
 centroid(valid HEAD_CORE landmarks)
 
----
-
-## 19. 05E observation, requirement and gap separation
-
-Body visibility answers only what is observed. It never defaults to a full-body requirement and never changes when the selected target changes.
-
-Each semantic region records one bounded state: `VALID`, `PARTIAL`, `LOW_CONFIDENCE`, `EDGE_CROPPED`, `NOT_OBSERVED` or `UNKNOWN`. Global edge evidence does not automatically assign any region `EDGE_CROPPED`; region-local evidence is required.
-
-Measurement capability remains target-independent and is evaluated from a `MeasurementDefinitionV01` plus observed evidence:
-
-| Measurement | Required basis |
-|---|---|
-| HEAD_TO_HIP | valid HEAD_CENTER + HIP_CENTER |
-| TORSO_CENTER | accepted shoulder + hip basis |
-| HEAD_TO_KNEE | valid HEAD_CENTER + KNEE_CENTER |
-| HEAD_TO_ANKLE | valid HEAD_CENTER + ANKLE_CENTER |
-
-Targets select from these capabilities through `TargetMeasurementRequirementV01`. The gap then compares only the selected requirements with the observed capabilities. Thus a Center Upper Body observation with good head, shoulders and hips is ready even if knees, ankles and feet are not observed; a Full Body target with missing ankles is not ready.
-
-`HEAD_CORE` is explicitly `MULTI_POINT` and reduces by centroid. Its intentionally false `bilateral_valid` value is neither invalidity nor crop evidence. This closes the 05D device defect where a global bottom flag falsely marked the head as bottom-cropped.
-
 RESULT:
 HEAD_TO_HIP can now establish valid head basis
 ```
@@ -542,3 +521,13 @@ Full Body:      HEAD_TO_ANKLE = INVALID           -> ACQUIRE_REQUIRED_BODY
 Body coverage guidance must release as soon as the active target measurements are `GOOD`. It must not keep asking an Upper Body subject to show ankles or feet. Conversely, crop of the actual hip, knee or ankle endpoint remains invalid for the measurement that depends on that endpoint.
 
 The sanitized 05C regression fixture preserves only scalar facts (`raw_media = false`): global bottom crop, bilateral hips at approximately `y = 0.846`, valid head/shoulder/hip geometry, knees present and ankles absent. For `CENTER_UPPER_BODY`, it must produce `HEAD_TO_HIP = GOOD`, `TORSO_CENTER = GOOD`, `measurement_ready = true`, and leave `ACQUIRE_REQUIRED_BODY`.
+
+---
+
+# 24. 05E observation, requirement and gap separation
+
+Body visibility answers only what is observed. It never defaults to a full-body requirement and never changes when the selected target changes. Each semantic region records `VALID`, `PARTIAL`, `LOW_CONFIDENCE`, `EDGE_CROPPED`, `NOT_OBSERVED` or `UNKNOWN`; region crop requires region-local evidence.
+
+Measurement capability remains target-independent. Targets select those capabilities through `TargetMeasurementRequirementV01`, and `TargetObservationGapV01` alone computes required minus observed. A Center Upper Body observation with good head, shoulders and hips is ready without knees, ankles or feet.
+
+The accepted 05E OPPO trace observed 449 measurement-ready/gap-ready rows and 449 downstream rows outside `ACQUIRE_REQUIRED_BODY`. 05F changes no observation, region, anchor, measurement definition, readiness or gap semantics.

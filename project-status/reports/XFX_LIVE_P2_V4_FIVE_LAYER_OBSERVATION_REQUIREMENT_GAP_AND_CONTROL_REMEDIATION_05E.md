@@ -4,7 +4,7 @@
 
 | Field | Result |
 |---|---|
-| TASK_RESULT | MANUAL_REVIEW_REQUIRED |
+| TASK_RESULT | PASS_WITH_WARNING |
 | ROOT_CAUSE | NON_BILATERAL_GROUP_MISCLASSIFIED_BY_GENERIC_CROP_FALLBACK |
 | SUBJECT_RECOGNITION_STATE | PASS |
 | OBSERVED_BODY_STATE | PASS |
@@ -31,15 +31,15 @@
 | TARGET_VALUES_CHANGED | NO |
 | RESPONSE_GATE | UNCHANGED |
 | VERIFY_LOGIC | UNCHANGED |
-| AUTOMATED_REGRESSION | 273/273 PASS |
+| AUTOMATED_REGRESSION | 273/273 PASS at 05E implementation head |
 | TYPESCRIPT | PASS |
 | PRODUCTION_BUILD | PASS / 49 modules |
 | BROWSER_GATE | PASS / ADJUST_SCALE |
-| CENTER_UPPER_BODY_OPPO_REVALIDATION | MANUAL_REVIEW_REQUIRED |
-| MEASUREMENT_READY_OBSERVED | NOT_EXERCISED |
-| TARGET_GAP_READY_OBSERVED | NOT_EXERCISED |
-| ACQUIRE_REQUIRED_BODY_RELEASED | NOT_EXERCISED |
-| V4_DEVICE_PROGRAM | MANUAL_REVIEW_REQUIRED |
+| CENTER_UPPER_BODY_OPPO_REVALIDATION | PASS_WITH_WARNING |
+| MEASUREMENT_READY_OBSERVED | YES / 449 rows |
+| TARGET_GAP_READY_OBSERVED | YES / 449 rows |
+| ACQUIRE_REQUIRED_BODY_RELEASED | YES / 449 downstream rows |
+| V4_DEVICE_PROGRAM | MANUAL_REVIEW_REQUIRED / X direction 05F |
 | PROVIDER / BACKEND_PER_FRAME / LUNA / RAW_UPLOAD | 0 / 0 / 0 / 0 |
 | MAIN_INTEGRATION | NOT_STARTED |
 
@@ -59,8 +59,10 @@ The sanitized 05D fixture preserves global bottom crop while providing a valid h
 
 The full suite passed 273/273; TypeScript passed; the production build passed with 49 modules. The browser route exposed subject detected, `THREE_QUARTER` observed coverage, ready target gap, truthful global bottom crop and `ADJUST_SCALE`, with recognition-first normal copy.
 
-## Remaining manual gate
+## Accepted OPPO gate and warning
 
-Exactly one fresh OPPO Center Upper Body scalar trace is required. It must show a sustained interval with valid head centroid, head, shoulders and hips; good `HEAD_TO_HIP` and `TORSO_CENTER`; `target_observation_gap.ready=true`; and release from `ACQUIRE_REQUIRED_BODY`. READY itself is not required. No multi-target test or target tuning may start before this result is accepted.
+The fresh OPPO trace `live-p2-v4-v4_center_upper_body-1788169794318.json` (SHA-256 `F9A1D27707662530C663AC34E01E224083F084B1F1FF2E50585A21580F2A2488`) contains 756 scalar-only rows. It records 449 rows with measurement ready and target gap ready, and all 449 are downstream of `ACQUIRE_REQUIRED_BODY`. `ADJUST_SCALE`, `ALIGN_PRIMARY_ANCHOR` and `VERIFY` were reached. This accepts the five-layer measurement gate.
+
+The same trace opened a separate bounded warning: six evaluated X actions all issued `MOVE_LEFT_SMALL` when negative sensor movement was required; four became `WRONG_DIRECTION` and two `NO_EFFECT`. Scale separately recorded one `IMPROVED` and one `TARGET_REACHED`. The measurement result is accepted, while subject-local X mapping proceeds under 05F. Multi-target testing remains stopped.
 
 No raw camera frame/video is saved or committed.

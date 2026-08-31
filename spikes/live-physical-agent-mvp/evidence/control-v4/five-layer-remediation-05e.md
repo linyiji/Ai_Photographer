@@ -66,6 +66,8 @@ Fixture facts: global bottom crop true, `HEAD_CORE` multi-point centroid valid, 
 
 ## Device disposition
 
-Fresh OPPO Center Upper Body evidence has not yet been exercised against 05E. Device status is `MANUAL_REVIEW_REQUIRED`. Exactly one Center Upper Body run is allowed next; multi-target testing and target-value tuning remain stopped.
+Fresh OPPO trace `live-p2-v4-v4_center_upper_body-1788169794318.json` (SHA-256 `F9A1D27707662530C663AC34E01E224083F084B1F1FF2E50585A21580F2A2488`) contains 756 scalar-only rows. Measurement readiness and target-gap readiness were each observed on 449 rows, and acquisition released on all 449. Downstream stages included `ADJUST_SCALE`, `ALIGN_PRIMARY_ANCHOR` and `VERIFY`. The 05E measurement/five-layer gate is `PASS_WITH_WARNING`.
+
+Warning: evaluated X actions produced four `WRONG_DIRECTION` and two `NO_EFFECT` outcomes, opening bounded 05F subject-local X remediation. Scale produced one `IMPROVED` and one `TARGET_REACHED`. This warning does not reopen the accepted five-layer measurement architecture.
 
 Privacy counters: provider 0, backend per-frame 0, Luna 0, raw upload 0.

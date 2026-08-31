@@ -543,23 +543,6 @@ These become the only inputs for `LivePresentationModelV02`.
 ```text
 HEAD_CORE.pair_center defect = FIXED
 HEAD_CORE reduction = CENTROID
-
----
-
-## 28. 05E decision order and ownership
-
-V4 decision order is fixed as follows:
-
-```text
-recognition -> target-independent observation -> target-only requirement
-            -> required-minus-observed gap -> control/presentation
-```
-
-The resolver no longer derives measurement readiness by inspecting raw Pose groups. It consumes `TargetObservationGapV01`; `ACQUIRE_REQUIRED_BODY` therefore means only `ENSURE_TARGET_MEASURABILITY`.
-
-`TargetObservationGapV01` uses bounded reasons (`REGION_NOT_OBSERVED`, `REGION_EDGE_CROPPED`, `LOW_CONFIDENCE`, `INSUFFICIENT_BILATERAL_EVIDENCE`, `LANDMARK_REDUCTION_INVALID`, `STALE_EVIDENCE`, `NON_FINITE_GEOMETRY`, `UNKNOWN`) and classifies each blocker as `USER_FIXABLE`, `WAIT_FOR_STABLE_EVIDENCE`, `SYSTEM_MEASUREMENT_DEFECT` or `UNKNOWN`. A system measurement defect suppresses movement instructions.
-
-The same `ObservedBodyStateV01` must be byte-for-byte semantically identical for different targets given the same Pose observation. Only the target requirement and resulting gap may differ. Current V4 automated matrices enforce target influence on observed state = 0.
 UPPER_TORSO = DERIVED
 HEAD_TO_HIP readiness = PASS
 TORSO_CENTER readiness = PASS
@@ -570,7 +553,7 @@ RESPONSE_GATE = PRESERVED
 VERIFY_LOGIC = PRESERVED
 ```
 
-Fresh OPPO revalidation remains pending.
+Fresh OPPO 05E revalidation is accepted as `PASS_WITH_WARNING`; measurement readiness and downstream release passed, while X physical-direction mapping opened 05F.
 
 ---
 
@@ -604,3 +587,53 @@ ankle region at bottom edge -> HEAD_TO_ANKLE INVALID
 ```
 
 Target values, constraint order, response gate, settle logic, 600 ms VERIFY and 1000 ms unstable reset are unchanged.
+
+---
+
+# 23. 05E decision order and ownership
+
+V4 decision order is fixed as follows:
+
+```text
+recognition -> target-independent observation -> target-only requirement
+            -> required-minus-observed gap -> control/presentation
+```
+
+The resolver consumes `TargetObservationGapV01`; `ACQUIRE_REQUIRED_BODY` means only `ENSURE_TARGET_MEASURABILITY`. The same `ObservedBodyStateV01` remains identical for different targets given the same Pose observation.
+
+---
+
+# 24. 05F horizontal coordinate and shooting-relation authority
+
+Three horizontal spaces are distinct:
+
+```text
+SENSOR_X = canonical non-mirrored perception coordinate
+DISPLAY_X = preview coordinate after optional mirror projection
+SUBJECT_LOCAL_PHYSICAL_X = the photographed person's own left/right
+```
+
+The control chain is:
+
+```text
+current sensor X + target sensor X
+-> desired sensor delta sign
+-> SubjectPhysicalDirectionMapperV01
+   (control actor + shooting relation + camera facing)
+-> physical action
+-> LiveAction + primary/overlay/voice copy
+
+desired sensor delta sign + preview mirror
+-> display arrow sign
+```
+
+For a subject facing the camera, geometric authority is:
+
+```text
+SUBJECT_LEFT  -> SENSOR_X POSITIVE
+SUBJECT_RIGHT -> SENSOR_X NEGATIVE
+```
+
+This mapping is independent of preview mirroring. Mirroring is applied once, only when projecting the desired sensor movement into display space. Unknown shooting relation, unknown camera facing or ambiguous `EITHER` actor produces `UNSUPPORTED` and no horizontal movement instruction.
+
+The 05E trace reconstructed the former defect: all six evaluated X episodes required negative sensor movement but issued subject-left; every measured response moved sensor X positive. Four were classified `WRONG_DIRECTION`, two `NO_EFFECT`. Target values, Scale mapping, five-layer measurement, response gate and VERIFY are unchanged.

@@ -1191,31 +1191,6 @@ Hard prohibition:
 
 ```text
 HEAD_CORE.pair_center
-
----
-
-## 33. 05E recognition-first presentation contract
-
-`LivePresentationModelV02` consumes the canonical recognition, observed-body, target-gap, action and verification states. The renderer does not recompute readiness, crop, direction or actionability.
-
-Normal acquisition guidance follows this order:
-
-1. Say whether the person is recognized.
-2. Summarize valid visible human regions in ordinary language.
-3. Explain only the evidence still required by the active target.
-4. Add movement copy only when the gap is `USER_FIXABLE` and the direction is justified.
-
-Examples:
-
-```text
-已识别到人物。当前看到头部和双肩，双髋还没有形成有效测量。请稍微退后。
-
-已识别到人物。头部、双肩和双髋测量有效，正在判断人物大小和位置。
-```
-
-Normal UI must not expose `HEAD_TO_HIP`, `TORSO_CENTER`, `MeasurementCapability`, `BILATERAL_VALID` or `CENTROID`. Debug/evidence may retain them. A `SYSTEM_MEASUREMENT_DEFECT` presents a paused measurement state and must not instruct the user to move.
-
-Primary text, overlay state and action arrow each have one source: `LivePresentationModelV02`. The 05E browser regression verifies that the Center Upper Body fixture with truthful global lower crop and valid head/shoulder/hip evidence releases acquisition and advances to scale/alignment control.
 ```
 
 The Renderer must not compensate for a missing/invalid upstream anchor by inventing a screen-space center.
@@ -1510,12 +1485,12 @@ Scale 解决以后才显示 X。
   "movement_arrow": {
     "visible": true,
     "actor": "SUBJECT",
-    "action": "MOVE_LEFT_SMALL"
+    "action": "MOVE_RIGHT_SMALL"
   },
   "verification_progress": null,
-  "primary_text": "向左移动一点",
+  "primary_text": "向你自己的右侧移动一点",
   "secondary_text": null,
-  "voice_text": "向左一点",
+  "voice_text": "向你自己的右侧移动一点",
   "haptic_event": null,
   "presentation_version": "0.2"
 }
@@ -1710,9 +1685,9 @@ target = 0.33
 
 文字：
 
-> `向左移动一点`
+> `向你自己的右侧移动一点`
 
-## F. 用户左移
+## F. 用户向自己的右侧移动
 
 检测 Response。
 
@@ -1894,3 +1869,37 @@ READY
 ```
 
 这就是 Live V4 正式的视觉线框与指示算法。
+
+---
+
+# 22. 05E recognition-first presentation contract
+
+`LivePresentationModelV02` consumes recognition, observed-body, target-gap, action and verification states. Normal acquisition copy recognizes the person and visible body evidence before describing the missing target evidence. Internal measurement or reduction names remain debug-only.
+
+---
+
+# 23. 05F X direction and display contract
+
+Horizontal presentation consumes one `SubjectPhysicalDirectionDecisionV01`:
+
+```text
+desired_sensor_delta_sign
+physical_action
+display_axis_sign
+```
+
+`LiveAction`, primary text, overlay text and bounded voice text are derived from `physical_action`. The arrow is derived from the same desired sensor movement after exactly one preview-mirror projection. No UI component may invert the physical action independently.
+
+For front camera + mirrored preview + subject facing camera:
+
+```text
+desired SENSOR_X NEGATIVE
+-> physical SUBJECT_RIGHT
+-> mirrored DISPLAY_X POSITIVE
+-> rightward screen arrow
+-> “向你自己的右侧移动一小步”
+```
+
+For a non-mirrored diagnostic preview, the same physical action remains `SUBJECT_RIGHT`, while the screen arrow becomes negative because the unmirrored image moves left. This is not a second physical inversion.
+
+If the mapper returns `UNSUPPORTED`, normal presentation issues no horizontal movement. Scale presentation is unchanged.
