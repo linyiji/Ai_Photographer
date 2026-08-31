@@ -102,4 +102,21 @@ Implementation commit `8f9a6e4` adds `SubjectXCalibrationV01` with explicit `CAP
 
 Fresh automation after this bounded correction: 284/284 PASS; TypeScript PASS; production build PASS / 51 modules; browser Smoke PASS for calibration `CAPTURE_BASELINE`, single-step `ARMED_WAITING_OBSERVATION`, and zero console warning/error.
 
-Device status remains `MANUAL_REVIEW_REQUIRED` only because the two explicit left/right calibration traces must be repeated with the new completion state and must finish with stable opposite Sensor-X signs. The Center X single-step correction portion is PASS. Target values, scale mapping, five-layer observation/gap, response gate and VERIFY logic are unchanged.
+At that instrumentation checkpoint, device status remained `MANUAL_REVIEW_REQUIRED` because both explicit calibration traces still needed repetition. The fresh evidence below supersedes that checkpoint for the left sign only. The Center X single-step correction portion is PASS. Target values, scale mapping, five-layer observation/gap, response gate and VERIFY logic are unchanged.
+
+## Fresh OPPO evidence after phased calibration
+
+Fresh scalar-only traces received on 2026-08-31:
+
+| Trace | SHA-256 | Disposition |
+|---|---|---|
+| `live-p2-v4-v4_center_upper_body-1788176214273.json` | `20480D1A77FD8951FB1DDA6879E525D524F1461D7BB5FB2B19573FEFDED06E9C` | SUPPORTING RUNTIME EVIDENCE: 322 rows; 246 finite target X rows; 232 measurement-ready rows; 4/4 evaluated Episodes reached target; wrong direction 0; final `READY_LATCHED` |
+| `live-p2-v4-v4_x_calibrate_subject_left-1788176269641.json` | `4236F0A32814FDF4974F929C36033223898C813FDD730B2EC0848D218536B847` | SUBJECT-OWN-LEFT CALIBRATION PASS: terminal `COMPLETE`; baseline Sensor X `0.569638`; settled Sensor X `0.648709`; signed delta `+0.079071`; sign `POSITIVE`; status `VALID` |
+| `live-p2-v4-v4_x_calibrate_subject_right-1788176313539.json` | `769D40DC0D56F07D8C07424C62222521073D78C84B603515E629F8C71381C2DE` | INCOMPLETE: stopped in `MOVE_LABELED_DIRECTION`; baseline `0.213743`; no settled endpoint; sign `UNKNOWN`; target measurement not ready at export |
+| `live-p2-v4-v4_x_device_single_step-1788176357584.json` | `C73D65AA911E3E1ECFB9D18F0BBE6337A3BBF7B39F80A98E76389D8D6ED4FDF7` | NOT AN X REVALIDATION: one `MOVE_CLOSER_SMALL` Scale Episode ended `NO_EFFECT`; it does not replace the previously accepted improved Center X Episode |
+
+The left labeled calibration establishes `SUBJECT_LEFT -> SENSOR_X POSITIVE` on this device. The right sign remains `SOURCE_REQUIRED`; an opposite negative settled delta must be captured before the two-sign physical-direction Gate can pass. The incomplete right trace is not inferred or relabeled.
+
+The new single-step file also shows that opening the general diagnostic surface can expose unrelated Scale preconditions before the intended X test. Commit `7dbe187` therefore performs a presentation-only reduction for the active 05F device gate: the default mobile view exposes only left calibration, right calibration and one Center X revalidation; legacy scenarios, full observation fields, controller internals, performance HUD and capability nodes remain in the DOM and reappear through `显示完整调试`. Scalar Trace capture remains complete. No target, scale, five-layer, response, VERIFY or direction semantics changed.
+
+Fresh regression for the compact surface: 284/284 tests PASS; TypeScript PASS; production build PASS / 51 modules; mobile viewport browser Smoke PASS. Default compact selection is the remaining right calibration, all 22 scenario options remain in DOM, four legacy scenario groups are hidden by presentation only, full debug restores them, and browser console warning/error count is 0.

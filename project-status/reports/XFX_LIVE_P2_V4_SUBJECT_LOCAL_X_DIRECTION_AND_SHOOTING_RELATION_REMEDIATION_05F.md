@@ -11,7 +11,7 @@
 | DISPLAY_X_AUTHORITY | PASS |
 | SUBJECT_LOCAL_X_AUTHORITY | PASS (implementation) |
 | SHOOTING_RELATION_TRANSFORM | PASS (deterministic) |
-| SUBJECT_LEFT_SENSOR_SIGN | SOURCE_REQUIRED |
+| SUBJECT_LEFT_SENSOR_SIGN | PASS / POSITIVE SENSOR X DELTA +0.079071 |
 | SUBJECT_RIGHT_SENSOR_SIGN | SOURCE_REQUIRED |
 | OLD_DIRECTION_MAPPING | INVERTED |
 | DOUBLE_MIRROR_INVERSION | 0 |
@@ -32,6 +32,7 @@
 | TYPESCRIPT | PASS |
 | PRODUCTION_BUILD | PASS / 51 modules |
 | BROWSER_GATE | PASS |
+| 05F_COMPACT_DEVICE_SURFACE | PASS / LEGACY NODES RETAINED AND TOGGLEABLE |
 
 ## Audit and root cause
 
@@ -47,12 +48,22 @@ The action, primary copy, overlay copy and voice copy share one physical action.
 
 ## Remaining device gate
 
-Two labeled, non-control front-camera calibration traces remain required: deliberate subject-own-left and subject-own-right. Their sensor deltas must be stable and opposite. The dedicated `V4_X_DEVICE_SINGLE_STEP` Center Upper Body correction has now passed with one detected, error-reducing response; READY was not required. A contradictory fresh calibration stops the task as FAIL; no alternate inversion may be guessed.
+The labeled subject-own-left front-camera calibration now passes with a stable positive Sensor-X delta. The subject-own-right calibration remains required and must complete with a stable opposite negative delta. The dedicated `V4_X_DEVICE_SINGLE_STEP` Center Upper Body correction has already passed with one detected, error-reducing response; READY was not required. A contradictory fresh right calibration stops the task as FAIL; no alternate inversion may be guessed.
 
 ## Fresh OPPO evidence and correction
 
 Four fresh traces were audited. The left calibration contained only 35 finite target-anchor rows before target measurement loss; the right calibration contained zero finite target-anchor rows. Because the original calibration surface had no baseline/movement/settle lifecycle, neither is admissible evidence for a physical-direction sign.
 
-The second single-step trace is admissible Center X evidence: one `MOVE_LEFT_SMALL` Episode detected a positive Sensor-X response, moved approximately `0.353 -> 0.564`, reduced absolute target error approximately `0.147 -> 0.064`, and terminated `IMPROVED` with wrong direction 0. Therefore `CENTER_X_DEVICE_REVALIDATION=PASS`, while both explicit calibration signs remain `SOURCE_REQUIRED`.
+The second single-step trace is admissible Center X evidence: one `MOVE_LEFT_SMALL` Episode detected a positive Sensor-X response, moved approximately `0.353 -> 0.564`, reduced absolute target error approximately `0.147 -> 0.064`, and terminated `IMPROVED` with wrong direction 0. Therefore `CENTER_X_DEVICE_REVALIDATION=PASS`; at that checkpoint, both explicit calibration signs remained `SOURCE_REQUIRED`. The fresh evidence below supersedes the left-sign checkpoint only.
 
 Commit `8f9a6e4` adds a bounded calibration lifecycle and audit telemetry. Calibration now reports baseline acquisition, labeled movement, settling and a terminal signed Sensor-X delta; invalid target measurement is reported explicitly and cannot invent a sign. Scalar rows include `armed`, `trial_id`, `ready_hold_elapsed_ms` and calibration state. The single-step UI now exposes immediate ARMED state and retains an explicit completed-result message after intentional auto-disarm. Target, scale, five-layer observation/gap, response causality and VERIFY logic were not changed.
+
+## Fresh device evidence and presentation reduction
+
+The fresh left calibration completed with baseline Sensor X `0.569638`, settled Sensor X `0.648709`, delta `+0.079071`, sign `POSITIVE` and status `VALID`. This is admissible `SUBJECT_LEFT_SENSOR_SIGN=PASS` evidence.
+
+The fresh right calibration stopped before a settled endpoint: baseline `0.213743`, terminal phase `MOVE_LABELED_DIRECTION`, sign `UNKNOWN`, and target measurement not ready at export. It remains `SOURCE_REQUIRED` and is not treated as a negative sign.
+
+The fresh file labeled single-step contains a Scale action (`MOVE_CLOSER_SMALL`) rather than an X Episode and ended `NO_EFFECT`. It is excluded from the Center X decision and does not overwrite the previously accepted improved X Episode. The supporting Center Upper Body trace reached four of four targets with wrong direction 0 and final `READY_LATCHED`.
+
+Commit `7dbe187` reduces the default 05F device UI without deleting diagnostic nodes. Only left calibration, right calibration and Center X revalidation are shown by default; the complete HUD, controller fields and legacy scenario groups remain available through `显示完整调试`, and all scalar telemetry continues to be recorded. This is presentation-only: target values, Scale mapping, five-layer observation/gap, response gate, VERIFY and direction transforms are unchanged. Regression remains 284/284 PASS, TypeScript PASS, production build PASS / 51 modules, mobile browser Smoke PASS with zero console warning/error.
