@@ -17,8 +17,8 @@
 | DOUBLE_MIRROR_INVERSION | 0 |
 | 05E_X_WRONG_DIRECTION_RECONSTRUCTION | PASS |
 | ACTION_ARROW_TEXT_VOICE_ALIGNMENT | PASS |
-| CENTER_X_DEVICE_REVALIDATION | MANUAL_REVIEW_REQUIRED |
-| WRONG_PHYSICAL_DIRECTION | NOT_EXERCISED |
+| CENTER_X_DEVICE_REVALIDATION | PASS / ONE IMPROVED X EPISODE |
+| WRONG_PHYSICAL_DIRECTION | 0 |
 | TARGET_VALUES_CHANGED | NO |
 | SCALE_MAPPING_CHANGED | NO |
 | FIVE_LAYER_MODEL | UNCHANGED |
@@ -28,9 +28,9 @@
 | MULTI_TARGET_GATE | NOT_STARTED |
 | MAIN_INTEGRATION | NOT_STARTED |
 | PROVIDER / BACKEND_PER_FRAME / LUNA / RAW_UPLOAD | 0 / 0 / 0 / 0 |
-| AUTOMATED_REGRESSION | 281/281 PASS |
+| AUTOMATED_REGRESSION | 284/284 PASS |
 | TYPESCRIPT | PASS |
-| PRODUCTION_BUILD | PASS / 50 modules |
+| PRODUCTION_BUILD | PASS / 51 modules |
 | BROWSER_GATE | PASS |
 
 ## Audit and root cause
@@ -47,4 +47,12 @@ The action, primary copy, overlay copy and voice copy share one physical action.
 
 ## Remaining device gate
 
-Two labeled, non-control front-camera calibration traces are required: deliberate subject-own-left and subject-own-right. Their sensor deltas must be stable and opposite. After calibration confirms the transform, the dedicated `V4_X_DEVICE_SINGLE_STEP` mode must run exactly one Center Upper Body X correction and reduce absolute sensor target error after a detected response. This mode automatically disarms after the first evaluated X Episode while preserving the trace. READY is not required. A contradictory calibration or one wrong correction stops the task as FAIL; no alternate inversion may be guessed.
+Two labeled, non-control front-camera calibration traces remain required: deliberate subject-own-left and subject-own-right. Their sensor deltas must be stable and opposite. The dedicated `V4_X_DEVICE_SINGLE_STEP` Center Upper Body correction has now passed with one detected, error-reducing response; READY was not required. A contradictory fresh calibration stops the task as FAIL; no alternate inversion may be guessed.
+
+## Fresh OPPO evidence and correction
+
+Four fresh traces were audited. The left calibration contained only 35 finite target-anchor rows before target measurement loss; the right calibration contained zero finite target-anchor rows. Because the original calibration surface had no baseline/movement/settle lifecycle, neither is admissible evidence for a physical-direction sign.
+
+The second single-step trace is admissible Center X evidence: one `MOVE_LEFT_SMALL` Episode detected a positive Sensor-X response, moved approximately `0.353 -> 0.564`, reduced absolute target error approximately `0.147 -> 0.064`, and terminated `IMPROVED` with wrong direction 0. Therefore `CENTER_X_DEVICE_REVALIDATION=PASS`, while both explicit calibration signs remain `SOURCE_REQUIRED`.
+
+Commit `8f9a6e4` adds a bounded calibration lifecycle and audit telemetry. Calibration now reports baseline acquisition, labeled movement, settling and a terminal signed Sensor-X delta; invalid target measurement is reported explicitly and cannot invent a sign. Scalar rows include `armed`, `trial_id`, `ready_hold_elapsed_ms` and calibration state. The single-step UI now exposes immediate ARMED state and retains an explicit completed-result message after intentional auto-disarm. Target, scale, five-layer observation/gap, response causality and VERIFY logic were not changed.
