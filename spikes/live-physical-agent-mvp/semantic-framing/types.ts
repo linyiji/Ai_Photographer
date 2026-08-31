@@ -24,6 +24,8 @@ export interface LandmarkGroupEvidence {
   visible_count: number;
   pair_center: SensorPoint | null;
   pair_width: number | null;
+  centroid?: SensorPoint | null;
+  members?: readonly Readonly<{ side: 'LEFT' | 'RIGHT' | 'CENTER'; visible: boolean; confidence: number; x: number | null; y: number | null }>[];
 }
 
 export type LandmarkGroupEvidenceMap = Readonly<Record<SemanticGroupName, LandmarkGroupEvidence>>;

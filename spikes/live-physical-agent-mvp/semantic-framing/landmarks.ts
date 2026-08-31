@@ -18,12 +18,17 @@ const finite = (point: LandmarkSample | undefined): point is LandmarkSample => B
 export function buildLandmarkGroups(landmarks: readonly LandmarkSample[], threshold: number): LandmarkGroupEvidenceMap {
   const build = (name: SemanticGroupName): LandmarkGroupEvidence => {
     const indexes = POSE_GROUPS[name];
+    const members = indexes.map((index,position) => {
+      const point=landmarks[index];const usable=finite(point);const pointConfidence=usable?confidence(point):0;
+      return Object.freeze({side:indexes.length===2?(position===0?'LEFT':'RIGHT'):'CENTER',visible:usable&&pointConfidence>=threshold,confidence:pointConfidence,x:usable?point.x:null,y:usable?point.y:null}) as Readonly<{side:'LEFT'|'RIGHT'|'CENTER';visible:boolean;confidence:number;x:number|null;y:number|null}>;
+    });
     const visible = indexes.map((index) => landmarks[index]).filter((point): point is LandmarkSample => finite(point) && confidence(point) >= threshold);
     const bilateral = indexes.length === 2 && visible.length === 2;
     const pairCenter: SensorPoint | null = bilateral ? { x: (visible[0].x + visible[1].x) / 2, y: (visible[0].y + visible[1].y) / 2 } : null;
     const meanConfidence = visible.length ? visible.reduce((sum, point) => sum + confidence(point), 0) / visible.length : 0;
     const required = name === 'HEAD_CORE' ? 2 : indexes.length;
-    return Object.freeze({ valid: visible.length >= required, bilateral_valid: bilateral, confidence: meanConfidence, visible_count: visible.length, pair_center: pairCenter, pair_width: bilateral ? Math.abs(visible[0].x - visible[1].x) : null });
+    const centroid=visible.length?{x:visible.reduce((sum,point)=>sum+point.x,0)/visible.length,y:visible.reduce((sum,point)=>sum+point.y,0)/visible.length}:null;
+    return Object.freeze({ valid: visible.length >= required, bilateral_valid: bilateral, confidence: meanConfidence, visible_count: visible.length, pair_center: pairCenter, pair_width: bilateral ? Math.abs(visible[0].x - visible[1].x) : null,centroid,members:Object.freeze(members) });
   };
   return Object.freeze({ HEAD_CORE: build('HEAD_CORE'), SHOULDERS: build('SHOULDERS'), ELBOWS: build('ELBOWS'), WRISTS: build('WRISTS'), HIPS: build('HIPS'), KNEES: build('KNEES'), ANKLES: build('ANKLES') });
 }

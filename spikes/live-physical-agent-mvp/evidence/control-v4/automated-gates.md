@@ -4,7 +4,7 @@ Date: 2026-08-31 (Asia/Shanghai)
 
 ## Results
 
-- Full automated suite: PASS — 253/253.
+- Full automated suite: PASS — 257/257.
 - Phase A: PASS — subject lock acquire/lock/hold/lost/reacquire, body-region visibility, semantic anchors, bottom crop and non-mirrored coordinate basis.
 - Phase B: PASS — center/left-third/right-third are target-relative; current x=0.33 is in range for target x=0.33.
 - Phase C: PASS — the same observation yields different scale relations for different target scale contracts; no universal BodyMode/distance rule.
@@ -19,6 +19,7 @@ Date: 2026-08-31 (Asia/Shanghai)
 - Browser matrix: PASS — 6/6 deterministic V4 routes reached READY.
 - V4 overlay smoke: PASS — semantic debug is disabled; MODE/BodyMode card, raw pose box, semantic anchor, conventional Target box and acceptable-zone box are not visible.
 - Browser console: PASS — no runtime errors in the six-route replay.
+- Measurement readiness remediation 05A: PASS — head centroid, derived torso, bilateral hip READY, unilateral hip MARGINAL, bottom crop NOT_READY, and coverage/measurement separation.
 
 ## Privacy and hot path
 

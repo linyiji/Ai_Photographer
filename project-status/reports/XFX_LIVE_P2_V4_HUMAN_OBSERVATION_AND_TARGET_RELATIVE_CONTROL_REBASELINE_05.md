@@ -34,10 +34,12 @@ Implementation, automated, TypeScript, production build and deterministic browse
 | Response gate | PASS |
 | No-response outcomes/reissues | 0 / 0 |
 | Passive relation change | DIAGNOSTIC_ONLY |
-| Automated | 253/253 PASS |
+| Automated | 257/257 PASS |
 | TypeScript/build | PASS / PASS |
 | Browser matrix | 6/6 PASS |
 | OPPO | MANUAL_REVIEW_REQUIRED |
+
+Bounded remediation 05A separates shot coverage from target measurement readiness, derives `UPPER_TORSO` from shoulder/hip evidence, and fixes the invalid `HEAD_CORE.pair_center` assumption by using a bounded head centroid. Automated and browser gates pass; fresh Center device acquisition evidence remains required.
 
 ## OPPO attempt 01 follow-up
 

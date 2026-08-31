@@ -28,7 +28,7 @@ export class HumanTargetRelativeServoV04 {
     this.resetVerifyEvidence();
     if(this.resolvedStage!==constraints.stage){this.resolvedStage=constraints.stage;this.stageSince=observation.timestamp_ms;}
     if((constraints.stage==='ADJUST_SCALE'||constraints.stage==='ALIGN_PRIMARY_ANCHOR')&&observation.fresh&&observation.stable&&observation.quality==='GOOD'&&observation.timestamp_ms-this.stageSince>=this.config.stage_persistence_ms){const action=this.actionFor(constraints);if(action)return this.issue(observation,constraints,action);}
-    const acquisition=constraints.stage==='ACQUIRE_SUBJECT'?'请让人物进入画面并保持片刻':constraints.stage==='ACQUIRE_REQUIRED_BODY'?`请调整取景，让${constraints.missing_body_parts.join('、')}完整进入画面`:constraints.stage==='ALIGN_SECONDARY_CONSTRAINT'?'当前纵向约束需要相机操作者调整，本机不伪造人物移动指令':null;
+    const acquisition=constraints.stage==='ACQUIRE_SUBJECT'?'请让人物进入画面并保持片刻':constraints.stage==='ACQUIRE_REQUIRED_BODY'?(constraints.blocking_measurements.includes('REAL_BOTTOM_CROP')?'请稍微退后，让髋部和目标身体范围完整进入画面':`正在建立${constraints.blocking_measurements.map(item=>item.split('_').slice(0,-1).join('_')).join('、')}测量，请让头、双肩和双髋清晰可见`):constraints.stage==='ALIGN_SECONDARY_CONSTRAINT'?'当前纵向约束需要相机操作者调整，本机不伪造人物移动指令':null;
     return this.snapshot(observation,constraints,null,acquisition);
   }
   private actionFor(c:LiveConstraintStateV01):V4Action|null{return c.stage==='ADJUST_SCALE'?(c.scale_relation==='TOO_LOW'?'MOVE_CLOSER_SMALL':c.scale_relation==='TOO_HIGH'?'MOVE_FARTHER_SMALL':null):c.stage==='ALIGN_PRIMARY_ANCHOR'?(c.x_relation==='TOO_LOW'?'MOVE_RIGHT_SMALL':c.x_relation==='TOO_HIGH'?'MOVE_LEFT_SMALL':null):null;}
