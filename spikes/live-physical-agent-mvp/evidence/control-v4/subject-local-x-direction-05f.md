@@ -145,4 +145,25 @@ The normal `CENTER_UPPER_BODY` photography Target is unchanged: `HEAD_TO_HIP`, `
 
 Automated regression after remediation: 287/287 PASS. Required cases pass: head + bilateral shoulders with hips missing and `HEAD_TO_HIP=INVALID` is calibration-ready; an invalid shoulder center is not ready; normal `CENTER_UPPER_BODY` with hips missing remains `ACQUIRE_REQUIRED_BODY`; calibration Trace proves target-gap false while X-calibration-ready is true. TypeScript PASS; production build PASS / 52 modules. Mobile browser Smoke confirms explicit “向你自己的左边/右边” calibration wording, no calibration dependency copy mentioning hips, `TORSO_CENTER`, `HEAD_TO_HIP` or Scale, and zero console warning/error.
 
-Device result remains `MANUAL_REVIEW_REQUIRED`. The historical labeled left trace remains evidence of a positive Sensor-X sign, and the earlier Center X correction remains error-reducing with wrong direction 0. The new shoulder-center runtime still requires a fresh LEFT trace and a fresh RIGHT trace that both detect response, settle and produce opposite signs, followed by one Center X product correction. No physical mapper inversion is made before that fresh opposite-sign gate.
+At this implementation checkpoint, device result remained `MANUAL_REVIEW_REQUIRED`. The historical labeled left trace remained evidence of a positive Sensor-X sign, and the earlier Center X correction remained error-reducing with wrong direction 0. The new shoulder-center runtime still required a fresh LEFT trace and a fresh RIGHT trace that both detect response, settle and produce opposite signs, followed by one Center X product correction. No physical mapper inversion is made before that fresh opposite-sign gate. The fresh attempt below supersedes this checkpoint status.
+
+## Fresh OPPO shoulder-center gate attempt
+
+Fresh scalar-only OPPO traces received on 2026-08-31 after the calibration-readiness remediation:
+
+| Trace | SHA-256 | Disposition |
+|---|---|---|
+| `live-p2-v4-v4_x_calibrate_subject_left-1788179406826.json` | `94C55A1BB48FBC8EA203CB169F3753C60A200622721E528342A10AD913CC3F82` | **PHASE A PASS**: `X_CAL_LEFT_1` reached `COMPLETE`; baseline Sensor X `0.591067`; settled Sensor X `0.701158`; delta `+0.110091`; sign `POSITIVE`; response observed and settled; 49 valid samples |
+| `live-p2-v4-v4_x_calibrate_subject_right-1788179430225.json` | `ED4A0BB2D6E4F09D1D60E621955CB3E9054D563079CAD44F5D26DFDFA3E0E266` | **PHASE B FAIL / INCOMPLETE**: baseline `0.421015` was acquired, but export remained in `MOVE_LABELED_DIRECTION`; final head and bilateral-shoulder requirements were invalid, no stable endpoint existed, response was not accepted, and sign remained `UNKNOWN` |
+| `live-p2-v4-v4_x_device_single_step-1788179452704.json` | `1DBB1CAB8FA6358BB38176DFAC5F1B2A7EA3A6385FDCD7F8999E62026A9C4764` | **PHASE C INADMISSIBLE / NOT EXERCISED**: three `MOVE_LEFT_SMALL` Episodes were cancelled; responded 0, evaluated 0, invalidated 3; no error-reducing X endpoint |
+| `live-p2-v4-v4_x_device_single_step-1788179452704 (1).json` | `1DBB1CAB8FA6358BB38176DFAC5F1B2A7EA3A6385FDCD7F8999E62026A9C4764` | BYTE-IDENTICAL DUPLICATE; counted once |
+
+The left trace contains 82 calibration-ready rows while the product `target_gap.ready` flag was false in all 82. This is direct device evidence that X calibration is no longer coupled to the full photography Target gate.
+
+The right trace is not evidence for a negative sign. Sensor X changed from the baseline, but the session correctly rejected the movement after head/bilateral-shoulder structural readiness and stability were lost. It must not manufacture `response_observed`, a settled endpoint or a sign from invalid observations. Phase B therefore fails this attempt and the serial authority stops before Phase C.
+
+The submitted single-step trace cannot be promoted around the failed Phase B prerequisite. Independently, it ended with `READY_LATCHED` while `target_gap.ready=false`, `required_body_satisfied=false`, `current_anchor_x=null`, and X relation `UNKNOWN`; this is retained as a product READY-causality diagnostic warning, not as 05F Center X acceptance evidence. No mapper inversion or bounded implementation change is authorized from this trace alone.
+
+Runtime remained local and scalar-only. LEFT / RIGHT / single-step Preview FPS were `29.3 / 28.4 / 27.9`; Vision/State Hz were approximately `6.03 / 5.93 / 5.70`; inference p95 was `194.8 / 227.5 / 227.5 ms`. No raw media, Provider, Backend or Luna traffic was recorded. The elevated p95 and sub-8 Hz throughput are retained as a device performance warning and do not convert the failed structural calibration into PASS.
+
+Fresh gate outcome: implementation remains PASS; Phase A PASS; Phase B FAIL / repeat required; opposite-sign calibration NOT ESTABLISHED; Phase C NOT EXERCISED; task device result FAIL for this attempt. Repeat only the right calibration with a small own-right step while the full head and both shoulders remain visible, and wait for `COMPLETE` before download.
