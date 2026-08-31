@@ -4,7 +4,7 @@ Date: 2026-08-31 (Asia/Shanghai)
 
 ## Results
 
-- Full automated suite: PASS — 250/250.
+- Full automated suite: PASS — 253/253.
 - Phase A: PASS — subject lock acquire/lock/hold/lost/reacquire, body-region visibility, semantic anchors, bottom crop and non-mirrored coordinate basis.
 - Phase B: PASS — center/left-third/right-third are target-relative; current x=0.33 is in range for target x=0.33.
 - Phase C: PASS — the same observation yields different scale relations for different target scale contracts; no universal BodyMode/distance rule.
@@ -16,6 +16,9 @@ Date: 2026-08-31 (Asia/Shanghai)
 - V3 historical regression: PASS.
 - TypeScript: PASS.
 - Production build: PASS — Vite transformed 44 modules.
+- Browser matrix: PASS — 6/6 deterministic V4 routes reached READY.
+- V4 overlay smoke: PASS — semantic debug is disabled; MODE/BodyMode card, raw pose box, semantic anchor, conventional Target box and acceptable-zone box are not visible.
+- Browser console: PASS — no runtime errors in the six-route replay.
 
 ## Privacy and hot path
 

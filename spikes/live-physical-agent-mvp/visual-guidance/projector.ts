@@ -61,6 +61,10 @@ export class VisualGuidanceProjector {
     this.wasInside = false; this.rawInsideAt = this.targetCrossingDelayMs = this.insideSince = this.insideBeforeReadyMs = null; this.visualLatencyMs = 0; this.entryCount = this.exitCount = 0; this.lastProjectionAt = null; this.visualLatencyHistory = [];
   }
 
+  projectSubjectOnly(state:StructuredPerceptionState,now=state.timestamp_ms):NormalizedBox|null{
+    const fresh=state.subject.present&&(state.measurement_age_ms??0)===0;const semanticBox=boxFromState(state,null);this.updateTracking(semanticBox,state,fresh,now);if(semanticBox&&fresh)this.updateProjection(semanticBox,state,now,null);return this.trackingStatus==='LOCKED'||this.trackingStatus==='HELD'||this.trackingStatus==='REACQUIRING'?this.smoothed:null;
+  }
+
   update(state: StructuredPerceptionState, control: ClosedLoopSnapshot, rawMeasurement: PoseMeasurement | null = null, options: { mode?: VisualServoMode; grid?: boolean; now?: number } = {}): VisualGuidanceState {
     const now = options.now ?? state.timestamp_ms; const fresh = state.subject.present && (state.measurement_age_ms ?? 0) === 0;
     const rawBox = boxFromState(state, rawMeasurement); const authoritativeBox = boxFromState(state, null); this.updateTracking(rawBox, state, fresh, now);

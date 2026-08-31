@@ -7,22 +7,25 @@ export interface V4Config {stage_persistence_ms:number;response_reminder_ms:numb
 export const V4_CONFIG:Readonly<V4Config>=Object.freeze({stage_persistence_ms:250,response_reminder_ms:900,long_no_response_ms:4500,settle_window_ms:375,ready_stable_ms:600,material_improvement_normalized:.18,material_improvement_ratio:.15});
 
 export class HumanTargetRelativeServoV04 {
-  private armed=false;private ready=false;private trialId=0;private episodeId=0;private stageSince=0;private resolvedStage:V4Stage='ACQUIRE_SUBJECT';private readySince:number|null=null;private episode:V4Episode|null=null;private lastEpisode:V4Episode|null=null;private state=metrics();
+  private armed=false;private ready=false;private trialId=0;private episodeId=0;private stageSince=0;private resolvedStage:V4Stage='ACQUIRE_SUBJECT';private readyEvidenceMs=0;private lastVerifyAt:number|null=null;private verifyUnstableSince:number|null=null;private episode:V4Episode|null=null;private lastEpisode:V4Episode|null=null;private state=metrics();
   constructor(private target:LiveTargetV02,private readonly config=V4_CONFIG){}
   setTarget(target:LiveTargetV02):void{this.target=target;this.reset();}
-  arm(now:number):void{this.armed=true;this.ready=false;this.trialId+=1;this.stageSince=now;this.resolvedStage='ACQUIRE_SUBJECT';this.readySince=null;this.episode=this.lastEpisode=null;this.state=metrics();}
-  reset():void{this.armed=false;this.ready=false;this.trialId=this.episodeId=0;this.stageSince=0;this.resolvedStage='ACQUIRE_SUBJECT';this.readySince=null;this.episode=this.lastEpisode=null;this.state=metrics();}
+  arm(now:number):void{this.armed=true;this.ready=false;this.trialId+=1;this.stageSince=now;this.resolvedStage='ACQUIRE_SUBJECT';this.resetVerifyEvidence();this.episode=this.lastEpisode=null;this.state=metrics();}
+  reset():void{this.armed=false;this.ready=false;this.trialId=this.episodeId=0;this.stageSince=0;this.resolvedStage='ACQUIRE_SUBJECT';this.resetVerifyEvidence();this.episode=this.lastEpisode=null;this.state=metrics();}
   update(observation:HumanObservationV02):Readonly<V4Snapshot>{
     let constraints=resolveLiveConstraintsV01(observation,this.target);
     if(!this.armed)return this.snapshot(observation,constraints,null,null);
     if(this.ready){constraints=Object.freeze({...constraints,stage:'READY_LATCHED',all_satisfied:true});return this.snapshot(observation,constraints,null,null);}
     if(this.episode)return this.updateEpisode(observation,constraints);
     if(constraints.stage==='VERIFY'){
-      if(observation.fresh&&observation.stable&&observation.quality==='GOOD')this.readySince??=observation.timestamp_ms;else this.readySince=null;
-      if(this.readySince!==null&&observation.timestamp_ms-this.readySince>=this.config.ready_stable_ms){this.ready=true;constraints=Object.freeze({...constraints,stage:'READY_LATCHED'});}
+      const delta=this.lastVerifyAt===null?0:Math.min(250,Math.max(0,observation.timestamp_ms-this.lastVerifyAt));this.lastVerifyAt=observation.timestamp_ms;
+      if(!observation.fresh||observation.quality==='INVALID')this.resetVerifyEvidence();
+      else if(observation.stable&&observation.quality==='GOOD'){this.readyEvidenceMs+=delta;this.verifyUnstableSince=null;}
+      else {this.verifyUnstableSince??=observation.timestamp_ms;if(observation.timestamp_ms-this.verifyUnstableSince>=1000)this.readyEvidenceMs=0;}
+      if(this.readyEvidenceMs>=this.target.ready_stable_ms&&observation.stable&&observation.quality==='GOOD'){this.ready=true;constraints=Object.freeze({...constraints,stage:'READY_LATCHED'});}
       return this.snapshot(observation,constraints,null,null);
     }
-    this.readySince=null;
+    this.resetVerifyEvidence();
     if(this.resolvedStage!==constraints.stage){this.resolvedStage=constraints.stage;this.stageSince=observation.timestamp_ms;}
     if((constraints.stage==='ADJUST_SCALE'||constraints.stage==='ALIGN_PRIMARY_ANCHOR')&&observation.fresh&&observation.stable&&observation.quality==='GOOD'&&observation.timestamp_ms-this.stageSince>=this.config.stage_persistence_ms){const action=this.actionFor(constraints);if(action)return this.issue(observation,constraints,action);}
     const acquisition=constraints.stage==='ACQUIRE_SUBJECT'?'请让人物进入画面并保持片刻':constraints.stage==='ACQUIRE_REQUIRED_BODY'?`请调整取景，让${constraints.missing_body_parts.join('、')}完整进入画面`:constraints.stage==='ALIGN_SECONDARY_CONSTRAINT'?'当前纵向约束需要相机操作者调整，本机不伪造人物移动指令':null;
@@ -43,5 +46,6 @@ export class HumanTargetRelativeServoV04 {
   }
   private classify(e:V4Episode,c:LiveConstraintStateV01):V4Outcome{const relation=e.stage==='ADJUST_SCALE'?c.scale_relation:c.x_relation;if(relation==='IN_RANGE')return 'TARGET_REACHED';const end=e.settled_error;if(end===null)return 'NO_EFFECT';const material=Math.max(this.config.material_improvement_normalized,e.start_error*this.config.material_improvement_ratio);if(e.start_error-end>=material)return 'IMPROVED';if(end-e.start_error>=material)return 'WRONG_DIRECTION';return 'NO_EFFECT';}
   private recordOutcome(outcome:V4Outcome):void{if(outcome==='TARGET_REACHED')this.state.target_reached_count+=1;else if(outcome==='IMPROVED')this.state.improved_count+=1;else if(outcome==='NO_EFFECT')this.state.no_effect_count+=1;else this.state.wrong_direction_count+=1;const good=this.state.target_reached_count+this.state.improved_count;this.state.action_effectiveness=this.state.causally_evaluable_actions?good/this.state.causally_evaluable_actions:null;}
-  private snapshot(o:HumanObservationV02,c:LiveConstraintStateV01,action:V4Action|null,acquisition:string|null,reminder=false):Readonly<V4Snapshot>{return Object.freeze({timestamp_ms:o.timestamp_ms,armed:this.armed,trial_id:this.armed?this.trialId:null,stage:this.ready?'READY_LATCHED':c.stage,observation:o,target:this.target,constraints:c,action,instruction_copy_zh:action?V4_ACTION_COPY[action]:null,acquisition_copy_zh:acquisition,active_episode:this.episode?Object.freeze({...this.episode}):null,last_episode:this.lastEpisode?Object.freeze({...this.lastEpisode}):null,ready:this.ready,ready_hold_elapsed_ms:this.readySince===null?0:Math.max(0,o.timestamp_ms-this.readySince),reminder_due:reminder,metrics:Object.freeze({...this.state})});}
+  private resetVerifyEvidence():void{this.readyEvidenceMs=0;this.lastVerifyAt=null;this.verifyUnstableSince=null;}
+  private snapshot(o:HumanObservationV02,c:LiveConstraintStateV01,action:V4Action|null,acquisition:string|null,reminder=false):Readonly<V4Snapshot>{return Object.freeze({timestamp_ms:o.timestamp_ms,armed:this.armed,trial_id:this.armed?this.trialId:null,stage:this.ready?'READY_LATCHED':c.stage,observation:o,target:this.target,constraints:c,action,instruction_copy_zh:action?V4_ACTION_COPY[action]:null,acquisition_copy_zh:acquisition,active_episode:this.episode?Object.freeze({...this.episode}):null,last_episode:this.lastEpisode?Object.freeze({...this.lastEpisode}):null,ready:this.ready,ready_hold_elapsed_ms:this.readyEvidenceMs,reminder_due:reminder,metrics:Object.freeze({...this.state})});}
 }

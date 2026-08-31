@@ -34,10 +34,16 @@ Implementation, automated, TypeScript, production build and deterministic browse
 | Response gate | PASS |
 | No-response outcomes/reissues | 0 / 0 |
 | Passive relation change | DIAGNOSTIC_ONLY |
-| Automated | 250/250 PASS |
+| Automated | 253/253 PASS |
 | TypeScript/build | PASS / PASS |
 | Browser matrix | 6/6 PASS |
 | OPPO | MANUAL_REVIEW_REQUIRED |
+
+## OPPO attempt 01 follow-up
+
+The first supplied scalar trace was `LEFT_THIRD_UPPER_BODY`, not Center. All 214 rows were correctly blocked in `ACQUIRE_REQUIRED_BODY` because only `HEAD_SHOULDERS` was observed and `UPPER_TORSO,HIPS` were missing. It therefore contains no VERIFY evidence and is not a valid Center/Left target-relative correction trial. The trace exposed presentation problems: incomplete-body acquisition looked frozen, old MODE/BodyMode debug overlays remained visible, and the conventional green rectangle did not match V4 semantic target meaning.
+
+A bounded correction now hides V4 debug and conventional target rectangles, gates the stabilized green subject box on required-body satisfaction, exposes VERIFY progress, and tolerates brief stability flicker without changing any target interval or causal rule. Fresh OPPO evidence is required after this correction.
 
 ## Warnings
 
@@ -49,4 +55,3 @@ Implementation, automated, TypeScript, production build and deterministic browse
 ## Privacy / boundary
 
 Provider=0, Luna=0, backend per-frame=0, raw upload=0. No real frames/video are stored. Historical V3 device evidence was not modified. Main/develop were not modified or merged.
-
