@@ -167,3 +167,24 @@ The submitted single-step trace cannot be promoted around the failed Phase B pre
 Runtime remained local and scalar-only. LEFT / RIGHT / single-step Preview FPS were `29.3 / 28.4 / 27.9`; Vision/State Hz were approximately `6.03 / 5.93 / 5.70`; inference p95 was `194.8 / 227.5 / 227.5 ms`. No raw media, Provider, Backend or Luna traffic was recorded. The elevated p95 and sub-8 Hz throughput are retained as a device performance warning and do not convert the failed structural calibration into PASS.
 
 Fresh gate outcome: implementation remains PASS; Phase A PASS; Phase B FAIL / repeat required; opposite-sign calibration NOT ESTABLISHED; Phase C NOT EXERCISED; task device result FAIL for this attempt. Repeat only the right calibration with a small own-right step while the full head and both shoulders remain visible, and wait for `COMPLETE` before download.
+
+## Fresh RIGHT replacement and opposite-sign result
+
+The failed Phase B attempt above is preserved, then superseded by the following fresh replacement trace received on 2026-08-31:
+
+| Trace | SHA-256 | Disposition |
+|---|---|---|
+| `live-p2-v4-v4_x_calibrate_subject_right-1788180995420.json` | `26B2CFEE343BCA0BA85E90F442D1069760729024780C99E8FA0E2B4D4C650FF7` | **PHASE B PASS**: `X_CAL_RIGHT_1` reached `COMPLETE`; baseline Sensor X `0.457373`; settled Sensor X `0.382091`; delta `-0.075282`; sign `NEGATIVE`; response observed and settled; 39 valid samples |
+
+The accepted post-remediation labeled calibration pair is now:
+
+```text
+SUBJECT_LEFT  -> SENSOR_X +0.110091 / POSITIVE
+SUBJECT_RIGHT -> SENSOR_X -0.075282 / NEGATIVE
+```
+
+Both actions produced detected responses and stable settled endpoints, and their signs are opposite. The subject-local labeled calibration Gate is PASS. The replacement RIGHT trace contains 197 calibration-ready rows, including 174 while the product `target_gap.ready` flag was false, further confirming target-independent calibration on the device.
+
+RIGHT runtime telemetry: 223 rows over `54.35 s`; Preview FPS `28.7`; Vision/State Hz `5.12`; inference p50/p95 `111.0/240.1 ms`; scheduled/processed `385/278`; skipped busy `106`; subject detected ratio `1.0`; loss/reacquire `0/0`. Raw media, Provider, Backend per-frame and Luna remain 0. Throughput and inference p95 remain a performance warning, not a calibration-sign failure.
+
+Serial Gate status advances to Phase C `SOURCE_REQUIRED`: run one fresh `V4_X_DEVICE_SINGLE_STEP` Center Upper Body X correction with Scale usable. It must issue one subject-local X instruction, detect the human response, settle, and reduce absolute Sensor-X target error. The earlier cancelled single-step trace remains inadmissible and is not relabeled.

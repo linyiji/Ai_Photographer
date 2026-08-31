@@ -4,7 +4,7 @@
 
 | Field | Result |
 |---|---|
-| TASK_RESULT | FAIL / FRESH DEVICE PHASE B INCOMPLETE |
+| TASK_RESULT | MANUAL_REVIEW_REQUIRED / PHASE C SOURCE REQUIRED |
 | ROOT_CAUSE | X_CALIBRATION_OVERCOUPLED_TO_FULL_PHOTOGRAPHY_TARGET_GATE |
 | X_CALIBRATION_REQUIREMENT | PASS |
 | CALIBRATION_TARGET_GAP_DEPENDENCY | REMOVED |
@@ -15,9 +15,9 @@
 | HEAD_SHOULDERS_TARGET_REQUIRES_HIPS | NO |
 | CENTER_UPPER_BODY_SEMANTICS | PRESERVED |
 | SUBJECT_LEFT_SENSOR_SIGN | POSITIVE / FRESH SHOULDER-CENTER DEVICE TRACE / DELTA +0.110091 |
-| SUBJECT_RIGHT_SENSOR_SIGN | SOURCE_REQUIRED / FRESH ATTEMPT LOST HEAD+SHOULDER VALIDITY BEFORE SETTLEMENT |
-| OPPOSITE_SIGN_CALIBRATION | NOT_EXERCISED |
-| SUBJECT_LOCAL_DIRECTION_MAPPING | NOT_EXERCISED / NO NEW INVERSION |
+| SUBJECT_RIGHT_SENSOR_SIGN | NEGATIVE / FRESH SHOULDER-CENTER DEVICE TRACE / DELTA -0.075282 |
+| OPPOSITE_SIGN_CALIBRATION | PASS / LEFT POSITIVE +0.110091 / RIGHT NEGATIVE -0.075282 |
+| SUBJECT_LOCAL_DIRECTION_MAPPING | LABELED CALIBRATION PASS / PRODUCT CORRECTION PHASE C REQUIRED |
 | DISPLAY_MIRROR_MAPPING | PASS |
 | DOUBLE_MIRROR_INVERSION | 0 |
 | CENTER_X_TARGET_ERROR_REDUCTION | NOT_EXERCISED / SUBMITTED TRACE INADMISSIBLE AFTER PHASE B FAILURE |
@@ -35,9 +35,9 @@
 | PRODUCTION_BUILD | PASS / 52 MODULES |
 | MOBILE_BROWSER_SMOKE | PASS / ZERO CONSOLE WARNING OR ERROR |
 | FRESH_DEVICE_PHASE_A | PASS / RESPONSE + SETTLED / POSITIVE |
-| FRESH_DEVICE_PHASE_B | FAIL / INCOMPLETE / RESPONSE FALSE / SETTLED FALSE / SIGN UNKNOWN |
-| FRESH_DEVICE_PHASE_C | NOT_EXERCISED / 3 CANCELLED EPISODES / 0 EVALUATED |
-| DEVICE_PERFORMANCE_WARNING | VISION 5.70-6.03 HZ / INFERENCE P95 194.8-227.5 MS |
+| FRESH_DEVICE_PHASE_B | PASS / RESPONSE + SETTLED / NEGATIVE |
+| FRESH_DEVICE_PHASE_C | SOURCE_REQUIRED / EARLIER 3-CANCELLED TRACE REMAINS INADMISSIBLE |
+| DEVICE_PERFORMANCE_WARNING | VISION 5.12-6.03 HZ / INFERENCE P95 194.8-240.1 MS |
 | RAW_MEDIA_PROVIDER_BACKEND_LUNA | 0 / 0 / 0 / 0 |
 
 ## Architecture correction
@@ -65,3 +65,11 @@ Phase B RIGHT failed on `live-p2-v4-v4_x_calibrate_subject_right-1788179430225.j
 The serial Gate therefore stopped before Phase C. `live-p2-v4-v4_x_device_single_step-1788179452704.json` and its byte-identical `(1)` copy are counted once and rejected as Phase C acceptance: three X Episodes were cancelled, zero responded, zero were evaluated and no target-error reduction was established. Its final `READY_LATCHED` with a false Target gap, unsatisfied required body, null anchor and unknown X relation is recorded as a separate READY-causality diagnostic warning.
 
 Repeat only Phase B with a smaller subject-own-right movement while the full head and both shoulders remain visible, then remain still until the UI reports `COMPLETE`. Phase C must not resume until the right trace provides a settled sign opposite the accepted left positive sign. No implementation change, mapper inversion, multi-target work or next task is started from this failed attempt.
+
+## Superseding Phase B replacement
+
+`live-p2-v4-v4_x_calibrate_subject_right-1788180995420.json` supersedes the incomplete RIGHT attempt. `X_CAL_RIGHT_1` reached `COMPLETE` from Sensor X `0.457373` to `0.382091`, delta `-0.075282`, response observed, settled and sign `NEGATIVE`. Together with the accepted LEFT delta `+0.110091`, the post-remediation labeled calibration signs are stable and opposite. Phase A and Phase B therefore PASS.
+
+The replacement contains 197 calibration-ready rows, 174 of them while product Target gap was false. It records scalar-only local processing with raw media, Provider, Backend per-frame and Luna all 0. Preview FPS was `28.7`; Vision/State Hz `5.12`; inference p50/p95 `111.0/240.1 ms`, retained as a performance warning.
+
+Phase C is now authorized but not yet satisfied: capture one fresh `V4_X_DEVICE_SINGLE_STEP` Center Upper Body horizontal correction with usable Scale. Acceptance requires an issued subject-local X instruction, detected response, settled evaluation and lower absolute Sensor target error. The previously submitted cancelled trace is not reused. Multi-target work and the next task remain stopped.
