@@ -34,6 +34,32 @@
 - Browser dataset: `v4CropGate=PASS`, `v4CropStage=ADJUST_SCALE`, `v4CropGlobalBottom=true`.
 - Camera/provider/backend/Luna are not used by the replay.
 
-## Remaining gate
+## Fresh OPPO revalidation
 
-A fresh bounded OPPO K11 Center Upper Body scalar trace is required. The expected device proof is `MEASUREMENT_READY_OBSERVED=YES` and `ACQUIRE_REQUIRED_BODY_RELEASED=YES`; READY is not required. Multi-target device testing remains stopped.
+- Trace: `live-p2-v4-v4_center_upper_body-1788165652825.json`.
+- SHA-256: `A1CDCE40B7626976CC02ABCE9E0022DC104CD8E647AB74336C60A28ABE380E64`.
+- Rows / duration: `406 / 61.38 s`.
+- Subject detected ratio: `99.49%`; subject lock: `385 LOCKED`, `16 LOST`, `4 REACQUIRING`, `1 HELD`.
+- Observed coverage summaries: `HEAD_SHOULDERS 219`, `UPPER_BODY 142`, `THREE_QUARTER 26`, `PARTIAL_OR_AMBIGUOUS 2`, `UNKNOWN 17`.
+- Valid bilateral hips: `146` rows; valid bilateral shoulders: `326` rows.
+- `TORSO_CENTER=GOOD`: `134` rows.
+- `measurement_ready=true`: `0`; `ACQUIRE_REQUIRED_BODY`: `389` rows.
+- Privacy: frame storage / landmark export / raw upload / backend / provider / Luna = `0/0/0/0/0/0`.
+
+## New device defect and STOP
+
+The 05D region helper used `!group.bilateral_valid` as a generic fallback when any global edge was asserted. `HEAD_CORE` is intentionally a multi-landmark centroid group rather than a bilateral pair. Consequently, all `168` rows with `GLOBAL_BOTTOM_CROP=true` classified HEAD as `EDGE_CROPPED/BOTTOM`, even when the head centroid was finite and far from the bottom edge. All `146` rows with valid bilateral shoulders and hips inherited this false HEAD bottom crop. `134` rows had `TORSO_CENTER=GOOD` but `HEAD_TO_HIP=INVALID`.
+
+This is a new measurement defect. 05D device result is `FAIL`; multi-target testing remains stopped.
+
+## Required judgment order
+
+Future remediation must preserve and expose five separate records before producing guidance:
+
+1. **Recognition:** was a subject detected and is the lock usable?
+2. **Observed extent:** which semantic regions are actually accepted, partial, low-confidence or edge-cropped?
+3. **Target requirement:** which anchors/regions/measurements does the selected target require?
+4. **Target gap:** required minus observed, with a concrete reason per missing measurement.
+5. **Control/presentation:** only then choose acquisition copy or a corrective action.
+
+The UI must not collapse internal measurement names into a generic instruction before showing what the system currently recognizes.
