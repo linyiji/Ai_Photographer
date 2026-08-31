@@ -6,6 +6,8 @@
 **Status:** Proposed Architecture Upgrade  
 **Date:** 2026-08-24
 
+> **Authority update (2026-08-31):** `83-capability-authority-and-contract-roadmap-v2.md` freezes current module ownership and the contract roadmap. Scene Spatial is evidence-only, Director owns Shot Plan decisions, Live is target execution, and Session stores domain state rather than algorithm runtime.
+
 ---
 
 # 0. 结论

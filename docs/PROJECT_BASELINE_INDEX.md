@@ -12,14 +12,18 @@ Windows 建仓时建议将本目录内容作为第一次或前几次 Baseline Co
 
 1. `README.md`
 2. `docs/00-project-charter.md`
-3. `docs/product-design/10-golden-flow-v1.0.md`
-4. `docs/product-design/15-story-a-f-master-v1.0.md`
-5. `docs/product-design/16-global-design-foundation-v1.0.md`
-6. `docs/research/20-product-tech-architecture-research-v1.0.md`
-7. `docs/02-architecture-principles.md`
-8. `docs/03-module-boundaries.md`
-9. `docs/08-mvp-fast-feedback.md`
-10. `docs/project-init/30-windows-first-project-init-v1.0.md`
+3. `docs/product-design/82-product-master-flow-v2.md`
+4. `docs/architecture/83-capability-authority-and-contract-roadmap-v2.md`
+5. `docs/architecture/84-live-observation-target-control-v4.md`
+6. `docs/project-management/45-product-program-roadmap-v2.md`
+7. `docs/product-design/10-golden-flow-v1.0.md`
+8. `docs/product-design/15-story-a-f-master-v1.0.md`
+9. `docs/product-design/16-global-design-foundation-v1.0.md`
+10. `docs/research/20-product-tech-architecture-research-v1.0.md`
+11. `docs/02-architecture-principles.md`
+12. `docs/03-module-boundaries.md`
+13. `docs/08-mvp-fast-feedback.md`
+14. `docs/project-init/30-windows-first-project-init-v1.0.md`
 
 ---
 
@@ -150,7 +154,8 @@ S01-A07 Reality+ Final
 ```text
 Project Baseline: V0.6 Complete
 Current Product Prototype: S01 V1.6.1
-Product Golden Flow: V1.0
+Product Master Flow: V2
+Detailed Golden Flow: V1.0 (historical/detail authority)
 Technical Research: V1.0
 ```
 

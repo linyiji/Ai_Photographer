@@ -2,8 +2,8 @@
 
 **Project Baseline:** V0.6 Complete  
 **Current Product Prototype:** S01 V1.6.1  
-**Current Milestone:** WeChat First Complete Product Baseline
-**Current Task:** XFX_MAIN_SCENE_SPATIAL_V02_SELECTIVE_INTEGRATION_05
+**Current Milestone:** Product Master Flow V2 Global Rebaseline
+**Current Task:** XFX_MAIN_PRODUCT_MASTER_FLOW_AND_CAPABILITY_AUTHORITY_REBASELINE_06
 
 **Current Task Status:** PASS_WITH_WARNING
 
@@ -22,6 +22,27 @@
 | M05 MVP Golden Flow | PASS | Implementation PASS; Real Device PASS; M05 Final Gate PASS |
 | M06 Real Capability Replacement | PASS | Infrastructure PASS; Provider DEFERRED_BY_PRODUCT_DECISION |
 | M07 Cross-platform | NOT_STARTED | M07_CROSS_PLATFORM_BASELINE |
+
+## Product Master Flow V2 Rebaseline
+
+```text
+Product Flow V2: PASS
+Five-stage user flow: PASS
+Module responsibility map: PASS
+Non-AI best-shot discovery: NO
+Non-AI Shot Plan execution: YES
+Scene Spatial role: REALITY_EVIDENCE_PROVIDER / PASS
+Scene Spatial direct LiveTarget: FORBIDDEN
+P3: NOT_STARTED
+Live V3 device gate / runtime: FAIL / NOT_PROMOTED
+Live V4 architecture target: DOCUMENTED / IMPLEMENTATION_NOT_STARTED
+AI Director role: SHOT_PLAN_DECISION_OWNER
+AI Director Port design: PASS / SPIKE_NOT_STARTED
+Observation / Target / Control separation: PASS
+Provider / Luna: 0 / 0
+```
+
+Canonical authority is now `docs/product-design/82-product-master-flow-v2.md`, `docs/architecture/83-capability-authority-and-contract-roadmap-v2.md`, `docs/architecture/84-live-observation-target-control-v4.md`, and `docs/project-management/45-product-program-roadmap-v2.md`. M01 machine states remain unchanged and support, rather than duplicate, the user-facing flow.
 
 ## Target Platform Rebaseline
 

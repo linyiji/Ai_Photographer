@@ -1,5 +1,7 @@
 # 01｜Product Workflow
 
+> **2026-08-31 authority note:** the user-facing Product Master Flow is governed by `docs/product-design/82-product-master-flow-v2.md`. The machine workflow below remains the detailed execution state model and must not be collapsed into the five user-facing stages.
+
 ```text
 ENTRY
 ↓
@@ -32,6 +34,8 @@ FINAL ACTION HUB
 SelectedTarget = WHAT
 ShotDirection = HOW
 ```
+
+Under Product Master Flow V2, these M01 objects remain compatible projections inside a selected Shot Plan. Scene Spatial supplies evidence only; the Director owns Shot Plan decision semantics; Live executes the resulting target.
 
 QA Decision：
 

@@ -1,5 +1,7 @@
 # 09｜Development Plan
 
+> **2026-08-31 rebaseline:** current program order is governed by `docs/project-management/45-product-program-roadmap-v2.md`. The historical phases below remain implementation history and are not authority for Non-AI best-shot discovery.
+
 ## Phase 0
 冻结 Global Definitions：
 

@@ -5,8 +5,8 @@
   "current_prototype": "S01 V1.6.1",
   "primary_environment": "windows",
   "overall_status": "IN_PROGRESS",
-  "current_milestone": "WECHAT_FIRST_COMPLETE_PRODUCT_BASELINE",
-  "current_task": "XFX_MAIN_SCENE_SPATIAL_V02_SELECTIVE_INTEGRATION_05",
+  "current_milestone": "PRODUCT_MASTER_FLOW_V2_GLOBAL_REBASELINE",
+  "current_task": "XFX_MAIN_PRODUCT_MASTER_FLOW_AND_CAPABILITY_AUTHORITY_REBASELINE_06",
   "current_task_status": "PASS_WITH_WARNING",
   "milestones": [
     { "id": "M00", "name": "Project Baseline", "status": "PASS", "gate": "M00_BASELINE_LOCK", "gate_status": "PASS" },
@@ -572,11 +572,45 @@
     "live_integration": "NOT_STARTED",
     "ai_director": "NOT_STARTED"
   },
-  "next_required_result": {
-    "task_id": "LIVE_V3_DEVICE_AND_WECHAT_PORTABILITY",
-    "condition": "OWNER_REVIEW_AFTER_SCENE_SPATIAL_INTEGRATION"
+  "product_master_flow_v2_rebaseline": {
+    "task_id": "XFX_MAIN_PRODUCT_MASTER_FLOW_AND_CAPABILITY_AUTHORITY_REBASELINE_06",
+    "status": "PASS_WITH_WARNING",
+    "product_master_flow_v2": "PASS",
+    "product_five_stage_flow": "PASS",
+    "module_responsibility_map": "PASS",
+    "non_ai_best_shot_discovery": false,
+    "non_ai_shot_plan_execution": true,
+    "scene_spatial_role": "REALITY_EVIDENCE_PROVIDER",
+    "scene_spatial_role_corrected": "PASS",
+    "scene_spatial_direct_live_target": "FORBIDDEN",
+    "p3": "NOT_STARTED",
+    "live_v3_device_gate": "FAIL",
+    "live_v3_production_runtime": "NOT_PROMOTED",
+    "live_v4_architecture_target": "DOCUMENTED",
+    "live_v4_implementation": "NOT_STARTED",
+    "ai_director_role": "SHOT_PLAN_DECISION_OWNER",
+    "ai_director_port_design": "PASS",
+    "ai_director_spike": "NOT_STARTED",
+    "contract_mapping": "PASS",
+    "observation_target_control_separation": "PASS",
+    "module_decoupling": "PASS",
+    "workflow_doc_updated": "PASS",
+    "provider_calls": 0,
+    "luna_calls": 0,
+    "source_scene_spatial_worktree": "READ_ONLY_UNTOUCHED",
+    "source_live_worktree": "READ_ONLY_UNTOUCHED",
+    "warnings": [
+      "LIVE_V4_SOURCE_AND_DEVICE_EVIDENCE_REQUIRED",
+      "AI_DIRECTOR_SPIKE_AND_PROVIDER_EVIDENCE_REQUIRED",
+      "P3_AFFORDANCE_NOT_STARTED",
+      "INTEGRATED_WECHAT_SCENE_SPATIAL_DEVICE_GATE_MANUAL_REVIEW_REQUIRED"
+    ]
   },
-  "next_recommended_task": "LIVE_V3_DEVICE_AND_WECHAT_PORTABILITY",
+  "next_required_result": {
+    "task_id": "LIVE_V4_REBUILD_OR_AI_DIRECTOR_SPIKE",
+    "condition": "OWNER_SELECTS_NEXT_BOUNDED_NODE"
+  },
+  "next_recommended_task": "LIVE_V4_REBUILD",
   "following_main_task": null,
   "live_parallel_track": {
     "status": "LIVE_P0_PASS_EVIDENCE_INGESTED",

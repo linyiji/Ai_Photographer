@@ -7,6 +7,8 @@
 **日期：** 2026-08-21  
 **状态：** Story 体系第一版完整基线；后续进入 Prototype Screen Registry / State Registry
 
+> **Authority update (2026-08-31):** Story A-F and P01-P13 remain screen/story coverage, not the Product Master Flow. Product responsibility is governed by `82-product-master-flow-v2.md`; machine transitions remain governed by `packages/workflow/workflow-v1.json`.
+
 ---
 
 # 0. 文档目的
@@ -1758,6 +1760,19 @@ P11 REALITY+
 P12 FINE TUNE
 P13 FINAL HUB
 ```
+
+## P01-P13 rebaseline mapping
+
+| Screen range | User-facing Product stage | Supporting machine states |
+|---|---|---|
+| P01-P05 | REALITY_CAPTURE | ENTRY / SHOOTING_RELATION_DEVICE_MODE / REALITY |
+| P06-P07 | AI_PHOTOGRAPHY_DIRECTOR | TARGET / SHOT |
+| P08-P09 | LIVE_SHOOTING | LIVE / CAPTURE |
+| P10-P11 | AI_PHOTO_QA + REALITY_PLUS | QA / REALITY_PLUS, including partial-retake transitions |
+| P12 | USER_FINE_TUNE | FINE_TUNE |
+| P13 | MY_FINAL_PHOTO | FINAL / Final Action Hub |
+
+This mapping does not rename machine states. In the deterministic Non-AI baseline, P06-P07 consume a preset Shot Plan; they do not claim autonomous best-shot discovery.
 
 每个 Screen 再定义：
 

@@ -7,6 +7,8 @@
 **日期：** 2026-08-21  
 **状态：** 完整流程第一版基线；后续应以版本追加方式修订，不静默覆盖
 
+> **Authority update (2026-08-31):** `docs/product-design/82-product-master-flow-v2.md` is the current Product Master Flow and responsibility authority. This V1 document remains a detailed historical design source. Any implication that Scene Spatial owns best-shot/physical-placement decisions, or that a Non-AI baseline discovers the best shot, is superseded by V2.
+
 ---
 
 # 0. 文档目的

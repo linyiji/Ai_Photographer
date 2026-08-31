@@ -7,6 +7,8 @@
 **日期：** 2026-08-21  
 **状态：** 第一版全局设计基线；后续 P01～P13 均引用本规范
 
+> **Authority update (2026-08-31):** visual and interaction rules remain active, while Product Master Flow/module responsibility is governed by `82-product-master-flow-v2.md`. P01-P13 are screens supporting that flow, not a competing product-state authority.
+
 ---
 
 # 0. 设计目标
