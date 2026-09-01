@@ -41,6 +41,10 @@
     {"name":"ShotPlanCandidateV01","domain":"DIRECTOR","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/ShotPlanCandidateV01.schema.json","path":"schemas/ShotPlanCandidateV01.schema.json"},
     {"name":"SubjectProfileCandidateV01","domain":"DIRECTOR_UNDERSTANDING","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/SubjectProfileCandidateV01.schema.json","path":"schemas/SubjectProfileCandidateV01.schema.json"},
     {"name":"SceneUnderstandingCandidateV01","domain":"DIRECTOR_UNDERSTANDING","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/SceneUnderstandingCandidateV01.schema.json","path":"schemas/SceneUnderstandingCandidateV01.schema.json"},
-    {"name":"LightingEvidenceCandidateV01","domain":"DIRECTOR_UNDERSTANDING","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/LightingEvidenceCandidateV01.schema.json","path":"schemas/LightingEvidenceCandidateV01.schema.json"}
+    {"name":"LightingEvidenceCandidateV01","domain":"DIRECTOR_UNDERSTANDING","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/LightingEvidenceCandidateV01.schema.json","path":"schemas/LightingEvidenceCandidateV01.schema.json"},
+    {"name":"LiveCapabilityCatalogV01","domain":"DIRECTOR","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/LiveCapabilityCatalogV01.schema.json","path":"schemas/LiveCapabilityCatalogV01.schema.json"},
+    {"name":"PhotographyDirectorInputV02","domain":"DIRECTOR","version":"0.2.0","schema_id":"https://xfx.local/contracts/v1/PhotographyDirectorInputV02.schema.json","path":"schemas/PhotographyDirectorInputV02.schema.json"},
+    {"name":"ShotPlanCandidateV02","domain":"DIRECTOR","version":"0.2.0","schema_id":"https://xfx.local/contracts/v1/ShotPlanCandidateV02.schema.json","path":"schemas/ShotPlanCandidateV02.schema.json"},
+    {"name":"LiveTargetBlueprintV02","domain":"DIRECTOR","version":"0.2.0","schema_id":"https://xfx.local/contracts/v1/LiveTargetBlueprintV02.schema.json","path":"schemas/LiveTargetBlueprintV02.schema.json"}
   ]
 }

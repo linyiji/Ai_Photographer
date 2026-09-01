@@ -39,5 +39,29 @@ PROMPT_SPECS: dict[MultimodalStage, dict[str, Any]] = {
 }
 
 
+PROMPT_SPECS_V03: dict[MultimodalStage, dict[str, Any]] = {
+    **{stage: {**spec, "instructions": list(spec["instructions"])} for stage, spec in PROMPT_SPECS.items()},
+    MultimodalStage.PHOTOGRAPHY_DIRECTION: {
+        "prompt_id": "xfx-director-photography-direction-v02-live-05g",
+        "version": "0.2.0",
+        "expected_schema": "DirectorCandidateSetOutputV02",
+        "instructions": [
+            "Use only validated PhotographyDirectorInputV02 context and create exactly three meaningfully distinct ShotPlanCandidateV02 objects.",
+            "Choose one explicit supported framing_profile: HEAD, HEAD_SHOULDERS, UPPER_BODY, THREE_QUARTER, or FULL_BODY.",
+            "HEAD_SHOULDERS means head plus shoulders and does not require hips; UPPER_BODY is the head-to-hip product profile.",
+            "Express placement through a supported TARGET_ZONE or bounded normalized position and preserve accepted View and scene-element refs.",
+            "Use subject, scene, and lighting evidence together; generic input-independent photography prose is invalid.",
+            "Detailed hand gesture may be an optional suggestion only and must never be a required executable constraint.",
+            "Describe what to shoot; never expose landmarks, reducers, crop classifiers, smoothing, thresholds, timing, hysteresis, or direction-mapper internals.",
+            "Keep every result CANDIDATE and NOT_SELECTED and make no P3, metric distance, physical standpoint, or safety claim.",
+        ],
+    },
+}
+
+
 def prompt_spec(stage: MultimodalStage) -> dict[str, Any]:
     return {**PROMPT_SPECS[stage], "instructions": list(PROMPT_SPECS[stage]["instructions"])}
+
+
+def prompt_spec_v03(stage: MultimodalStage) -> dict[str, Any]:
+    return {**PROMPT_SPECS_V03[stage], "instructions": list(PROMPT_SPECS_V03[stage]["instructions"])}

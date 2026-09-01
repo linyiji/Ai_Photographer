@@ -1,0 +1,156 @@
+{
+  "$defs": {
+    "AxesCapabilityV01": {
+      "additionalProperties": false,
+      "properties": {
+        "x_relation": {
+          "const": true,
+          "default": true,
+          "title": "X Relation",
+          "type": "boolean"
+        },
+        "y_relation": {
+          "const": true,
+          "default": true,
+          "title": "Y Relation",
+          "type": "boolean"
+        },
+        "y_subject_action": {
+          "const": false,
+          "default": false,
+          "title": "Y Subject Action",
+          "type": "boolean"
+        }
+      },
+      "title": "AxesCapabilityV01",
+      "type": "object"
+    },
+    "PlacementCapabilityV01": {
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "const": "TARGET_ZONE",
+          "default": "TARGET_ZONE",
+          "title": "Model",
+          "type": "string"
+        },
+        "normalized_position_supported": {
+          "const": true,
+          "default": true,
+          "title": "Normalized Position Supported",
+          "type": "boolean"
+        },
+        "target_zones": {
+          "items": {
+            "$ref": "#/$defs/TargetZone"
+          },
+          "minItems": 3,
+          "title": "Target Zones",
+          "type": "array"
+        }
+      },
+      "required": [
+        "target_zones"
+      ],
+      "title": "PlacementCapabilityV01",
+      "type": "object"
+    },
+    "PoseCapabilityV01": {
+      "additionalProperties": false,
+      "properties": {
+        "coarse_body_orientation": {
+          "title": "Coarse Body Orientation",
+          "type": "boolean"
+        },
+        "detailed_gesture": {
+          "const": false,
+          "default": false,
+          "title": "Detailed Gesture",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "coarse_body_orientation"
+      ],
+      "title": "PoseCapabilityV01",
+      "type": "object"
+    },
+    "ProductFramingProfile": {
+      "enum": [
+        "HEAD",
+        "HEAD_SHOULDERS",
+        "UPPER_BODY",
+        "THREE_QUARTER",
+        "FULL_BODY"
+      ],
+      "title": "ProductFramingProfile",
+      "type": "string"
+    },
+    "TargetZone": {
+      "enum": [
+        "LEFT_TOP",
+        "CENTER_TOP",
+        "RIGHT_TOP",
+        "LEFT_CENTER",
+        "CENTER",
+        "RIGHT_CENTER",
+        "LEFT_BOTTOM",
+        "CENTER_BOTTOM",
+        "RIGHT_BOTTOM"
+      ],
+      "title": "TargetZone",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "catalog_version": {
+      "maxLength": 80,
+      "minLength": 1,
+      "title": "Catalog Version",
+      "type": "string"
+    },
+    "framing_profiles": {
+      "items": {
+        "$ref": "#/$defs/ProductFramingProfile"
+      },
+      "maxItems": 5,
+      "minItems": 5,
+      "title": "Framing Profiles",
+      "type": "array"
+    },
+    "placement": {
+      "$ref": "#/$defs/PlacementCapabilityV01"
+    },
+    "axes": {
+      "$ref": "#/$defs/AxesCapabilityV01"
+    },
+    "pose": {
+      "$ref": "#/$defs/PoseCapabilityV01"
+    },
+    "device_admission": {
+      "const": "PENDING_05H",
+      "default": "PENDING_05H",
+      "title": "Device Admission",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "catalog_version",
+    "framing_profiles",
+    "placement",
+    "pose"
+  ],
+  "title": "LiveCapabilityCatalogV01",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xfx.local/contracts/v1/LiveCapabilityCatalogV01.schema.json",
+  "description": "Director-facing Live 05G product capability without measurement implementation details."
+}

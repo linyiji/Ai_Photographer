@@ -1,0 +1,751 @@
+{
+  "$defs": {
+    "AxesCapabilityV01": {
+      "additionalProperties": false,
+      "properties": {
+        "x_relation": {
+          "const": true,
+          "default": true,
+          "title": "X Relation",
+          "type": "boolean"
+        },
+        "y_relation": {
+          "const": true,
+          "default": true,
+          "title": "Y Relation",
+          "type": "boolean"
+        },
+        "y_subject_action": {
+          "const": false,
+          "default": false,
+          "title": "Y Subject Action",
+          "type": "boolean"
+        }
+      },
+      "title": "AxesCapabilityV01",
+      "type": "object"
+    },
+    "CompositionAnchorCandidate": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor_ref": {
+          "maxLength": 160,
+          "minLength": 1,
+          "title": "Anchor Ref",
+          "type": "string"
+        },
+        "view_ref": {
+          "maxLength": 160,
+          "minLength": 1,
+          "title": "View Ref",
+          "type": "string"
+        },
+        "semantic_element": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Semantic Element",
+          "type": "string"
+        },
+        "x": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Y",
+          "type": "number"
+        },
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        }
+      },
+      "required": [
+        "anchor_ref",
+        "view_ref",
+        "semantic_element",
+        "x",
+        "y",
+        "confidence"
+      ],
+      "title": "CompositionAnchorCandidate",
+      "type": "object"
+    },
+    "DirectorContextMode": {
+      "enum": [
+        "STRUCTURED_ONLY",
+        "STRUCTURED_PLUS_IMAGES"
+      ],
+      "title": "DirectorContextMode",
+      "type": "string"
+    },
+    "DirectorVisualRefV01": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_ref": {
+          "maxLength": 240,
+          "minLength": 1,
+          "title": "Asset Ref",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "SUBJECT_REFERENCE",
+            "SCENE_VIEW"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "provider_send_authorized": {
+          "const": true,
+          "title": "Provider Send Authorized",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "asset_ref",
+        "role",
+        "provider_send_authorized"
+      ],
+      "title": "DirectorVisualRefV01",
+      "type": "object"
+    },
+    "Framing": {
+      "enum": [
+        "ENVIRONMENTAL_FULL_BODY",
+        "THREE_QUARTER_LIFESTYLE",
+        "CLOSE_EMOTIONAL_PORTRAIT"
+      ],
+      "title": "Framing",
+      "type": "string"
+    },
+    "LightingEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "lighting_type": {
+          "enum": [
+            "SIDE",
+            "FLAT",
+            "BACKLIGHT",
+            "MIXED"
+          ],
+          "title": "Lighting Type",
+          "type": "string"
+        },
+        "direction": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Direction",
+          "type": "string"
+        },
+        "intensity": {
+          "enum": [
+            "LOW",
+            "MODERATE",
+            "STRONG"
+          ],
+          "title": "Intensity",
+          "type": "string"
+        },
+        "risks": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 8,
+          "title": "Risks",
+          "type": "array"
+        },
+        "evidence_refs": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 12,
+          "minItems": 1,
+          "title": "Evidence Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "lighting_type",
+        "direction",
+        "intensity",
+        "evidence_refs"
+      ],
+      "title": "LightingEvidence",
+      "type": "object"
+    },
+    "LiveCapabilityCatalogV01": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "0.1.0",
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "catalog_version": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Catalog Version",
+          "type": "string"
+        },
+        "framing_profiles": {
+          "items": {
+            "$ref": "#/$defs/ProductFramingProfile"
+          },
+          "maxItems": 5,
+          "minItems": 5,
+          "title": "Framing Profiles",
+          "type": "array"
+        },
+        "placement": {
+          "$ref": "#/$defs/PlacementCapabilityV01"
+        },
+        "axes": {
+          "$ref": "#/$defs/AxesCapabilityV01"
+        },
+        "pose": {
+          "$ref": "#/$defs/PoseCapabilityV01"
+        },
+        "device_admission": {
+          "const": "PENDING_05H",
+          "default": "PENDING_05H",
+          "title": "Device Admission",
+          "type": "string"
+        }
+      },
+      "required": [
+        "catalog_version",
+        "framing_profiles",
+        "placement",
+        "pose"
+      ],
+      "title": "LiveCapabilityCatalogV01",
+      "type": "object"
+    },
+    "PhotographyDirectorInputV01": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "0.1.0",
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "request_id": {
+          "maxLength": 160,
+          "minLength": 1,
+          "title": "Request Id",
+          "type": "string"
+        },
+        "subject_reference": {
+          "$ref": "#/$defs/SubjectReference"
+        },
+        "subject_profile": {
+          "$ref": "#/$defs/SubjectProfile"
+        },
+        "scene_understanding": {
+          "$ref": "#/$defs/SceneUnderstanding"
+        },
+        "view_candidates": {
+          "items": {
+            "$ref": "#/$defs/ViewCandidate"
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "title": "View Candidates",
+          "type": "array"
+        },
+        "composition_anchor_candidates": {
+          "items": {
+            "$ref": "#/$defs/CompositionAnchorCandidate"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Composition Anchor Candidates",
+          "type": "array"
+        },
+        "lighting_evidence": {
+          "$ref": "#/$defs/LightingEvidence"
+        },
+        "spatial_evidence_optional": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SpatialEvidenceOptional"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "user_intent": {
+          "$ref": "#/$defs/UserIntent"
+        },
+        "reference_image_optional": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReferenceImageOptional"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "request_id",
+        "subject_reference",
+        "subject_profile",
+        "scene_understanding",
+        "view_candidates",
+        "composition_anchor_candidates",
+        "lighting_evidence",
+        "user_intent"
+      ],
+      "title": "PhotographyDirectorInputV01",
+      "type": "object"
+    },
+    "PlacementCapabilityV01": {
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "const": "TARGET_ZONE",
+          "default": "TARGET_ZONE",
+          "title": "Model",
+          "type": "string"
+        },
+        "normalized_position_supported": {
+          "const": true,
+          "default": true,
+          "title": "Normalized Position Supported",
+          "type": "boolean"
+        },
+        "target_zones": {
+          "items": {
+            "$ref": "#/$defs/TargetZone"
+          },
+          "minItems": 3,
+          "title": "Target Zones",
+          "type": "array"
+        }
+      },
+      "required": [
+        "target_zones"
+      ],
+      "title": "PlacementCapabilityV01",
+      "type": "object"
+    },
+    "PoseCapabilityV01": {
+      "additionalProperties": false,
+      "properties": {
+        "coarse_body_orientation": {
+          "title": "Coarse Body Orientation",
+          "type": "boolean"
+        },
+        "detailed_gesture": {
+          "const": false,
+          "default": false,
+          "title": "Detailed Gesture",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "coarse_body_orientation"
+      ],
+      "title": "PoseCapabilityV01",
+      "type": "object"
+    },
+    "ProductFramingProfile": {
+      "enum": [
+        "HEAD",
+        "HEAD_SHOULDERS",
+        "UPPER_BODY",
+        "THREE_QUARTER",
+        "FULL_BODY"
+      ],
+      "title": "ProductFramingProfile",
+      "type": "string"
+    },
+    "ReferenceImageOptional": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_ref": {
+          "maxLength": 160,
+          "minLength": 1,
+          "title": "Asset Ref",
+          "type": "string"
+        },
+        "usage": {
+          "enum": [
+            "MOOD_ONLY",
+            "COMPOSITION_REFERENCE"
+          ],
+          "title": "Usage",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_ref",
+        "usage"
+      ],
+      "title": "ReferenceImageOptional",
+      "type": "object"
+    },
+    "SceneUnderstanding": {
+      "additionalProperties": false,
+      "properties": {
+        "scene_type": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Scene Type",
+          "type": "string"
+        },
+        "usable_visual_elements": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 12,
+          "minItems": 1,
+          "title": "Usable Visual Elements",
+          "type": "array"
+        },
+        "background_complexity": {
+          "enum": [
+            "SIMPLE",
+            "MODERATE",
+            "COMPLEX"
+          ],
+          "title": "Background Complexity",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Evidence Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "scene_type",
+        "usable_visual_elements",
+        "background_complexity",
+        "evidence_refs"
+      ],
+      "title": "SceneUnderstanding",
+      "type": "object"
+    },
+    "SpatialEvidenceOptional": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/SpatialStatus"
+        },
+        "metric_scale_available": {
+          "title": "Metric Scale Available",
+          "type": "boolean"
+        },
+        "relative_geometry": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 12,
+          "title": "Relative Geometry",
+          "type": "array"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 12,
+          "minItems": 1,
+          "title": "Limitations",
+          "type": "array"
+        },
+        "evidence_refs": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 16,
+          "title": "Evidence Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "status",
+        "metric_scale_available",
+        "limitations"
+      ],
+      "title": "SpatialEvidenceOptional",
+      "type": "object"
+    },
+    "SpatialStatus": {
+      "enum": [
+        "PARTIAL",
+        "INSUFFICIENT",
+        "USABLE"
+      ],
+      "title": "SpatialStatus",
+      "type": "string"
+    },
+    "SubjectProfile": {
+      "additionalProperties": false,
+      "properties": {
+        "clothing_type": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Clothing Type",
+          "type": "string"
+        },
+        "dominant_colors": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 4,
+          "minItems": 1,
+          "title": "Dominant Colors",
+          "type": "array"
+        },
+        "secondary_colors": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 4,
+          "title": "Secondary Colors",
+          "type": "array"
+        },
+        "accessories": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 8,
+          "title": "Accessories",
+          "type": "array"
+        },
+        "visible_styling": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 8,
+          "title": "Visible Styling",
+          "type": "array"
+        },
+        "pose_feasibility_considerations": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 8,
+          "title": "Pose Feasibility Considerations",
+          "type": "array"
+        },
+        "evidence_refs": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 12,
+          "minItems": 1,
+          "title": "Evidence Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "clothing_type",
+        "dominant_colors",
+        "evidence_refs"
+      ],
+      "title": "SubjectProfile",
+      "type": "object"
+    },
+    "SubjectReference": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_ref": {
+          "maxLength": 160,
+          "minLength": 1,
+          "title": "Asset Ref",
+          "type": "string"
+        },
+        "evidence_kind": {
+          "enum": [
+            "CONTROLLED_SYNTHETIC",
+            "CAPTURED_REFERENCE"
+          ],
+          "title": "Evidence Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_ref",
+        "evidence_kind"
+      ],
+      "title": "SubjectReference",
+      "type": "object"
+    },
+    "TargetZone": {
+      "enum": [
+        "LEFT_TOP",
+        "CENTER_TOP",
+        "RIGHT_TOP",
+        "LEFT_CENTER",
+        "CENTER",
+        "RIGHT_CENTER",
+        "LEFT_BOTTOM",
+        "CENTER_BOTTOM",
+        "RIGHT_BOTTOM"
+      ],
+      "title": "TargetZone",
+      "type": "string"
+    },
+    "UserIntent": {
+      "additionalProperties": false,
+      "properties": {
+        "mood": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Mood",
+          "type": "string"
+        },
+        "priorities": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "title": "Priorities",
+          "type": "array"
+        },
+        "preferred_framing": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Framing"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "exclusions": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 8,
+          "title": "Exclusions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "mood",
+        "priorities"
+      ],
+      "title": "UserIntent",
+      "type": "object"
+    },
+    "ViewCandidate": {
+      "additionalProperties": false,
+      "properties": {
+        "view_ref": {
+          "maxLength": 160,
+          "minLength": 1,
+          "title": "View Ref",
+          "type": "string"
+        },
+        "description": {
+          "maxLength": 300,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "usable_elements": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 12,
+          "minItems": 1,
+          "title": "Usable Elements",
+          "type": "array"
+        },
+        "background_complexity": {
+          "enum": [
+            "SIMPLE",
+            "MODERATE",
+            "COMPLEX"
+          ],
+          "title": "Background Complexity",
+          "type": "string"
+        },
+        "lighting_relationship": {
+          "maxLength": 240,
+          "minLength": 1,
+          "title": "Lighting Relationship",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Evidence Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "view_ref",
+        "description",
+        "usable_elements",
+        "background_complexity",
+        "lighting_relationship",
+        "evidence_refs"
+      ],
+      "title": "ViewCandidate",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Validated V0.1 Director context plus Live 05G capability and explicit bounded image mode.",
+  "properties": {
+    "schema_version": {
+      "const": "0.2.0",
+      "default": "0.2.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "accepted_context_v01": {
+      "$ref": "#/$defs/PhotographyDirectorInputV01"
+    },
+    "live_capability_catalog": {
+      "$ref": "#/$defs/LiveCapabilityCatalogV01"
+    },
+    "context_mode": {
+      "$ref": "#/$defs/DirectorContextMode"
+    },
+    "optional_visual_refs": {
+      "items": {
+        "$ref": "#/$defs/DirectorVisualRefV01"
+      },
+      "maxItems": 4,
+      "title": "Optional Visual Refs",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "accepted_context_v01",
+    "live_capability_catalog",
+    "context_mode"
+  ],
+  "title": "PhotographyDirectorInputV02",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xfx.local/contracts/v1/PhotographyDirectorInputV02.schema.json"
+}

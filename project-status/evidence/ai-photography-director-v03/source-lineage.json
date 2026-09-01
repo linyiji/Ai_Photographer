@@ -1,0 +1,24 @@
+{
+  "director": {
+    "worktree": "D:/Projects/_worktrees/Ai_Photographer-ai-director",
+    "branch": "spike/ai-photography-director-v0.1",
+    "starting_head": "fdfd6de9b35a5ced50273b49deb04e02ec0ad287",
+    "starting_remote_head": "fdfd6de9b35a5ced50273b49deb04e02ec0ad287",
+    "starting_ahead_behind": "0/0",
+    "starting_worktree": "CLEAN"
+  },
+  "ai_io_read_only_source": {
+    "head": "da1d80770f1d48714c579350b92121190fabedef",
+    "remote_parity": true,
+    "worktree": "CLEAN"
+  },
+  "live_read_only_source": {
+    "specified_05g_head": "8dfe92b272efd0c0bc5785d6cf2e102cf21f6d75",
+    "current_head": "dd476c6edc54bad6526c51eb5109f1eacf38bf1f",
+    "specified_05g_is_ancestor_of_current": true,
+    "current_advance": "05H documentation alignment",
+    "worktree": "DIRTY_WITH_USER_UNTRACKED_VOICE_FILES",
+    "modified_by_this_task": false
+  },
+  "lineage_result": "PASS"
+}

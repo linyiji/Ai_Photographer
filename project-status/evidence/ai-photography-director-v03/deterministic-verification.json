@@ -1,0 +1,19 @@
+{
+  "result": "PASS",
+  "focused_command": "uv run --project apps/api pytest apps/api/tests/test_photography_director_spike.py apps/api/tests/test_photography_director_v02_multimodal.py apps/api/tests/test_photography_director_v03_live_alignment.py -q",
+  "focused_passed": 71,
+  "focused_failed": 0,
+  "full_backend_command": "uv run --project apps/api pytest apps/api/tests -q",
+  "full_backend_passed": 192,
+  "full_backend_failed": 0,
+  "fake": "PASS",
+  "replay": "PASS",
+  "five_framing_profiles": "PASS",
+  "placement_and_normalized_position": "PASS",
+  "spatial_absent_partial_insufficient_usable": "PASS",
+  "candidate_diversity": "PASS",
+  "cross_reasoning": "PASS",
+  "p3_boundary": "PASS",
+  "media_policy": "PASS",
+  "idempotency_supersession_and_stale_promotion": "PASS"
+}

@@ -1,0 +1,24 @@
+{
+  "logical_model_alias": "gpt-luna",
+  "provider_configured": false,
+  "provider": "NOT_CONFIGURED",
+  "provider_model": "NOT_CONFIGURED",
+  "credential_present_through_indirection": false,
+  "credential_value_inspected_or_recorded": false,
+  "structured_output_support": "UNKNOWN",
+  "image_input_support": "UNKNOWN",
+  "usage_reporting_support": "UNKNOWN",
+  "cost_reporting_support": "UNKNOWN",
+  "real_transport_implemented": false,
+  "exact_media_send_authorization": false,
+  "real_provider_execution": "NOT_EXERCISED",
+  "real_provider_calls": 0,
+  "real_provider_mini_gate": "MANUAL_REVIEW_REQUIRED",
+  "blocking_conditions": [
+    "PROVIDER_AND_MODEL_NOT_EXPLICITLY_CONFIGURED",
+    "CREDENTIAL_NOT_AVAILABLE_THROUGH_CONFIGURED_INDIRECTION",
+    "PROVIDER_IMAGE_INPUT_CAPABILITY_UNKNOWN",
+    "EXACT_MEDIA_SEND_AUTHORIZATION_ABSENT",
+    "REAL_PROVIDER_TRANSPORT_ABSENT"
+  ]
+}

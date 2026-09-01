@@ -1,0 +1,10 @@
+{
+  "real_provider_exercised": false,
+  "director_latency_case_1": "NOT_EXERCISED",
+  "director_latency_case_2": "NOT_EXERCISED",
+  "director_latency_case_3": "NOT_EXERCISED",
+  "director_latency_p50": "NOT_COMPUTED",
+  "provider_usage": "SOURCE_REQUIRED",
+  "provider_cost": "SOURCE_REQUIRED",
+  "note": "No architecture-only performance verdict and no percentile was fabricated."
+}

@@ -1,0 +1,12 @@
+{
+  "required_real_case_count": 3,
+  "actual_real_case_count": 0,
+  "cases": [
+    {"case_id": "REAL_MINI_GATE_1", "shape": "NO_SPATIAL_LEVEL1", "status": "NOT_RUN", "reason": "PROVIDER_AUTHORIZATION_GATE_BLOCKED"},
+    {"case_id": "REAL_MINI_GATE_2", "shape": "SPATIAL_PARTIAL_OR_INSUFFICIENT", "status": "NOT_RUN", "reason": "PROVIDER_AUTHORIZATION_GATE_BLOCKED"},
+    {"case_id": "REAL_MINI_GATE_3", "shape": "USABLE_SPATIAL_OR_DISTINCT_LEVEL1", "status": "NOT_RUN", "reason": "PROVIDER_AUTHORIZATION_GATE_BLOCKED"}
+  ],
+  "usable_spatial_real_case": "SOURCE_REQUIRED",
+  "real_provider_calls": 0,
+  "expanded_beyond_three_cases": false
+}

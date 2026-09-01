@@ -1,0 +1,15 @@
+{
+  "status": "PENDING",
+  "real_candidate_sets_available": 0,
+  "rubric": [
+    "REALITY_FIDELITY",
+    "EXECUTABILITY",
+    "SUBJECT_SCENE_FIT",
+    "LIGHTING_FIT",
+    "CANDIDATE_DIVERSITY",
+    "COMPOSITION_QUALITY",
+    "LIVE_COMPATIBILITY",
+    "OVERALL_PREFERENCE"
+  ],
+  "production_admission": "NOT_ALLOWED"
+}

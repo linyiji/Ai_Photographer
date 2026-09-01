@@ -1,0 +1,154 @@
+{
+  "schema_version": "0.1.0",
+  "task_id": "XFX_AI_PHOTOGRAPHY_DIRECTOR_V03_LIVE_05G_ALIGNMENT_AND_REAL_LUNA_MINI_PROVIDER_GATE_03",
+  "real_provider_evidence": false,
+  "rows": [
+    {
+      "case_id": "simple-side-light-level1-no-spatial",
+      "evidence_class": "CONTROLLED_SYNTHETIC_DETERMINISTIC_NOT_REAL_PROVIDER",
+      "spatial_status": "ABSENT",
+      "status": "CANDIDATES_READY",
+      "candidate_count": 3,
+      "framing_profiles": [
+        "FULL_BODY",
+        "THREE_QUARTER",
+        "HEAD_SHOULDERS"
+      ],
+      "target_zones": [
+        "LEFT_TOP",
+        "CENTER",
+        "RIGHT_BOTTOM"
+      ],
+      "view_refs": [
+        "view-01-a",
+        "view-01-b",
+        "view-01-a"
+      ],
+      "card_projections": [
+        {
+          "concept": "Full-body portrait connected to the place",
+          "framing_label": "FULL_BODY",
+          "view_ref": "view-01-a",
+          "subject_placement": "Place the subject in left top",
+          "pose_instruction": "Use a slight body turn relative to camera",
+          "short_rationale": "The long red coat and receding path support the requested cinematic and calm mood with an explicit FULL_BODY frame."
+        },
+        {
+          "concept": "Knee-up environmental portrait",
+          "framing_label": "THREE_QUARTER",
+          "view_ref": "view-01-b",
+          "subject_placement": "Place the subject in center",
+          "pose_instruction": "Use a slight body turn relative to camera",
+          "short_rationale": "The long red coat and stone wall support the requested cinematic and calm mood with an explicit THREE_QUARTER frame."
+        },
+        {
+          "concept": "Head-and-shoulders portrait with restrained context",
+          "framing_label": "HEAD_SHOULDERS",
+          "view_ref": "view-01-a",
+          "subject_placement": "Place the subject in right bottom",
+          "pose_instruction": "Use a slight body turn relative to camera",
+          "short_rationale": "The long red coat and receding path support the requested cinematic and calm mood with an explicit HEAD_SHOULDERS frame."
+        }
+      ],
+      "provider_calls": 0
+    },
+    {
+      "case_id": "complex-flat-light-partial-spatial",
+      "evidence_class": "CONTROLLED_SYNTHETIC_DETERMINISTIC_NOT_REAL_PROVIDER",
+      "spatial_status": "PARTIAL",
+      "status": "CANDIDATES_READY",
+      "candidate_count": 3,
+      "framing_profiles": [
+        "THREE_QUARTER",
+        "HEAD_SHOULDERS",
+        "UPPER_BODY"
+      ],
+      "target_zones": [
+        "LEFT_TOP",
+        "CENTER",
+        "RIGHT_BOTTOM"
+      ],
+      "view_refs": [
+        "view-02-a",
+        "view-02-b",
+        "view-02-a"
+      ],
+      "card_projections": [
+        {
+          "concept": "Knee-up environmental portrait",
+          "framing_label": "THREE_QUARTER",
+          "view_ref": "view-02-a",
+          "subject_placement": "Place the subject in left top",
+          "pose_instruction": "Use a slight body turn relative to camera",
+          "short_rationale": "The blue layered streetwear and shop awning support the requested casual urban lifestyle mood with an explicit THREE_QUARTER frame."
+        },
+        {
+          "concept": "Head-and-shoulders portrait with restrained context",
+          "framing_label": "HEAD_SHOULDERS",
+          "view_ref": "view-02-b",
+          "subject_placement": "Place the subject in center",
+          "pose_instruction": "Use a slight body turn relative to camera",
+          "short_rationale": "The blue layered streetwear and shop awning support the requested casual urban lifestyle mood with an explicit HEAD_SHOULDERS frame."
+        },
+        {
+          "concept": "Head-to-hip upper-body portrait",
+          "framing_label": "UPPER_BODY",
+          "view_ref": "view-02-a",
+          "subject_placement": "Place the subject in right bottom",
+          "pose_instruction": "Use a slight body turn relative to camera",
+          "short_rationale": "The blue layered streetwear and shop awning support the requested casual urban lifestyle mood with an explicit UPPER_BODY frame."
+        }
+      ],
+      "provider_calls": 0
+    },
+    {
+      "case_id": "simple-backlight-insufficient-spatial",
+      "evidence_class": "CONTROLLED_SYNTHETIC_DETERMINISTIC_NOT_REAL_PROVIDER",
+      "spatial_status": "INSUFFICIENT",
+      "status": "CANDIDATES_READY",
+      "candidate_count": 3,
+      "framing_profiles": [
+        "HEAD_SHOULDERS",
+        "THREE_QUARTER",
+        "UPPER_BODY"
+      ],
+      "target_zones": [
+        "LEFT_TOP",
+        "CENTER",
+        "RIGHT_BOTTOM"
+      ],
+      "view_refs": [
+        "view-03-a",
+        "view-03-b",
+        "view-03-a"
+      ],
+      "card_projections": [
+        {
+          "concept": "Head-and-shoulders portrait with restrained context",
+          "framing_label": "HEAD_SHOULDERS",
+          "view_ref": "view-03-a",
+          "subject_placement": "Place the subject in left top",
+          "pose_instruction": "Use a slight body turn relative to camera",
+          "short_rationale": "The cream knit top and bright water support the requested quiet and intimate mood with an explicit HEAD_SHOULDERS frame."
+        },
+        {
+          "concept": "Knee-up environmental portrait",
+          "framing_label": "THREE_QUARTER",
+          "view_ref": "view-03-b",
+          "subject_placement": "Place the subject in center",
+          "pose_instruction": "Use a slight body turn relative to camera",
+          "short_rationale": "The cream knit top and distant ridge support the requested quiet and intimate mood with an explicit THREE_QUARTER frame."
+        },
+        {
+          "concept": "Head-to-hip upper-body portrait",
+          "framing_label": "UPPER_BODY",
+          "view_ref": "view-03-a",
+          "subject_placement": "Place the subject in right bottom",
+          "pose_instruction": "Use a slight body turn relative to camera",
+          "short_rationale": "The cream knit top and bright water support the requested quiet and intimate mood with an explicit UPPER_BODY frame."
+        }
+      ],
+      "provider_calls": 0
+    }
+  ]
+}

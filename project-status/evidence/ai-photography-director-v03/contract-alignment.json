@@ -1,0 +1,16 @@
+{
+  "result": "PASS",
+  "photography_director_input": "V02_CREATED",
+  "shot_plan_candidate": "V02_CREATED",
+  "live_target_blueprint": "V02_CREATED",
+  "v01_contracts_preserved": true,
+  "version_reason": "V01 artistic framing vocabulary cannot represent all five Live 05G product profiles without ambiguity.",
+  "supported_framing_profiles": ["HEAD", "HEAD_SHOULDERS", "UPPER_BODY", "THREE_QUARTER", "FULL_BODY"],
+  "head_shoulders_implies_hips": false,
+  "acceptance_target_zones": ["LEFT_TOP", "CENTER", "RIGHT_BOTTOM"],
+  "generalized_normalized_placement": true,
+  "coarse_body_orientation": false,
+  "detailed_gesture": "OPTIONAL_SUGGESTION_ONLY",
+  "device_admission": "PENDING_05H",
+  "director_live_private_measurement_leak": 0
+}

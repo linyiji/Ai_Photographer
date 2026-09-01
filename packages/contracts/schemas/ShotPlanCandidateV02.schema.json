@@ -1,0 +1,396 @@
+{
+  "$defs": {
+    "CameraRelationshipV02": {
+      "additionalProperties": false,
+      "properties": {
+        "direction": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Direction",
+          "type": "string"
+        },
+        "approximate_height": {
+          "enum": [
+            "EYE_LEVEL",
+            "CHEST_LEVEL",
+            "WAIST_LEVEL",
+            "UNSPECIFIED"
+          ],
+          "title": "Approximate Height",
+          "type": "string"
+        },
+        "metric_distance": {
+          "const": "UNSPECIFIED",
+          "default": "UNSPECIFIED",
+          "title": "Metric Distance",
+          "type": "string"
+        },
+        "physical_standpoint": {
+          "const": "NOT_ASSERTED",
+          "default": "NOT_ASSERTED",
+          "title": "Physical Standpoint",
+          "type": "string"
+        },
+        "physical_safety": {
+          "const": "NOT_ASSESSED",
+          "default": "NOT_ASSESSED",
+          "title": "Physical Safety",
+          "type": "string"
+        }
+      },
+      "required": [
+        "direction",
+        "approximate_height"
+      ],
+      "title": "CameraRelationshipV02",
+      "type": "object"
+    },
+    "CandidateProvenance": {
+      "additionalProperties": false,
+      "properties": {
+        "provider_mode": {
+          "enum": [
+            "FAKE",
+            "REPLAY",
+            "AI"
+          ],
+          "title": "Provider Mode",
+          "type": "string"
+        },
+        "request_id": {
+          "title": "Request Id",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "provider_mode",
+        "request_id",
+        "evidence_refs"
+      ],
+      "title": "CandidateProvenance",
+      "type": "object"
+    },
+    "LiveTargetBlueprintV02": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "0.2.0",
+          "default": "0.2.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "framing_profile": {
+          "$ref": "#/$defs/ProductFramingProfile"
+        },
+        "subject_placement": {
+          "$ref": "#/$defs/SubjectPlacementV02"
+        },
+        "pose_constraints": {
+          "items": {
+            "$ref": "#/$defs/PoseRequirementV02"
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "title": "Pose Constraints",
+          "type": "array"
+        },
+        "camera_constraints": {
+          "$ref": "#/$defs/CameraRelationshipV02"
+        }
+      },
+      "required": [
+        "framing_profile",
+        "subject_placement",
+        "pose_constraints",
+        "camera_constraints"
+      ],
+      "title": "LiveTargetBlueprintV02",
+      "type": "object"
+    },
+    "NormalizedPositionV01": {
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Y",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y"
+      ],
+      "title": "NormalizedPositionV01",
+      "type": "object"
+    },
+    "PoseRequirementV02": {
+      "additionalProperties": false,
+      "properties": {
+        "body_area": {
+          "enum": [
+            "HEAD",
+            "SHOULDERS",
+            "BODY_ORIENTATION",
+            "GAZE",
+            "ARMS",
+            "HANDS",
+            "LEGS",
+            "FEET"
+          ],
+          "title": "Body Area",
+          "type": "string"
+        },
+        "instruction": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Instruction",
+          "type": "string"
+        },
+        "capability": {
+          "enum": [
+            "COARSE_BODY_ORIENTATION",
+            "DETAILED_GESTURE"
+          ],
+          "title": "Capability",
+          "type": "string"
+        },
+        "execution": {
+          "enum": [
+            "REQUIRED_EXECUTABLE",
+            "OPTIONAL_SUGGESTION"
+          ],
+          "title": "Execution",
+          "type": "string"
+        }
+      },
+      "required": [
+        "body_area",
+        "instruction",
+        "capability",
+        "execution"
+      ],
+      "title": "PoseRequirementV02",
+      "type": "object"
+    },
+    "ProductFramingProfile": {
+      "enum": [
+        "HEAD",
+        "HEAD_SHOULDERS",
+        "UPPER_BODY",
+        "THREE_QUARTER",
+        "FULL_BODY"
+      ],
+      "title": "ProductFramingProfile",
+      "type": "string"
+    },
+    "SubjectPlacementV02": {
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "enum": [
+            "TARGET_ZONE",
+            "NORMALIZED_POSITION"
+          ],
+          "title": "Model",
+          "type": "string"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TargetZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "normalized_position": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NormalizedPositionV01"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "composition_anchor_ref": {
+          "anyOf": [
+            {
+              "maxLength": 160,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Composition Anchor Ref"
+        },
+        "description": {
+          "maxLength": 160,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        }
+      },
+      "required": [
+        "model",
+        "description"
+      ],
+      "title": "SubjectPlacementV02",
+      "type": "object"
+    },
+    "TargetZone": {
+      "enum": [
+        "LEFT_TOP",
+        "CENTER_TOP",
+        "RIGHT_TOP",
+        "LEFT_CENTER",
+        "CENTER",
+        "RIGHT_CENTER",
+        "LEFT_BOTTOM",
+        "CENTER_BOTTOM",
+        "RIGHT_BOTTOM"
+      ],
+      "title": "TargetZone",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "0.2.0",
+      "default": "0.2.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "candidate_id": {
+      "maxLength": 160,
+      "minLength": 1,
+      "title": "Candidate Id",
+      "type": "string"
+    },
+    "disposition": {
+      "const": "CANDIDATE",
+      "default": "CANDIDATE",
+      "title": "Disposition",
+      "type": "string"
+    },
+    "selection_status": {
+      "const": "NOT_SELECTED",
+      "default": "NOT_SELECTED",
+      "title": "Selection Status",
+      "type": "string"
+    },
+    "concept": {
+      "maxLength": 180,
+      "minLength": 1,
+      "title": "Concept",
+      "type": "string"
+    },
+    "view_ref": {
+      "maxLength": 160,
+      "minLength": 1,
+      "title": "View Ref",
+      "type": "string"
+    },
+    "framing_profile": {
+      "$ref": "#/$defs/ProductFramingProfile"
+    },
+    "subject_placement": {
+      "$ref": "#/$defs/SubjectPlacementV02"
+    },
+    "pose_requirements": {
+      "items": {
+        "$ref": "#/$defs/PoseRequirementV02"
+      },
+      "maxItems": 8,
+      "minItems": 1,
+      "title": "Pose Requirements",
+      "type": "array"
+    },
+    "camera_relationship": {
+      "$ref": "#/$defs/CameraRelationshipV02"
+    },
+    "lighting_use": {
+      "maxLength": 240,
+      "minLength": 1,
+      "title": "Lighting Use",
+      "type": "string"
+    },
+    "subject_scene_fit": {
+      "maxLength": 280,
+      "minLength": 1,
+      "title": "Subject Scene Fit",
+      "type": "string"
+    },
+    "scene_elements_used": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 8,
+      "minItems": 1,
+      "title": "Scene Elements Used",
+      "type": "array"
+    },
+    "short_rationale": {
+      "maxLength": 320,
+      "minLength": 1,
+      "title": "Short Rationale",
+      "type": "string"
+    },
+    "warnings": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 12,
+      "title": "Warnings",
+      "type": "array"
+    },
+    "live_target_blueprint": {
+      "$ref": "#/$defs/LiveTargetBlueprintV02"
+    },
+    "provenance": {
+      "$ref": "#/$defs/CandidateProvenance"
+    }
+  },
+  "required": [
+    "schema_version",
+    "candidate_id",
+    "concept",
+    "view_ref",
+    "framing_profile",
+    "subject_placement",
+    "pose_requirements",
+    "camera_relationship",
+    "lighting_use",
+    "subject_scene_fit",
+    "scene_elements_used",
+    "short_rationale",
+    "live_target_blueprint",
+    "provenance"
+  ],
+  "title": "ShotPlanCandidateV02",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xfx.local/contracts/v1/ShotPlanCandidateV02.schema.json",
+  "description": "Candidate shot plan using explicit Live 05G framing and representable placement semantics."
+}

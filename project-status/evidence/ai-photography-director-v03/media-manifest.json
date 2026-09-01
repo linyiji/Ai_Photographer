@@ -1,0 +1,12 @@
+{
+  "source_inventory": "project-status/evidence/ai-photography-director-v02/media-manifest.json",
+  "provider_send_authorized": false,
+  "provider_image_input": false,
+  "provider_image_input_count": 0,
+  "analysis_representation": "NOT_SENT",
+  "raw_video": 0,
+  "frame_stream": 0,
+  "geometry_frame_sequence": 0,
+  "scene_spatial_private_state": 0,
+  "inventory_limitation": "Existing assets are repository inventory only; the subject set lacks approved clothing/style diversity and no exact asset has Owner provider-send authorization."
+}
