@@ -1,17 +1,10 @@
-export type VoiceSemanticIdV01 =
-  | 'ACQUIRE_SUBJECT'
-  | 'SUBJECT_LEFT_SMALL'
-  | 'SUBJECT_RIGHT_SMALL'
-  | 'MOVE_CLOSER_SMALL'
-  | 'MOVE_FARTHER_SMALL'
-  | 'HOLD_STILL'
-  | 'VERIFY'
-  | 'CURRENT_READY_ENTER';
+import type { CanonicalVoiceEventV01 } from './types.js';
+export type VoiceSemanticIdV01 = CanonicalVoiceEventV01;
 
 export type VoicePhraseKeyV01 = VoiceSemanticIdV01;
 export type VoicePriorityV01 = 1 | 2 | 3 | 4;
 export type VoiceInterruptPolicyV01 = 'INTERRUPT_LOWER' | 'REPLACE_STALE' | 'QUEUE_IF_IDLE';
-export type VoiceRepeatPolicyV01 = 'ONCE_PER_CONTROL_EPOCH' | 'ONCE_PER_SEMANTIC_ENTRY';
+export type VoiceRepeatPolicyV01 = 'ONCE_PER_COMMAND_EVENT';
 export type VoiceSchedulerStateV01 = 'IDLE' | 'PENDING' | 'SPEAKING' | 'COOLDOWN' | 'CANCELLED' | 'UNAVAILABLE';
 export type VoiceSuppressionReasonV01 =
   | 'NONE'
@@ -36,6 +29,8 @@ export interface VoicePresentationCueV01 {
   interrupt_policy: VoiceInterruptPolicyV01;
   repeat_policy: VoiceRepeatPolicyV01;
   control_epoch_id: string | null;
+  command_id: string;
+  target_id: string;
   expires_at: number;
 }
 

@@ -46,8 +46,7 @@ export class VoiceCueEngineV01 {
   private cooldownUntil = 0;
   private activeCue: Readonly<VoicePresentationCueV01> | null = null;
   private requestedAt = new Map<string, number>();
-  private ordinaryEpochs = new Set<string>();
-  private semanticEntries = new Set<string>();
+  private commandEvents = new Set<string>();
   private telemetry: VoiceTelemetryV01;
 
   constructor(private readonly output: VoiceOutputPortV01, private readonly config = VOICE_CUE_ENGINE_CONFIG_V01) {
@@ -99,20 +98,14 @@ export class VoiceCueEngineV01 {
     if (!this.enabled) return this.suppress('VOICE_DISABLED');
     if (!this.prepared) return this.suppress('NOT_PREPARED');
     if (!this.output.isAvailable()) return this.suppress('VOICE_UNAVAILABLE');
-    if (cue.semantic_id === 'CURRENT_READY_ENTER' && !context.current_framing_ready) return this.suppress('STALE_READY');
-
-    const semanticEntryKey = `${context.session_revision}:${cue.semantic_id}:${this.semanticEntry}`;
-    const dedupeKey = cue.repeat_policy === 'ONCE_PER_CONTROL_EPOCH' ? cue.control_epoch_id : semanticEntryKey;
-    if (cue.repeat_policy === 'ONCE_PER_CONTROL_EPOCH') {
-      if (!dedupeKey || this.ordinaryEpochs.has(dedupeKey)) return this.suppress('DUPLICATE_CONTROL_EPOCH');
-    } else if (this.semanticEntries.has(semanticEntryKey)) return this.suppress('DUPLICATE_SEMANTIC_ENTRY');
+    const dedupeKey=`${context.session_revision}:${cue.command_id}:${cue.semantic_id}`;
+    if(this.commandEvents.has(dedupeKey))return this.suppress('DUPLICATE_CONTROL_EPOCH');
 
     if (context.now < this.cooldownUntil && cue.priority > 1) return this.suppress('COOLDOWN');
 
     const finalCue = Object.freeze({ ...cue, cue_id: `${cue.cue_id}:${context.session_revision}:${this.semanticEntry}` });
     if (this.activeCue && (cue.priority < this.activeCue.priority || cue.interrupt_policy !== 'QUEUE_IF_IDLE')) this.cancelActive('NONE');
-    if (cue.repeat_policy === 'ONCE_PER_CONTROL_EPOCH' && dedupeKey) this.ordinaryEpochs.add(dedupeKey);
-    else this.semanticEntries.add(semanticEntryKey);
+    this.commandEvents.add(dedupeKey);
     this.dispatch(finalCue, context.now);
     return this.snapshot();
   }
@@ -123,8 +116,7 @@ export class VoiceCueEngineV01 {
     this.semanticEntry = 0;
     this.currentReady = false;
     this.cooldownUntil = 0;
-    this.ordinaryEpochs.clear();
-    this.semanticEntries.clear();
+    this.commandEvents.clear();
   }
 
   dispose(): void {
