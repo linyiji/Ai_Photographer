@@ -1,0 +1,205 @@
+{
+  "$defs": {
+    "AICapability": {
+      "enum": [
+        "SUBJECT_UNDERSTANDING",
+        "SCENE_LIGHTING_UNDERSTANDING",
+        "PHOTOGRAPHY_DIRECTOR",
+        "CAPTURE_ANALYSIS",
+        "IMAGE_EDIT",
+        "ENHANCEMENT_QA"
+      ],
+      "title": "AICapability",
+      "type": "string"
+    },
+    "AIJobStatus": {
+      "enum": [
+        "QUEUED",
+        "PREPARING",
+        "RUNNING",
+        "VALIDATING",
+        "COMPLETED",
+        "FAILED",
+        "SUPERSEDED",
+        "CANCELLED"
+      ],
+      "title": "AIJobStatus",
+      "type": "string"
+    },
+    "LatencyClass": {
+      "enum": [
+        "HOT_LOCAL",
+        "INTERACTIVE_AI",
+        "BACKGROUND_PRECOMPUTE",
+        "BACKGROUND_AI"
+      ],
+      "title": "LatencyClass",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "job_id": {
+      "maxLength": 160,
+      "minLength": 1,
+      "title": "Job Id",
+      "type": "string"
+    },
+    "request_id": {
+      "maxLength": 160,
+      "minLength": 1,
+      "title": "Request Id",
+      "type": "string"
+    },
+    "session_id": {
+      "maxLength": 160,
+      "minLength": 1,
+      "title": "Session Id",
+      "type": "string"
+    },
+    "session_revision": {
+      "minimum": 0,
+      "title": "Session Revision",
+      "type": "integer"
+    },
+    "capability": {
+      "$ref": "#/$defs/AICapability"
+    },
+    "latency_class": {
+      "$ref": "#/$defs/LatencyClass"
+    },
+    "status": {
+      "$ref": "#/$defs/AIJobStatus",
+      "default": "QUEUED"
+    },
+    "stage": {
+      "default": "QUEUED",
+      "title": "Stage",
+      "type": "string"
+    },
+    "contract_version": {
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "prompt_version": {
+      "title": "Prompt Version",
+      "type": "string"
+    },
+    "input_hash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Input Hash",
+      "type": "string"
+    },
+    "idempotency_key": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Idempotency Key",
+      "type": "string"
+    },
+    "retry_count": {
+      "default": 0,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Retry Count",
+      "type": "integer"
+    },
+    "max_retries": {
+      "default": 1,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Max Retries",
+      "type": "integer"
+    },
+    "result_ref": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Result Ref"
+    },
+    "error": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Error"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "started_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Started At"
+    },
+    "completed_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Completed At"
+    },
+    "superseded_by_job_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Superseded By Job Id"
+    }
+  },
+  "required": [
+    "schema_version",
+    "job_id",
+    "request_id",
+    "session_id",
+    "session_revision",
+    "capability",
+    "latency_class",
+    "contract_version",
+    "prompt_version",
+    "input_hash",
+    "idempotency_key"
+  ],
+  "title": "AIJobV01",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xfx.local/contracts/v1/AIJobV01.schema.json",
+  "description": "Provider-neutral AI job lifecycle and bounded retry state."
+}

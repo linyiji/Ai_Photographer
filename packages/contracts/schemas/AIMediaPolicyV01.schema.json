@@ -1,0 +1,105 @@
+{
+  "$defs": {
+    "AICapability": {
+      "enum": [
+        "SUBJECT_UNDERSTANDING",
+        "SCENE_LIGHTING_UNDERSTANDING",
+        "PHOTOGRAPHY_DIRECTOR",
+        "CAPTURE_ANALYSIS",
+        "IMAGE_EDIT",
+        "ENHANCEMENT_QA"
+      ],
+      "title": "AICapability",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "capability": {
+      "$ref": "#/$defs/AICapability"
+    },
+    "minimum_image_count": {
+      "maximum": 3,
+      "minimum": 0,
+      "title": "Minimum Image Count",
+      "type": "integer"
+    },
+    "maximum_image_count": {
+      "maximum": 3,
+      "minimum": 0,
+      "title": "Maximum Image Count",
+      "type": "integer"
+    },
+    "allowed_asset_classes": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 8,
+      "title": "Allowed Asset Classes",
+      "type": "array"
+    },
+    "allowed_mime_types": {
+      "items": {
+        "enum": [
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ],
+        "type": "string"
+      },
+      "title": "Allowed Mime Types",
+      "type": "array"
+    },
+    "representation": {
+      "enum": [
+        "STRUCTURED_ONLY",
+        "AI_ANALYSIS_PREVIEW",
+        "EDIT_MASTER"
+      ],
+      "title": "Representation",
+      "type": "string"
+    },
+    "raw_video_allowed": {
+      "const": false,
+      "default": false,
+      "title": "Raw Video Allowed",
+      "type": "boolean"
+    },
+    "frame_stream_allowed": {
+      "const": false,
+      "default": false,
+      "title": "Frame Stream Allowed",
+      "type": "boolean"
+    },
+    "geometry_sequence_allowed": {
+      "const": false,
+      "default": false,
+      "title": "Geometry Sequence Allowed",
+      "type": "boolean"
+    },
+    "provider_send_authority_required": {
+      "const": true,
+      "default": true,
+      "title": "Provider Send Authority Required",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "schema_version",
+    "capability",
+    "minimum_image_count",
+    "maximum_image_count",
+    "representation"
+  ],
+  "title": "AIMediaPolicyV01",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xfx.local/contracts/v1/AIMediaPolicyV01.schema.json",
+  "description": "Capability-specific bounded media and provider-send policy."
+}

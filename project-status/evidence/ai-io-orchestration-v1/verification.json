@@ -1,0 +1,35 @@
+{
+  "task_id": "XFX_AI_PHOTOGRAPHER_IO_CONTRACT_JOB_ORCHESTRATION_AND_LOW_LATENCY_BASELINE_01",
+  "result": "PASS_WITH_KNOWN_BASELINE_WARNING",
+  "backend_tests": {
+    "command": "uv run --project apps/api pytest apps/api/tests -q",
+    "passed": 179,
+    "failed": 0
+  },
+  "ai_orchestration_tests": {
+    "command": "uv run --project apps/api pytest apps/api/tests/test_ai_io_orchestration_baseline.py -q",
+    "passed": 21,
+    "failed": 0
+  },
+  "frontend_tests": {
+    "command": "tsc -p tsconfig.test.json && node --test .test-dist/tests/*.test.js",
+    "passed": 101,
+    "failed": 0
+  },
+  "typescript": "PASS",
+  "h5_build": "PASS_WITH_EXISTING_ASSET_SIZE_WARNINGS",
+  "weapp_build": "PASS_WITH_EXISTING_ASSET_SIZE_AND_CHUNK_WARNINGS",
+  "ai_contract_catalog_entries": 8,
+  "ai_contract_catalog_test": "PASS",
+  "global_contract_validator": {
+    "result": "PRE_EXISTING_FAIL",
+    "first_failure": "missing description for HomeContextV01",
+    "scope_note": "The accepted baseline has nine pre-existing schemas without descriptions; this task did not rewrite those accepted contracts."
+  },
+  "camera_provider_imports": 0,
+  "live_provider_calls": 0,
+  "per_frame_backend_ai": 0,
+  "raw_video_provider": 0,
+  "real_provider_calls": 0,
+  "main_integration": "NOT_STARTED"
+}

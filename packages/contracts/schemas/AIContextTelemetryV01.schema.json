@@ -1,0 +1,61 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "context_bytes": {
+      "minimum": 0,
+      "title": "Context Bytes",
+      "type": "integer"
+    },
+    "structured_field_count": {
+      "minimum": 0,
+      "title": "Structured Field Count",
+      "type": "integer"
+    },
+    "asset_count": {
+      "maximum": 3,
+      "minimum": 0,
+      "title": "Asset Count",
+      "type": "integer"
+    },
+    "evidence_count": {
+      "minimum": 0,
+      "title": "Evidence Count",
+      "type": "integer"
+    },
+    "input_hash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Input Hash",
+      "type": "string"
+    },
+    "stable_prefix_hash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Stable Prefix Hash",
+      "type": "string"
+    },
+    "prompt_cache_eligible": {
+      "title": "Prompt Cache Eligible",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "schema_version",
+    "context_bytes",
+    "structured_field_count",
+    "asset_count",
+    "evidence_count",
+    "input_hash",
+    "stable_prefix_hash",
+    "prompt_cache_eligible"
+  ],
+  "title": "AIContextTelemetryV01",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xfx.local/contracts/v1/AIContextTelemetryV01.schema.json",
+  "description": "Minimal-context size, evidence and stable hash telemetry."
+}

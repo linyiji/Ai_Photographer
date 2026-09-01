@@ -1,0 +1,102 @@
+{
+  "$defs": {
+    "ProviderMode": {
+      "enum": [
+        "FAKE",
+        "REPLAY",
+        "REAL"
+      ],
+      "title": "ProviderMode",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "mode": {
+      "$ref": "#/$defs/ProviderMode"
+    },
+    "provider_id": {
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Provider Id",
+      "type": "string"
+    },
+    "model_id": {
+      "maxLength": 160,
+      "minLength": 1,
+      "title": "Model Id",
+      "type": "string"
+    },
+    "model_snapshot": {
+      "maxLength": 160,
+      "minLength": 1,
+      "title": "Model Snapshot",
+      "type": "string"
+    },
+    "provider_adapter_version": {
+      "maxLength": 80,
+      "minLength": 1,
+      "title": "Provider Adapter Version",
+      "type": "string"
+    },
+    "prompt_version": {
+      "maxLength": 80,
+      "minLength": 1,
+      "title": "Prompt Version",
+      "type": "string"
+    },
+    "supports_structured_output": {
+      "title": "Supports Structured Output",
+      "type": "boolean"
+    },
+    "supports_prompt_cache": {
+      "title": "Supports Prompt Cache",
+      "type": "boolean"
+    },
+    "supports_usage_reporting": {
+      "title": "Supports Usage Reporting",
+      "type": "boolean"
+    },
+    "supports_cost_reporting": {
+      "title": "Supports Cost Reporting",
+      "type": "boolean"
+    },
+    "provider_request_id": {
+      "anyOf": [
+        {
+          "maxLength": 200,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Provider Request Id"
+    }
+  },
+  "required": [
+    "schema_version",
+    "mode",
+    "provider_id",
+    "model_id",
+    "model_snapshot",
+    "provider_adapter_version",
+    "prompt_version",
+    "supports_structured_output",
+    "supports_prompt_cache",
+    "supports_usage_reporting",
+    "supports_cost_reporting"
+  ],
+  "title": "AIProviderProvenanceV01",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xfx.local/contracts/v1/AIProviderProvenanceV01.schema.json",
+  "description": "Provider and model provenance without credentials or provider-native payloads."
+}

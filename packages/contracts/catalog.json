@@ -41,6 +41,14 @@
     {"name":"ShotPlanCandidateV01","domain":"DIRECTOR","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/ShotPlanCandidateV01.schema.json","path":"schemas/ShotPlanCandidateV01.schema.json"},
     {"name":"SubjectProfileCandidateV01","domain":"DIRECTOR_UNDERSTANDING","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/SubjectProfileCandidateV01.schema.json","path":"schemas/SubjectProfileCandidateV01.schema.json"},
     {"name":"SceneUnderstandingCandidateV01","domain":"DIRECTOR_UNDERSTANDING","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/SceneUnderstandingCandidateV01.schema.json","path":"schemas/SceneUnderstandingCandidateV01.schema.json"},
-    {"name":"LightingEvidenceCandidateV01","domain":"DIRECTOR_UNDERSTANDING","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/LightingEvidenceCandidateV01.schema.json","path":"schemas/LightingEvidenceCandidateV01.schema.json"}
+    {"name":"LightingEvidenceCandidateV01","domain":"DIRECTOR_UNDERSTANDING","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/LightingEvidenceCandidateV01.schema.json","path":"schemas/LightingEvidenceCandidateV01.schema.json"},
+    {"name":"AIJobV01","domain":"AI_INFRASTRUCTURE","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/AIJobV01.schema.json","path":"schemas/AIJobV01.schema.json"},
+    {"name":"AIRequestEnvelopeV01","domain":"AI_INFRASTRUCTURE","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/AIRequestEnvelopeV01.schema.json","path":"schemas/AIRequestEnvelopeV01.schema.json"},
+    {"name":"AIResultEnvelopeV01","domain":"AI_INFRASTRUCTURE","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/AIResultEnvelopeV01.schema.json","path":"schemas/AIResultEnvelopeV01.schema.json"},
+    {"name":"AIProviderProvenanceV01","domain":"AI_INFRASTRUCTURE","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/AIProviderProvenanceV01.schema.json","path":"schemas/AIProviderProvenanceV01.schema.json"},
+    {"name":"AILatencyWaterfallV01","domain":"AI_INFRASTRUCTURE","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/AILatencyWaterfallV01.schema.json","path":"schemas/AILatencyWaterfallV01.schema.json"},
+    {"name":"AIContextTelemetryV01","domain":"AI_INFRASTRUCTURE","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/AIContextTelemetryV01.schema.json","path":"schemas/AIContextTelemetryV01.schema.json"},
+    {"name":"AIMediaPolicyV01","domain":"AI_INFRASTRUCTURE","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/AIMediaPolicyV01.schema.json","path":"schemas/AIMediaPolicyV01.schema.json"},
+    {"name":"AIJobEventV01","domain":"AI_INFRASTRUCTURE","version":"0.1.0","schema_id":"https://xfx.local/contracts/v1/AIJobEventV01.schema.json","path":"schemas/AIJobEventV01.schema.json"}
   ]
 }

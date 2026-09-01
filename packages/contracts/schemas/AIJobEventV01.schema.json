@@ -1,0 +1,115 @@
+{
+  "$defs": {
+    "AICapability": {
+      "enum": [
+        "SUBJECT_UNDERSTANDING",
+        "SCENE_LIGHTING_UNDERSTANDING",
+        "PHOTOGRAPHY_DIRECTOR",
+        "CAPTURE_ANALYSIS",
+        "IMAGE_EDIT",
+        "ENHANCEMENT_QA"
+      ],
+      "title": "AICapability",
+      "type": "string"
+    },
+    "AIJobStatus": {
+      "enum": [
+        "QUEUED",
+        "PREPARING",
+        "RUNNING",
+        "VALIDATING",
+        "COMPLETED",
+        "FAILED",
+        "SUPERSEDED",
+        "CANCELLED"
+      ],
+      "title": "AIJobStatus",
+      "type": "string"
+    },
+    "AIStageUXState": {
+      "enum": [
+        "IDLE",
+        "SUBJECT_ANALYZING",
+        "SCENE_LIGHT_ANALYZING",
+        "DIRECTOR_GENERATING",
+        "DIRECTOR_VALIDATING",
+        "PLANS_READY",
+        "CAPTURE_CHECKING",
+        "REALITY_PLUS_PLANNING",
+        "REALITY_PLUS_EDITING",
+        "REALITY_PLUS_VALIDATING",
+        "FAILED"
+      ],
+      "title": "AIStageUXState",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "event_id": {
+      "maxLength": 160,
+      "minLength": 1,
+      "title": "Event Id",
+      "type": "string"
+    },
+    "event_type": {
+      "pattern": "^ai\\.[a-z0-9_.]+$",
+      "title": "Event Type",
+      "type": "string"
+    },
+    "job_id": {
+      "title": "Job Id",
+      "type": "string"
+    },
+    "session_id": {
+      "title": "Session Id",
+      "type": "string"
+    },
+    "session_revision": {
+      "minimum": 0,
+      "title": "Session Revision",
+      "type": "integer"
+    },
+    "capability": {
+      "$ref": "#/$defs/AICapability"
+    },
+    "status": {
+      "$ref": "#/$defs/AIJobStatus"
+    },
+    "ux_state": {
+      "$ref": "#/$defs/AIStageUXState"
+    },
+    "payload": {
+      "additionalProperties": true,
+      "title": "Payload",
+      "type": "object"
+    },
+    "occurred_at": {
+      "format": "date-time",
+      "title": "Occurred At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "event_id",
+    "event_type",
+    "job_id",
+    "session_id",
+    "session_revision",
+    "capability",
+    "status",
+    "ux_state"
+  ],
+  "title": "AIJobEventV01",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xfx.local/contracts/v1/AIJobEventV01.schema.json",
+  "description": "Revision-aware AI job domain event with honest named UX state."
+}

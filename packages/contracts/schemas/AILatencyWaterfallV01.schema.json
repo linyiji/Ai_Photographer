@@ -1,0 +1,97 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "client_prepare_ms": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Client Prepare Ms",
+      "type": "number"
+    },
+    "media_resolve_ms": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Media Resolve Ms",
+      "type": "number"
+    },
+    "upload_ms": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Upload Ms",
+      "type": "number"
+    },
+    "queue_ms": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Queue Ms",
+      "type": "number"
+    },
+    "provider_ms": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Provider Ms",
+      "type": "number"
+    },
+    "normalize_ms": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Normalize Ms",
+      "type": "number"
+    },
+    "validate_ms": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Validate Ms",
+      "type": "number"
+    },
+    "schema_validate_ms": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Schema Validate Ms",
+      "type": "number"
+    },
+    "business_validate_ms": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Business Validate Ms",
+      "type": "number"
+    },
+    "persist_ms": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Persist Ms",
+      "type": "number"
+    },
+    "event_delivery_ms": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Event Delivery Ms",
+      "type": "number"
+    },
+    "render_ms": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Render Ms",
+      "type": "number"
+    },
+    "end_to_end_ms": {
+      "default": 0,
+      "minimum": 0,
+      "title": "End To End Ms",
+      "type": "number"
+    }
+  },
+  "title": "AILatencyWaterfallV01",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xfx.local/contracts/v1/AILatencyWaterfallV01.schema.json",
+  "description": "End-to-end AI latency waterfall with provider and validation stages.",
+  "required": [
+    "schema_version"
+  ]
+}

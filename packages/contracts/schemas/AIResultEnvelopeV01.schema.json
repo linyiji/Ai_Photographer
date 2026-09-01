@@ -1,0 +1,388 @@
+{
+  "$defs": {
+    "AICapability": {
+      "enum": [
+        "SUBJECT_UNDERSTANDING",
+        "SCENE_LIGHTING_UNDERSTANDING",
+        "PHOTOGRAPHY_DIRECTOR",
+        "CAPTURE_ANALYSIS",
+        "IMAGE_EDIT",
+        "ENHANCEMENT_QA"
+      ],
+      "title": "AICapability",
+      "type": "string"
+    },
+    "AIContextTelemetryV01": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "0.1.0",
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "context_bytes": {
+          "minimum": 0,
+          "title": "Context Bytes",
+          "type": "integer"
+        },
+        "structured_field_count": {
+          "minimum": 0,
+          "title": "Structured Field Count",
+          "type": "integer"
+        },
+        "asset_count": {
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Asset Count",
+          "type": "integer"
+        },
+        "evidence_count": {
+          "minimum": 0,
+          "title": "Evidence Count",
+          "type": "integer"
+        },
+        "input_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Input Hash",
+          "type": "string"
+        },
+        "stable_prefix_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Stable Prefix Hash",
+          "type": "string"
+        },
+        "prompt_cache_eligible": {
+          "title": "Prompt Cache Eligible",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "context_bytes",
+        "structured_field_count",
+        "asset_count",
+        "evidence_count",
+        "input_hash",
+        "stable_prefix_hash",
+        "prompt_cache_eligible"
+      ],
+      "title": "AIContextTelemetryV01",
+      "type": "object"
+    },
+    "AILatencyWaterfallV01": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "0.1.0",
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "client_prepare_ms": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Client Prepare Ms",
+          "type": "number"
+        },
+        "media_resolve_ms": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Media Resolve Ms",
+          "type": "number"
+        },
+        "upload_ms": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Upload Ms",
+          "type": "number"
+        },
+        "queue_ms": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Queue Ms",
+          "type": "number"
+        },
+        "provider_ms": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Provider Ms",
+          "type": "number"
+        },
+        "normalize_ms": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Normalize Ms",
+          "type": "number"
+        },
+        "validate_ms": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Validate Ms",
+          "type": "number"
+        },
+        "schema_validate_ms": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Schema Validate Ms",
+          "type": "number"
+        },
+        "business_validate_ms": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Business Validate Ms",
+          "type": "number"
+        },
+        "persist_ms": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Persist Ms",
+          "type": "number"
+        },
+        "event_delivery_ms": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Event Delivery Ms",
+          "type": "number"
+        },
+        "render_ms": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Render Ms",
+          "type": "number"
+        },
+        "end_to_end_ms": {
+          "default": 0,
+          "minimum": 0,
+          "title": "End To End Ms",
+          "type": "number"
+        }
+      },
+      "title": "AILatencyWaterfallV01",
+      "type": "object"
+    },
+    "AIProviderProvenanceV01": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "0.1.0",
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "mode": {
+          "$ref": "#/$defs/ProviderMode"
+        },
+        "provider_id": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Provider Id",
+          "type": "string"
+        },
+        "model_id": {
+          "maxLength": 160,
+          "minLength": 1,
+          "title": "Model Id",
+          "type": "string"
+        },
+        "model_snapshot": {
+          "maxLength": 160,
+          "minLength": 1,
+          "title": "Model Snapshot",
+          "type": "string"
+        },
+        "provider_adapter_version": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Provider Adapter Version",
+          "type": "string"
+        },
+        "prompt_version": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Prompt Version",
+          "type": "string"
+        },
+        "supports_structured_output": {
+          "title": "Supports Structured Output",
+          "type": "boolean"
+        },
+        "supports_prompt_cache": {
+          "title": "Supports Prompt Cache",
+          "type": "boolean"
+        },
+        "supports_usage_reporting": {
+          "title": "Supports Usage Reporting",
+          "type": "boolean"
+        },
+        "supports_cost_reporting": {
+          "title": "Supports Cost Reporting",
+          "type": "boolean"
+        },
+        "provider_request_id": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Provider Request Id"
+        }
+      },
+      "required": [
+        "mode",
+        "provider_id",
+        "model_id",
+        "model_snapshot",
+        "provider_adapter_version",
+        "prompt_version",
+        "supports_structured_output",
+        "supports_prompt_cache",
+        "supports_usage_reporting",
+        "supports_cost_reporting"
+      ],
+      "title": "AIProviderProvenanceV01",
+      "type": "object"
+    },
+    "ProviderMode": {
+      "enum": [
+        "FAKE",
+        "REPLAY",
+        "REAL"
+      ],
+      "title": "ProviderMode",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "result_id": {
+      "maxLength": 160,
+      "minLength": 1,
+      "title": "Result Id",
+      "type": "string"
+    },
+    "job_id": {
+      "maxLength": 160,
+      "minLength": 1,
+      "title": "Job Id",
+      "type": "string"
+    },
+    "request_id": {
+      "maxLength": 160,
+      "minLength": 1,
+      "title": "Request Id",
+      "type": "string"
+    },
+    "session_id": {
+      "maxLength": 160,
+      "minLength": 1,
+      "title": "Session Id",
+      "type": "string"
+    },
+    "session_revision": {
+      "minimum": 0,
+      "title": "Session Revision",
+      "type": "integer"
+    },
+    "capability": {
+      "$ref": "#/$defs/AICapability"
+    },
+    "input_hash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Input Hash",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "CANDIDATE_READY",
+        "FAILED",
+        "SUPERSEDED"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "candidate_refs": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Candidate Refs",
+      "type": "array"
+    },
+    "normalized_output": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Normalized Output"
+    },
+    "error": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Error"
+    },
+    "provenance": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AIProviderProvenanceV01"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "latency": {
+      "$ref": "#/$defs/AILatencyWaterfallV01"
+    },
+    "context_telemetry": {
+      "$ref": "#/$defs/AIContextTelemetryV01"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "result_id",
+    "job_id",
+    "request_id",
+    "session_id",
+    "session_revision",
+    "capability",
+    "input_hash",
+    "status",
+    "latency",
+    "context_telemetry"
+  ],
+  "title": "AIResultEnvelopeV01",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xfx.local/contracts/v1/AIResultEnvelopeV01.schema.json",
+  "description": "Normalized AI result envelope that exposes candidates, provenance and latency."
+}

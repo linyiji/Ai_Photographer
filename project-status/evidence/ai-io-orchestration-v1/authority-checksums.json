@@ -1,0 +1,10 @@
+{
+  "authority_package": "XFX_AI_PHOTOGRAPHER_ALGORITHM_AND_API_AUTHORITY_V1",
+  "source_zip": "D:/Projects/_bootstrap/XFX_AI_PHOTOGRAPHER_ALGORITHM_AND_API_AUTHORITY_V1.zip",
+  "source_zip_sha256": "5fa41e9931130c99dfd6292be8559d5ed81f49065bcbeb6d9b423f4f8b5e2e35",
+  "external_owner_hash_supplied": false,
+  "external_owner_hash_comparison": "NOT_AVAILABLE",
+  "internal_sha256_entries": 12,
+  "internal_sha256_passed": 12,
+  "internal_sha256_result": "PASS"
+}

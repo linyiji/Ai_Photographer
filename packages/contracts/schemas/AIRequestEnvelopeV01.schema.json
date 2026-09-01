@@ -1,0 +1,276 @@
+{
+  "$defs": {
+    "AICapability": {
+      "enum": [
+        "SUBJECT_UNDERSTANDING",
+        "SCENE_LIGHTING_UNDERSTANDING",
+        "PHOTOGRAPHY_DIRECTOR",
+        "CAPTURE_ANALYSIS",
+        "IMAGE_EDIT",
+        "ENHANCEMENT_QA"
+      ],
+      "title": "AICapability",
+      "type": "string"
+    },
+    "AIContextTelemetryV01": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "0.1.0",
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "context_bytes": {
+          "minimum": 0,
+          "title": "Context Bytes",
+          "type": "integer"
+        },
+        "structured_field_count": {
+          "minimum": 0,
+          "title": "Structured Field Count",
+          "type": "integer"
+        },
+        "asset_count": {
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Asset Count",
+          "type": "integer"
+        },
+        "evidence_count": {
+          "minimum": 0,
+          "title": "Evidence Count",
+          "type": "integer"
+        },
+        "input_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Input Hash",
+          "type": "string"
+        },
+        "stable_prefix_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Stable Prefix Hash",
+          "type": "string"
+        },
+        "prompt_cache_eligible": {
+          "title": "Prompt Cache Eligible",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "context_bytes",
+        "structured_field_count",
+        "asset_count",
+        "evidence_count",
+        "input_hash",
+        "stable_prefix_hash",
+        "prompt_cache_eligible"
+      ],
+      "title": "AIContextTelemetryV01",
+      "type": "object"
+    },
+    "AIMediaPolicyV01": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "0.1.0",
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "capability": {
+          "$ref": "#/$defs/AICapability"
+        },
+        "minimum_image_count": {
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Minimum Image Count",
+          "type": "integer"
+        },
+        "maximum_image_count": {
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Maximum Image Count",
+          "type": "integer"
+        },
+        "allowed_asset_classes": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 8,
+          "title": "Allowed Asset Classes",
+          "type": "array"
+        },
+        "allowed_mime_types": {
+          "items": {
+            "enum": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ],
+            "type": "string"
+          },
+          "title": "Allowed Mime Types",
+          "type": "array"
+        },
+        "representation": {
+          "enum": [
+            "STRUCTURED_ONLY",
+            "AI_ANALYSIS_PREVIEW",
+            "EDIT_MASTER"
+          ],
+          "title": "Representation",
+          "type": "string"
+        },
+        "raw_video_allowed": {
+          "const": false,
+          "default": false,
+          "title": "Raw Video Allowed",
+          "type": "boolean"
+        },
+        "frame_stream_allowed": {
+          "const": false,
+          "default": false,
+          "title": "Frame Stream Allowed",
+          "type": "boolean"
+        },
+        "geometry_sequence_allowed": {
+          "const": false,
+          "default": false,
+          "title": "Geometry Sequence Allowed",
+          "type": "boolean"
+        },
+        "provider_send_authority_required": {
+          "const": true,
+          "default": true,
+          "title": "Provider Send Authority Required",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "capability",
+        "minimum_image_count",
+        "maximum_image_count",
+        "representation"
+      ],
+      "title": "AIMediaPolicyV01",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "request_id": {
+      "maxLength": 160,
+      "minLength": 1,
+      "title": "Request Id",
+      "type": "string"
+    },
+    "job_id": {
+      "maxLength": 160,
+      "minLength": 1,
+      "title": "Job Id",
+      "type": "string"
+    },
+    "session_id": {
+      "maxLength": 160,
+      "minLength": 1,
+      "title": "Session Id",
+      "type": "string"
+    },
+    "session_revision": {
+      "minimum": 0,
+      "title": "Session Revision",
+      "type": "integer"
+    },
+    "capability": {
+      "$ref": "#/$defs/AICapability"
+    },
+    "contract_version": {
+      "maxLength": 40,
+      "minLength": 1,
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "prompt_version": {
+      "maxLength": 80,
+      "minLength": 1,
+      "title": "Prompt Version",
+      "type": "string"
+    },
+    "provider_adapter_version": {
+      "maxLength": 80,
+      "minLength": 1,
+      "title": "Provider Adapter Version",
+      "type": "string"
+    },
+    "idempotency_key": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Idempotency Key",
+      "type": "string"
+    },
+    "input_hash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Input Hash",
+      "type": "string"
+    },
+    "asset_refs": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 3,
+      "title": "Asset Refs",
+      "type": "array"
+    },
+    "evidence_refs": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 64,
+      "title": "Evidence Refs",
+      "type": "array"
+    },
+    "media_policy": {
+      "$ref": "#/$defs/AIMediaPolicyV01"
+    },
+    "context_payload": {
+      "additionalProperties": true,
+      "title": "Context Payload",
+      "type": "object"
+    },
+    "context_telemetry": {
+      "$ref": "#/$defs/AIContextTelemetryV01"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "request_id",
+    "job_id",
+    "session_id",
+    "session_revision",
+    "capability",
+    "contract_version",
+    "prompt_version",
+    "provider_adapter_version",
+    "idempotency_key",
+    "input_hash",
+    "media_policy",
+    "context_payload",
+    "context_telemetry"
+  ],
+  "title": "AIRequestEnvelopeV01",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xfx.local/contracts/v1/AIRequestEnvelopeV01.schema.json",
+  "description": "Versioned, idempotent and revision-bound AI request envelope."
+}

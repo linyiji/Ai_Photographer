@@ -1,0 +1,38 @@
+{
+  "accepted_reused_unchanged": [
+    "SubjectProfileCandidateV01",
+    "SceneUnderstandingCandidateV01",
+    "LightingEvidenceCandidateV01",
+    "PhotographyDirectorInputV01",
+    "ShotPlanCandidateV01",
+    "LiveTargetBlueprintV01",
+    "ErrorContract",
+    "AssetRef",
+    "CandidateEnvelope",
+    "DomainEvent"
+  ],
+  "new_common_contracts": [
+    "AIJobV01",
+    "AIRequestEnvelopeV01",
+    "AIResultEnvelopeV01",
+    "AIProviderProvenanceV01",
+    "AILatencyWaterfallV01",
+    "AIContextTelemetryV01",
+    "AIMediaPolicyV01",
+    "AIJobEventV01"
+  ],
+  "new_node_inputs_and_candidates": [
+    "SubjectUnderstandingInputV01",
+    "SceneLightingUnderstandingInputV01",
+    "PhotographyDirectorInputV02",
+    "CaptureAnalysisInputV01",
+    "CaptureQACandidateV01",
+    "RealityPlusEditPlanCandidateV01",
+    "ImageEditRequestV01",
+    "RealityPlusAssetCandidateV01",
+    "EnhancementQAInputV01",
+    "EnhancementQACandidateV01"
+  ],
+  "foundational_conflict": false,
+  "main_integration": "NOT_STARTED"
+}
