@@ -1,6 +1,9 @@
 # Live V4 Framing Profile & Dynamic READY Algorithm V01
 
-Status: OWNER_ALGORITHM_AUTHORITY
+Status: SUPERSEDED_05G_BASELINE
+
+Superseded for 05H device acceptance by
+`19_LIVE_V4_FRAMING_PROFILE_AND_DYNAMIC_READY_ALGORITHM_V02_05H_ALIGNMENT.md`.
 
 ## 1. 正式 Framing Profile
 
@@ -429,5 +432,4 @@ LEFT_TOP / CENTER / RIGHT_BOTTOM 能正确判断
 current READY 可以进入也可以撤销
 trial_success_latched 保留历史成功
 ```
-
 

@@ -1,6 +1,9 @@
 # Live V4 Body Extent & Position Guidance Acceptance Gate V01
 
-Status: OWNER_ACCEPTANCE_AUTHORITY
+Status: SUPERSEDED_05G_BASELINE
+
+Superseded for 05H device acceptance by
+`20_LIVE_V4_BODY_EXTENT_AND_POSITION_GUIDANCE_ACCEPTANCE_GATE_V02_05H.md`.
 
 ## 1. 目标
 
@@ -552,5 +555,4 @@ LEFT_TOP / CENTER / RIGHT_BOTTOM 可判断
 一次只给一个动作
 READY 是当前状态而非永久历史状态
 ```
-
 

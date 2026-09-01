@@ -1,8 +1,26 @@
-# XFX Live V4 — 05G Framing Profile / Position Guidance Rebaseline
+# XFX Live V4 — 05H Device Gate Authority Map
 
 Date: 2026-09-01
-Status: OWNER_DESIGN_AUTHORITY_CANDIDATE
+Status: OWNER_ALGORITHM_AND_ACCEPTANCE_AUTHORITY
 Track: PARALLEL_LIVE
+
+## Current authority
+
+05H is a documentation-alignment and OPPO scalar-evidence gate over the accepted
+05G runtime at source head `8dfe92b272efd0c0bc5785d6cf2e102cf21f6d75`.
+
+Read in this order:
+
+1. `19_LIVE_V4_FRAMING_PROFILE_AND_DYNAMIC_READY_ALGORITHM_V02_05H_ALIGNMENT.md`
+2. `20_LIVE_V4_BODY_EXTENT_AND_POSITION_GUIDANCE_ACCEPTANCE_GATE_V02_05H.md`
+3. `23_LIVE_V4_05H_OPPO_DEVICE_GATE_PROTOCOL_V01.md`
+4. `24_LIVE_V4_FUNCTIONAL_VS_PERFORMANCE_ACCEPTANCE_V01.md`
+5. `25_LIVE_V4_05H_EVIDENCE_SCHEMA_AND_TRACE_FIELDS_V01.md`
+
+The V01 algorithm and acceptance documents remain historical 05G baselines and
+are superseded for the 05H device verdict. The 05H alignment does not authorize
+runtime changes, target/threshold tuning, Main integration, or repeated 05F
+LEFT/RIGHT calibration without fresh invalidating evidence.
 
 ## 核心修正
 
@@ -87,5 +105,4 @@ RIGHT_BOTTOM
 → 详细姿势
 → 手势
 ```
-
 
