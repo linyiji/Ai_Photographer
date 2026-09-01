@@ -170,6 +170,13 @@
             <label class="toggle-setting legacy-debug-node"><input id="semantic-debug" type="checkbox" /> Semantic Debug</label>
             <label class="target-picker">EVIDENCE SCENARIO
               <select id="scale-gate-scenario" aria-label="Scale Gate scenario">
+                <optgroup label="05G Framing Profile × Position Zone">
+                  <option value="V4_HEAD_CENTER">05G Extent · Head × Center</option>
+                  <option value="V4_HEAD_SHOULDERS_LEFT_TOP">05G A · Head Shoulders × Left Top</option>
+                  <option value="V4_UPPER_BODY_CENTER">05G B · Upper Body × Center</option>
+                  <option value="V4_THREE_QUARTER_RIGHT_BOTTOM">05G C · Three Quarter × Right Bottom</option>
+                  <option value="V4_FULL_BODY_CENTER">05G Extent · Full Body × Center</option>
+                </optgroup>
                 <optgroup class="legacy-scenario-group" label="V4 Target-relative Matrix">
                   <option value="V4_CENTER_UPPER_BODY">V4 · Center × Upper Body</option>
                   <option value="V4_LEFT_THIRD_UPPER_BODY">V4 · Left Third × Upper Body</option>
@@ -209,7 +216,7 @@
             <button id="closed-loop-trace" class="button button--quiet" type="button">下载标量 Trace</button>
           </div>
         </div>
-        <p class="compact-gate-note">当前仅显示 05F 设备验收节点；完整观测、控制和性能字段仍持续写入标量 Trace。</p>
+        <p class="compact-gate-note">05G 将“看到的人体范围、构图 Profile、位置 Zone、当前 READY”分开显示；完整标量证据可直接下载。</p>
         <div class="perception-status">
           <span id="cl-runtime-state" class="status-pill">STATE · IDLE</span>
           <span id="cl-ready" class="status-pill status-pill--muted">READY · FALSE</span>

@@ -1,5 +1,7 @@
 # Live V4 Current-Position Decision Logic V2
 
+> Superseded by `16_LIVE_V4_CURRENT_POSITION_DECISION_LOGIC_V3.md` under 05G. Retained only as historical context.
+
 **Document ID:** `XFX_LIVE_V4_CURRENT_POSITION_DECISION_LOGIC_V2`
 **Status:** `OWNER_ALGORITHM_AUTHORITY / ALIGNED_AFTER_05A`
 **Accepted source evidence:** `ef7f6b52dd2ace562ce3e0e6c39ea856d6bda94c`

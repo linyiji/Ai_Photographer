@@ -2,8 +2,8 @@ import { v4ObservationFixture } from '../fixtures/control-v4/human-observations.
 import { targetScopedCropState } from '../fixtures/control-v4/target-scoped-crop.js';
 import { HumanTargetRelativeServoV04 } from './controller.js';
 import { HumanObservationV02Projector } from './observation.js';
-import { LIVE_TARGET_FIXTURES_V02 } from './targets.js';
-import type { HumanObservationV02, TargetFixtureIdV02, V4Snapshot } from './types.js';
+import { LIVE_TARGET_FIXTURES_V02, V4_FRAMING_TARGET_FIXTURES_V01 } from './targets.js';
+import type { FramingProfileFixtureIdV01, FramingProfileIdV01, HumanObservationV02, PositionZoneIdV01, TargetFixtureIdV02, V4Snapshot } from './types.js';
 
 export const V4_BROWSER_MATRIX:readonly TargetFixtureIdV02[]=['CENTER_UPPER_BODY','LEFT_THIRD_UPPER_BODY','RIGHT_THIRD_UPPER_BODY','CENTER_THREE_QUARTER','LEFT_THIRD_FULL_BODY','RIGHT_THIRD_FULL_BODY'];
 const coverageFor=(id:TargetFixtureIdV02):'UPPER_BODY'|'THREE_QUARTER'|'FULL_BODY'=>id.includes('FULL_BODY')?'FULL_BODY':id.includes('THREE_QUARTER')?'THREE_QUARTER':'UPPER_BODY';
@@ -16,3 +16,8 @@ export function v4BrowserObservations(id:TargetFixtureIdV02):ReadonlyArray<Reado
 export function runV4BrowserScenario(id:TargetFixtureIdV02):ReadonlyArray<Readonly<V4Snapshot>>{const c=new HumanTargetRelativeServoV04(LIVE_TARGET_FIXTURES_V02[id]);c.arm(0);return v4BrowserObservations(id).map(o=>c.update(o));}
 export function runV4TargetScopedCropBrowserGate():ReadonlyArray<Readonly<V4Snapshot>>{const projector=new HumanObservationV02Projector(),controller=new HumanTargetRelativeServoV04(LIVE_TARGET_FIXTURES_V02.CENTER_UPPER_BODY);controller.arm(0);return [targetScopedCropState({timestamp_ms:0,sequence:1}),targetScopedCropState({timestamp_ms:400,sequence:2})].map(state=>controller.update(projector.project(state)));}
 export function runV4XDirectionBrowserGate():ReadonlyArray<Readonly<V4Snapshot>>{const controller=new HumanTargetRelativeServoV04(LIVE_TARGET_FIXTURES_V02.CENTER_UPPER_BODY),context={camera_facing:'FRONT' as const,preview_mirror_state:'MIRRORED' as const,shooting_relation:'SUBJECT_FACING_CAMERA' as const};controller.arm(0);return [v4ObservationFixture({timestamp_ms:0,state_version:1,x:.61,scale:.42}),v4ObservationFixture({timestamp_ms:300,state_version:2,x:.61,scale:.42})].map(observation=>controller.update(observation,context));}
+
+export const V4_FRAMING_POSITION_MATRIX:readonly FramingProfileFixtureIdV01[]=Object.freeze((['HEAD','HEAD_SHOULDERS','UPPER_BODY','THREE_QUARTER','FULL_BODY'] as FramingProfileIdV01[]).flatMap(profile=>(['LEFT_TOP','CENTER','RIGHT_BOTTOM'] as PositionZoneIdV01[]).map(zone=>`${profile}_${zone}` as FramingProfileFixtureIdV01)));
+const fixtureCoverage=(profile:FramingProfileIdV01):'HEAD_ONLY'|'HEAD_SHOULDERS'|'UPPER_BODY'|'THREE_QUARTER'|'FULL_BODY'=>profile==='HEAD'?'HEAD_ONLY':profile;
+const primaryYOffset=(profile:FramingProfileIdV01):number=>profile==='HEAD'?0:profile==='HEAD_SHOULDERS'?.12:profile==='UPPER_BODY'?.27:profile==='THREE_QUARTER'?.38:.382;
+export function runV4FramingPositionScenario(id:FramingProfileFixtureIdV01):ReadonlyArray<Readonly<V4Snapshot>>{const target=V4_FRAMING_TARGET_FIXTURES_V01[id],controller=new HumanTargetRelativeServoV04(target),coverage=fixtureCoverage(target.framing_profile_id),headY=(target.target_anchor_y??.5)-primaryYOffset(target.framing_profile_id);controller.arm(0);return [0,300,600,900,1200].map((timestamp_ms,index)=>controller.update(v4ObservationFixture({timestamp_ms,state_version:index+1,coverage,scale_metric:target.scale_metric,scale:target.target_scale,x:target.target_anchor_x,head_y:headY})));}

@@ -25,3 +25,16 @@ export function evaluateTargetObservationGapV01(recognition:SubjectRecognitionSt
   const actions=blocking.map(item=>item.actionability);const actionability:GapActionabilityV01=actions.includes('SYSTEM_MEASUREMENT_DEFECT')?'SYSTEM_MEASUREMENT_DEFECT':actions.includes('USER_FIXABLE')?'USER_FIXABLE':actions.includes('WAIT_FOR_STABLE_EVIDENCE')?'WAIT_FOR_STABLE_EVIDENCE':'UNKNOWN';
   return Object.freeze({gap_version:'TargetObservationGapV01',target_id:requirement.target_id,ready:recognition.detected&&missing.length===0,satisfied_requirements:Object.freeze(satisfied),missing_requirements:Object.freeze(missing),blocking_reasons:Object.freeze(blocking),actionability,observation_state_version:observed.state_version});
 }
+
+export class TargetGapTemporalEvaluatorV01 {
+  private readonly firstSeen=new Map<string,number>();
+  constructor(private readonly boundedWaitMs=1500){}
+  reset():void{this.firstSeen.clear();}
+  evaluate(recognition:SubjectRecognitionStateV01,observed:ObservedBodyStateV01,requirement:TargetMeasurementRequirementV01,now:number):Readonly<TargetObservationGapV01>{
+    const raw=evaluateTargetObservationGapV01(recognition,observed,requirement),active=new Set<string>();
+    const blocking=raw.blocking_reasons.map(item=>{const key=`${item.requirement}:${item.region??'NONE'}:${item.reason}`;if(item.actionability!=='WAIT_FOR_STABLE_EVIDENCE'||item.reason!=='LOW_CONFIDENCE'&&item.reason!=='INSUFFICIENT_BILATERAL_EVIDENCE')return item;active.add(key);const since=this.firstSeen.get(key)??now;this.firstSeen.set(key,since);if(now-since<this.boundedWaitMs)return Object.freeze({...item,reason:'TEMPORARILY_UNSTABLE' as const});return Object.freeze({...item,reason:item.reason,actionability:'USER_FIXABLE' as const});});
+    for(const key of this.firstSeen.keys())if(!active.has(key))this.firstSeen.delete(key);
+    const actions=blocking.map(item=>item.actionability);const actionability:GapActionabilityV01=actions.includes('SYSTEM_MEASUREMENT_DEFECT')?'SYSTEM_MEASUREMENT_DEFECT':actions.includes('USER_FIXABLE')?'USER_FIXABLE':actions.includes('WAIT_FOR_STABLE_EVIDENCE')?'WAIT_FOR_STABLE_EVIDENCE':'UNKNOWN';
+    return Object.freeze({...raw,blocking_reasons:Object.freeze(blocking),actionability});
+  }
+}

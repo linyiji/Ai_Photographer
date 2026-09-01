@@ -2,6 +2,8 @@ import type { LandmarkBasisScalarV01, MeasurementDefinitionV01, MeasurementReadi
 
 const define=(definition:MeasurementDefinitionV01):Readonly<MeasurementDefinitionV01>=>Object.freeze(definition);
 export const V4_MEASUREMENT_DEFINITIONS:Readonly<Record<MeasurementDefinitionV01['measurement_type'],Readonly<MeasurementDefinitionV01>>>=Object.freeze({
+  HEAD_SIZE:define({measurement_type:'HEAD_SIZE',required_anchors:Object.freeze(['HEAD_CENTER']),required_regions:Object.freeze(['HEAD']),crop_dependencies:Object.freeze(['HEAD'])}),
+  HEAD_SHOULDER_SCALE:define({measurement_type:'HEAD_SHOULDER_SCALE',required_anchors:Object.freeze(['HEAD_CENTER','SHOULDER_CENTER']),required_regions:Object.freeze(['HEAD','SHOULDERS']),crop_dependencies:Object.freeze(['HEAD','SHOULDERS'])}),
   HEAD_TO_HIP:define({measurement_type:'HEAD_TO_HIP',required_anchors:Object.freeze(['HEAD_CENTER','HIP_CENTER']),required_regions:Object.freeze(['HEAD','HIPS']),crop_dependencies:Object.freeze(['HEAD','HIPS'])}),
   TORSO_CENTER:define({measurement_type:'TORSO_CENTER',required_anchors:Object.freeze(['SHOULDER_CENTER','HIP_CENTER','TORSO_CENTER']),required_regions:Object.freeze(['SHOULDERS','HIPS','UPPER_TORSO']),crop_dependencies:Object.freeze(['SHOULDERS','HIPS'])}),
   HEAD_TO_KNEE:define({measurement_type:'HEAD_TO_KNEE',required_anchors:Object.freeze(['HEAD_CENTER','KNEE_CENTER']),required_regions:Object.freeze(['HEAD','KNEES']),crop_dependencies:Object.freeze(['HEAD','KNEES'])}),

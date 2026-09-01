@@ -1,14 +1,20 @@
-import type { BodyRegionV01, LiveTargetV02, TargetFixtureIdV02 } from './types.js';
+import { V4_FRAMING_PROFILES_V01 } from './framing-profiles.js';
+import { V4_POSITION_ZONES_V01 } from './position-zones.js';
+import type { BodyRegionV01, FramingProfileFixtureIdV01, FramingProfileIdV01, LiveTargetV02, PositionZoneIdV01, ScaleMetricV02, TargetFixtureIdV02 } from './types.js';
 
 const body={upper:['HEAD','SHOULDERS','UPPER_TORSO','HIPS'],three:['HEAD','SHOULDERS','UPPER_TORSO','HIPS','KNEES'],full:['HEAD','SHOULDERS','UPPER_TORSO','HIPS','KNEES','ANKLES','FEET']} as const satisfies Record<string,readonly BodyRegionV01[]>;
-const make=(id:TargetFixtureIdV02,label:string,x:number,required:readonly BodyRegionV01[],metric:LiveTargetV02['scale_metric'],scale:number,tolerance:number):Readonly<LiveTargetV02>=>Object.freeze({target_version:'LiveTargetV02',id,source:'FIXTURE',label,required_body_parts:required,primary_anchor:'TORSO_CENTER',target_anchor_x:x,tolerance_x:.055,target_anchor_y:null,tolerance_y:null,scale_metric:metric,target_scale:scale,tolerance_scale:tolerance,control_actor:'SUBJECT',ready_stable_ms:600});
-export const LIVE_TARGET_FIXTURES_V02:Readonly<Record<TargetFixtureIdV02,Readonly<LiveTargetV02>>>=Object.freeze({
-  CENTER_UPPER_BODY:make('CENTER_UPPER_BODY','居中 · 上半身',.5,body.upper,'HEAD_TO_HIP',.42,.07),
-  LEFT_THIRD_UPPER_BODY:make('LEFT_THIRD_UPPER_BODY','左三分 · 上半身',.33,body.upper,'HEAD_TO_HIP',.42,.07),
-  RIGHT_THIRD_UPPER_BODY:make('RIGHT_THIRD_UPPER_BODY','右三分 · 上半身',.67,body.upper,'HEAD_TO_HIP',.42,.07),
-  CENTER_THREE_QUARTER:make('CENTER_THREE_QUARTER','居中 · 三分之三身',.5,body.three,'HEAD_TO_KNEE',.62,.08),
-  LEFT_THIRD_FULL_BODY:make('LEFT_THIRD_FULL_BODY','左三分 · 全身',.33,body.full,'HEAD_TO_ANKLE',.8,.09),
-  RIGHT_THIRD_FULL_BODY:make('RIGHT_THIRD_FULL_BODY','右三分 · 全身',.67,body.full,'HEAD_TO_ANKLE',.8,.09),
+const legacy=(id:TargetFixtureIdV02,label:string,x:number,profile:FramingProfileIdV01,required:readonly BodyRegionV01[],metric:ScaleMetricV02,scale:number,tolerance:number,zone:PositionZoneIdV01='CENTER'):Readonly<LiveTargetV02>=>Object.freeze({target_version:'LiveTargetV02',id,source:'FIXTURE',label,framing_profile_id:profile,position_zone:zone,required_body_parts:required,primary_anchor:'TORSO_CENTER',target_anchor_x:x,tolerance_x:.055,target_anchor_y:null,tolerance_y:null,scale_metric:metric,target_scale:scale,tolerance_scale:tolerance,control_actor:'SUBJECT',ready_stable_ms:600});
+export const LIVE_TARGET_FIXTURES_V02:Readonly<Record<string,Readonly<LiveTargetV02>>>=Object.freeze({
+  CENTER_UPPER_BODY:legacy('CENTER_UPPER_BODY','居中 · 上半身',.5,'UPPER_BODY',body.upper,'HEAD_TO_HIP',.42,.07),
+  LEFT_THIRD_UPPER_BODY:legacy('LEFT_THIRD_UPPER_BODY','左三分 · 上半身',.33,'UPPER_BODY',body.upper,'HEAD_TO_HIP',.42,.07,'LEFT_TOP'),
+  RIGHT_THIRD_UPPER_BODY:legacy('RIGHT_THIRD_UPPER_BODY','右三分 · 上半身',.67,'UPPER_BODY',body.upper,'HEAD_TO_HIP',.42,.07,'RIGHT_BOTTOM'),
+  CENTER_THREE_QUARTER:legacy('CENTER_THREE_QUARTER','居中 · 三分之三身',.5,'THREE_QUARTER',body.three,'HEAD_TO_KNEE',.62,.08),
+  LEFT_THIRD_FULL_BODY:legacy('LEFT_THIRD_FULL_BODY','左三分 · 全身',.33,'FULL_BODY',body.full,'HEAD_TO_ANKLE',.8,.09,'LEFT_TOP'),
+  RIGHT_THIRD_FULL_BODY:legacy('RIGHT_THIRD_FULL_BODY','右三分 · 全身',.67,'FULL_BODY',body.full,'HEAD_TO_ANKLE',.8,.09,'RIGHT_BOTTOM'),
 });
+const scaleCandidate:Readonly<Record<FramingProfileIdV01,Readonly<{target:number;tolerance:number}>>>=Object.freeze({HEAD:{target:.16,tolerance:.04},HEAD_SHOULDERS:{target:.20,tolerance:.05},UPPER_BODY:{target:.42,tolerance:.07},THREE_QUARTER:{target:.62,tolerance:.08},FULL_BODY:{target:.80,tolerance:.09}});
+const labels:Readonly<Record<FramingProfileIdV01,string>>=Object.freeze({HEAD:'头部',HEAD_SHOULDERS:'头肩',UPPER_BODY:'上半身',THREE_QUARTER:'三分之三身',FULL_BODY:'全身'});const zoneLabels:Readonly<Record<PositionZoneIdV01,string>>=Object.freeze({LEFT_TOP:'左上',CENTER:'居中',RIGHT_BOTTOM:'右下'});
+const makeProfileTarget=(profileId:FramingProfileIdV01,zoneId:PositionZoneIdV01):Readonly<LiveTargetV02>=>{const profile=V4_FRAMING_PROFILES_V01[profileId],zone=V4_POSITION_ZONES_V01[zoneId],scale=scaleCandidate[profileId],id=`${profileId}_${zoneId}` as FramingProfileFixtureIdV01;return Object.freeze({target_version:'LiveTargetV02',id,source:'FIXTURE',label:`${zoneLabels[zoneId]} · ${labels[profileId]}`,framing_profile_id:profileId,position_zone:zoneId,required_body_parts:profile.required_regions,primary_anchor:profile.preferred_primary_anchor,target_anchor_x:zone.target_x,tolerance_x:zone.tolerance_x_enter,target_anchor_y:zone.target_y,tolerance_y:zone.tolerance_y_enter,scale_metric:profile.scale_metric,target_scale:scale.target,tolerance_scale:scale.tolerance,control_actor:'SUBJECT',ready_stable_ms:600});};
+export const V4_FRAMING_TARGET_FIXTURES_V01:Readonly<Record<FramingProfileFixtureIdV01,Readonly<LiveTargetV02>>>=Object.freeze(Object.fromEntries((Object.keys(V4_FRAMING_PROFILES_V01) as FramingProfileIdV01[]).flatMap(profile=>(Object.keys(V4_POSITION_ZONES_V01) as PositionZoneIdV01[]).map(zone=>{const target=makeProfileTarget(profile,zone);return [target.id,target];}))) as Record<FramingProfileFixtureIdV01,Readonly<LiveTargetV02>>);
+export const ALL_LIVE_TARGET_FIXTURES_V04:Readonly<Record<string,Readonly<LiveTargetV02>>>=Object.freeze({...LIVE_TARGET_FIXTURES_V02,...V4_FRAMING_TARGET_FIXTURES_V01});
 export const DEFAULT_LIVE_TARGET_V02=LIVE_TARGET_FIXTURES_V02.CENTER_UPPER_BODY;
-

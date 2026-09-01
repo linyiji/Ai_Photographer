@@ -1,5 +1,7 @@
 # 向风行｜Live V4 视觉线框与指示算法规范
 
+> Superseded by `18_LIVE_V4_VISUAL_GUIDANCE_AND_OVERLAY_ALGORITHM_V03.md` under 05G. Retained only as historical context.
+
 **Document ID:** `XFX_LIVE_V4_VISUAL_GUIDANCE_AND_OVERLAY_ALGORITHM_V02`
 **Status:** `OWNER_DESIGN_AUTHORITY / SUPERSEDES_V01`
 **Date:** `2026-08-31`

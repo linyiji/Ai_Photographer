@@ -1,5 +1,7 @@
 # Live V4 Body Visibility & Measurement Readiness V2
 
+> Superseded by `17_LIVE_V4_BODY_VISIBILITY_AND_MEASUREMENT_READINESS_V3.md` under 05G. Retained only as historical context.
+
 **Document ID:** `XFX_LIVE_V4_BODY_VISIBILITY_AND_MEASUREMENT_READINESS_V2`
 **Status:** `ACCEPTED_05A_MEASUREMENT_AUTHORITY`
 **Source head:** `ef7f6b52dd2ace562ce3e0e6c39ea856d6bda94c`

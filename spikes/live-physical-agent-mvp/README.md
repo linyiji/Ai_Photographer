@@ -4,6 +4,16 @@ V4 Human Observation + Target-relative Servo is available as an acceptance-only 
 
 For V4 manual testing, add `?controlPolicy=V4`, choose one of the six `V4 Target-relative Matrix` fixtures, initialize the local pose model, start the camera, and press `ARM V4 新试验`. Run Center, Left-third, Right-third and one combined required-body + scale + anchor path. `下载标量 Trace` exports only target/current scalar relations and causal timestamps—never camera frames/video or raw landmarks.
 
+## 05G framing profiles and dynamic READY
+
+05G adds five explicit framing profiles—`HEAD`, `HEAD_SHOULDERS`, `UPPER_BODY`, `THREE_QUARTER`, and `FULL_BODY`—without changing the six legacy target values. A profile separately declares its expected extent, required regions, anchors, measurements, scale metric, and primary anchor. `HEAD_SHOULDERS` requires head plus bilateral shoulders and explicitly does not require hips; legacy `CENTER_UPPER_BODY` keeps its head-to-hip meaning.
+
+The compact device surface exposes five 05G nodes in one camera session: Head × Center, Head Shoulders × Left Top, Upper Body × Center, Three Quarter × Right Bottom, and Full Body × Center. The first-to-last sweep covers all extents; the middle three are the representative position gate. The target frame, acceptable anchor zone, stabilized subject frame, and matching text remain visible together.
+
+READY now has two independent values: `trial_success_latched` is historical evidence, while `current_framing_ready` is current capture/UI truth. Current READY is revoked after bounded EXIT hysteresis when the subject, required measurement, target gap, scale, anchor, or meaningful-motion condition is no longer valid. A brief outside sample does not revoke READY. Persistent low-confidence evidence leaves generic waiting after 1500 ms and becomes an explicit bounded blocker.
+
+Synthetic browser acceptance is available at `?controlPolicy=V4&v4FramingGate=05G`; it runs 15 scalar-only combinations (5 profiles × 3 zones), requests no camera, and exposes the result through the page dataset. Automated/browser PASS does not replace the OPPO extent, position, and READY-revoke device gates.
+
 This isolated Mobile Web spike preserves accepted LIVE-P0 camera and LIVE-P1 perception, then adds only the deterministic local P2 chain:
 
 ```text

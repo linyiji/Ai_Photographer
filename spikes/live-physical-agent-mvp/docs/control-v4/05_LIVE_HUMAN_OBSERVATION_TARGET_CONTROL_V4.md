@@ -1,5 +1,7 @@
 # XFX Live V4 Human Observation & Target-Relative Control — Canonical
 
+> Superseded by `05_LIVE_HUMAN_OBSERVATION_TARGET_CONTROL_V4_CANONICAL_V2.md` under 05G. Retained only as historical context.
+
 **Document ID:** `XFX_LIVE_HUMAN_OBSERVATION_TARGET_CONTROL_V4_CANONICAL`
 **Status:** `OWNER_DESIGN_AUTHORITY / ALIGNED_AFTER_05A`
 **Accepted runtime evidence:** `ef7f6b52dd2ace562ce3e0e6c39ea856d6bda94c`

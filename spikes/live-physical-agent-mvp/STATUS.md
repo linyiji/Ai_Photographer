@@ -1,5 +1,24 @@
 # Live Physical Agent Spike Status
 
+V4 05G Task = XFX_LIVE_V4_FRAMING_PROFILE_AND_DYNAMIC_READY_AUTHORITY_REBASELINE_05G
+V4 05G Status = READY_FOR_MANUAL_DEVICE_TEST
+V4 05G Framing Profile Catalog = HEAD / HEAD_SHOULDERS / UPPER_BODY / THREE_QUARTER / FULL_BODY
+V4 05G HEAD_SHOULDERS Requires Hips / Default Full-body Requirement = NO / NO
+V4 05G Profile Requirement Separation = COVERAGE / REGIONS / ANCHORS / MEASUREMENTS / SCALE / PRIMARY ANCHOR PASS
+V4 05G Observed Extent Target Influence = 0
+V4 05G Position Zones = LEFT_TOP / CENTER / RIGHT_BOTTOM
+V4 05G X / Y Classification = PASS / PASS
+V4 05G Y Action = DEFERRED / CAMERA_OPERATOR_REQUIRED
+V4 05G Trial Success / Current READY = SEPARATED / SEPARATED
+V4 05G READY Revoke / Enter-Exit Separation = IMPLEMENTED / PASS_WITH_WARNING (DEVICE TUNING REQUIRED)
+V4 05G Persistent Low-confidence Wait = BOUNDED 1500 MS / USER-FIXABLE OR SYSTEM CLASSIFICATION
+V4 05G Automated Matrix = 15/15 PASS
+V4 05G Automated Tests / TypeScript / Build = 294/294 PASS / PASS / PASS (54 MODULES)
+V4 05G Browser Smoke = PASS / 15 SCENARIOS / 5 PROFILES / 3 ZONES / ZERO CONSOLE ERRORS
+V4 05G Device Extent Sweep / Position Gate / READY Revoke = SOURCE_REQUIRED / SOURCE_REQUIRED / SOURCE_REQUIRED
+V4 05G Gesture Gate = DEFERRED
+V4 05G Main Integration = NOT_STARTED
+
 V4 Architecture = IMPLEMENTED / ACCEPTANCE SANDBOX
 V4 Subject Lock / Body Visibility / Semantic Anchors = PASS / PASS_WITH_WARNING / PASS
 V4 HumanObservationV02 / LiveTargetV02 / LiveConstraintStateV01 = PASS / PASS / PASS
