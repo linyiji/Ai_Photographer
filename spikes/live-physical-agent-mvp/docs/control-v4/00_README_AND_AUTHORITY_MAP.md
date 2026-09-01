@@ -1,5 +1,19 @@
 # XFX Live V4 — 05H Device Gate + 05I Voice Presentation Authority Map
 
+## 06 canonical target authority overlay
+
+The long-term algorithm authority under
+`D:\Projects\Ai_Photographer\算法记录\Live_Guidance` governs the 06 test
+candidate. Its six canonical documents define the target-first pipeline,
+feasibility and ownership, goal-directed controller, multimodal presentation,
+state machine, acceptance matrix, and AOP order.
+
+06 supersedes the 05I action-selection and voice-event semantics while retaining
+the accepted Browser SpeechSynthesis platform adapter. Measurement and existing
+05G framing-profile target values are reused; they are not retuned here. P3
+physical feasibility, real-device threshold tuning, and OPPO acceptance remain
+SOURCE_REQUIRED / NOT_STARTED.
+
 Date: 2026-09-01
 Status: OWNER_ALGORITHM_AND_PRESENTATION_ACCEPTANCE_AUTHORITY
 Track: PARALLEL_LIVE
