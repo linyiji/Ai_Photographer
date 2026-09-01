@@ -168,6 +168,7 @@
             </label>
             <label class="toggle-setting legacy-debug-node"><input id="guidance-grid" type="checkbox" /> 九宫格（调试）</label>
             <label class="toggle-setting legacy-debug-node"><input id="semantic-debug" type="checkbox" /> Semantic Debug</label>
+            <label class="toggle-setting"><input id="voice-guidance" type="checkbox" checked /> 语音引导</label>
             <label class="target-picker">EVIDENCE SCENARIO
               <select id="scale-gate-scenario" aria-label="Scale Gate scenario">
                 <optgroup label="05G Framing Profile × Position Zone">
@@ -221,6 +222,7 @@
           <span id="cl-runtime-state" class="status-pill">STATE · IDLE</span>
           <span id="cl-ready" class="status-pill status-pill--muted">READY · FALSE</span>
           <span class="status-pill status-pill--muted">LUNA · OFF</span>
+          <span id="voice-status" class="status-pill status-pill--muted">VOICE · ON · UNPREPARED</span>
         </div>
         <p id="cl-instruction" class="instruction-copy" role="status" aria-live="polite">等待本机状态输入</p>
         <section id="v3-debug-panel" class="gate1-precondition" aria-label="Experimental control status" hidden>

@@ -1,5 +1,23 @@
 # Live Physical Agent Spike Status
 
+V4 05I Task = XFX_LIVE_V4_VOICE_PRESENTATION_AND_AUDIO_CUE_IMPLEMENTATION_05I
+V4 05I Status = IMPLEMENTATION PASS_WITH_WARNING / AUDIBLE OPPO GATE NOT STARTED
+V4 05I Presentation Single Source = TEXT / VISUAL / VOICE PASS
+V4 05I Voice Cue Engine / Output Port = PASS / PASS
+V4 05I H5 SpeechSynthesis Adapter = PASS_WITH_WARNING / AUTOMATED BROWSER UNAVAILABLE FALLBACK PASS
+V4 05I WeApp Voice Runtime / Build = DEFERRED / PASS
+V4 05I Default / Toggle = ON / PASS
+V4 05I Ordinary Cue Per ControlEpoch / No-response Reissue = 1 / 0
+V4 05I Old Direction After Settle / Stale READY / Post-READY Ordinary = 0 / 0 / 0
+V4 05I Control / Outcome / Response / READY Mutations = 0 / 0 / 0 / 0
+V4 05I Provider / Audio Upload / Audio Recording = 0 / 0 / 0
+V4 05I Automated / TypeScript / Live Build = 309/309 PASS / PASS / PASS (58 MODULES)
+V4 05I Compatibility H5 / WeApp = PASS_WITH_WARNING (EXISTING SIZE) / PASS
+V4 05I Browser Smoke = PASS_WITH_WARNING / DETERMINISTIC CAUSALITY PASS / SPEECHSYNTHESIS UNAVAILABLE
+V4 05I Projection Runtime Change = NO
+V4 05I OPPO Voice / Projection / Combined 05H+Voice Gate = NOT_STARTED / PENDING / NOT_STARTED
+V4 05I Main Integration = NOT_STARTED
+
 V4 05G Task = XFX_LIVE_V4_FRAMING_PROFILE_AND_DYNAMIC_READY_AUTHORITY_REBASELINE_05G
 V4 05G Status = READY_FOR_MANUAL_DEVICE_TEST
 V4 05G Framing Profile Catalog = HEAD / HEAD_SHOULDERS / UPPER_BODY / THREE_QUARTER / FULL_BODY

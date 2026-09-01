@@ -1,7 +1,7 @@
-# XFX Live V4 — 05H Device Gate Authority Map
+# XFX Live V4 — 05H Device Gate + 05I Voice Presentation Authority Map
 
 Date: 2026-09-01
-Status: OWNER_ALGORITHM_AND_ACCEPTANCE_AUTHORITY
+Status: OWNER_ALGORITHM_AND_PRESENTATION_ACCEPTANCE_AUTHORITY
 Track: PARALLEL_LIVE
 
 ## Current authority
@@ -21,6 +21,23 @@ The V01 algorithm and acceptance documents remain historical 05G baselines and
 are superseded for the 05H device verdict. The 05H alignment does not authorize
 runtime changes, target/threshold tuning, Main integration, or repeated 05F
 LEFT/RIGHT calibration without fresh invalidating evidence.
+
+## 05I voice presentation authority
+
+05I adds a presentation-only voice channel over the same current V4 semantic
+state. It does not change measurement, control, response, target, thresholds,
+or READY. Read in this order:
+
+1. `26_LIVE_V4_VOICE_PRESENTATION_AND_AUDIO_CUE_ALGORITHM_V01.md`
+2. `27_LIVE_V4_VOICE_CUE_SCHEDULER_AND_CAUSALITY_V01.md`
+3. `28_LIVE_V4_AUDIO_PLATFORM_ADAPTER_AND_UNLOCK_V01.md`
+4. `29_LIVE_V4_VOICE_ACCEPTANCE_GATE_V01.md`
+5. `30_LIVE_V4_05H_PLUS_VOICE_COMBINED_DEVICE_GATE_AMENDMENT_V01.md`
+
+H5 uses the browser SpeechSynthesis adapter with `zh-CN` feature detection and
+graceful fallback. External TTS/AI providers, audio upload/recording, and WeApp
+voice runtime are not authorized. The combined OPPO device gate remains a
+separate manual gate and does not start automatically after 05I implementation.
 
 ## 核心修正
 
@@ -105,4 +122,3 @@ RIGHT_BOTTOM
 → 详细姿势
 → 手势
 ```
-
